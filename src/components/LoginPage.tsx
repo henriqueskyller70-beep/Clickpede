@@ -176,11 +176,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onClose, onSwitchToRegiste
         {loading ? 'Conectando...' : 'Continuar com Google'}
       </button>
 
-      <div className="mt-6 text-center space-y-2">
-        <button onClick={onSwitchToRegister} className="text-sm text-[#9f1239] hover:underline font-medium block">
+      <div className="mt-6 flex flex-col items-center space-y-2">
+        <button onClick={onSwitchToRegister} className="text-sm text-[#9f1239] hover:underline font-medium">
           Não tem uma conta? Cadastre-se
         </button>
-        <button onClick={onSwitchToForgotPassword} className="text-sm text-gray-500 hover:underline font-medium block">
+        <button onClick={onSwitchToForgotPassword} className="text-sm text-gray-500 hover:underline font-medium">
           Esqueceu sua senha?
         </button>
       </div>
