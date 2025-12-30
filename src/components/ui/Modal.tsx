@@ -48,11 +48,11 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, children, title }) 
         {title && (
           <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-4">
             <h3 className="font-bold text-xl text-gray-900">{title}</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-50"><X className="w-5 h-5"/></button>
+            <button onClick={onClose} className="text-gray-900 hover:text-gray-600 p-2 rounded-full hover:bg-gray-50"><X className="w-5 h-5"/></button>
           </div>
         )}
         {!title && ( // If no title, still provide a close button
-          <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-50"><X className="w-5 h-5"/></button>
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-900 hover:text-gray-600 p-2 rounded-full hover:bg-gray-50"><X className="w-5 h-5"/></button>
         )}
         {children}
       </div>
