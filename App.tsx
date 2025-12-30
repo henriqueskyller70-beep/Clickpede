@@ -91,9 +91,9 @@ const App: React.FC = () => {
   // Tela de Boas-vindas / Login
   if (!session) {
     return (
-      <div className="min-h-screen bg-black font-sans overflow-x-hidden">
+      <div className="min-h-screen bg-[#1a1a1a] font-sans overflow-x-hidden">
         {/* Header */}
-        <header className="w-full bg-black py-4 px-6 md:px-12 flex justify-between items-center fixed top-0 z-50 shadow-md border-b border-gray-800">
+        <header className="w-full bg-[#1a1a1a] py-4 px-6 md:px-12 flex justify-between items-center fixed top-0 z-50 shadow-md border-b border-gray-800">
           <div className="flex items-center gap-1">
               <h1 className="text-2xl font-bold text-white tracking-tighter">Click <span className="text-yellow-400">PEDE</span></h1>
           </div>
@@ -154,7 +154,7 @@ const App: React.FC = () => {
           </div>
 
           {/* Right Side - Login Form */}
-          <div className="md:w-[500px] bg-[#881337] flex items-center justify-center p-8 relative">
+          <div className="md:w-[500px] bg-[#9f1239] md:bg-[#881337] flex items-center justify-center p-8 relative">
                {/* White Card */}
                <LoginPage />
           </div>
