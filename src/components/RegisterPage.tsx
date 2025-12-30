@@ -107,7 +107,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onClose, onSwitchToL
       {/* <h2 className="text-3xl font-bold text-gray-900 text-center mb-6 mt-4">Crie sua Conta</h2> */} {/* Removido título */}
 
       <form onSubmit={handleRegister} className="space-y-5">
-        <div className="space-y-4"> {/* Alterado para space-y-4 para empilhamento vertical */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Nome:</label>
                 <input 
