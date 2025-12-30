@@ -179,6 +179,9 @@ const App: React.FC = () => {
               <a href="#" className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium">Funcionalidades</a>
               <a href="#" className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium">Planos</a>
               <a href="#" className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium">Sobre nós</a>
+              <a href="#/register" className="bg-yellow-400 text-gray-900 px-6 py-2 rounded-lg hover:bg-yellow-500 transition-colors text-sm font-medium shadow-md">
+                  Cadastre-se
+              </a>
               <a href="#/" className="bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-black transition-colors text-sm font-medium shadow-md">
                   Login
               </a>
