@@ -63,19 +63,20 @@ const App: React.FC = () => {
 
     if (session) {
       // Usuário autenticado
-      if (route === '#/' || route === '#/register' || route === '#/forgot-password' || route === '#/reset-password') {
-        console.log('App.tsx - Usuário autenticado em rota pública, redirecionando para dashboard.');
+      // Se tentar acessar rotas de autenticação (que são modais sobre a landing page),
+      // redireciona para o dashboard, pois já está logado.
+      if (route === '#/register' || route === '#/forgot-password' || route === '#/reset-password') {
+        console.log('App.tsx - Usuário autenticado em rota de autenticação, redirecionando para dashboard.');
         window.location.hash = '#/dashboard';
       }
-      // Se estiver em #/dashboard ou #/store, permite.
+      // Se estiver em '#/' (landing page), '#/dashboard', '#/store', permite.
     } else {
       // Usuário não autenticado
       if (route.startsWith('#/dashboard')) {
         console.log('App.tsx - Usuário não autenticado em rota de dashboard, redirecionando para raiz.');
         window.location.hash = '#/';
       }
-      // Se estiver em #/store ou #/reset-password, permite.
-      // As rotas #/, #/register, #/forgot-password agora abrem modais sobre a landing page.
+      // Se estiver em '#/' (landing page), '#/store', '#/register', '#/forgot-password', '#/reset-password', permite.
     }
   }, [session, route]);
 
