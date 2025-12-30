@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Package, ShoppingBag, Settings, Plus, 
   Trash2, Edit, LogOut, Store, Users, FileText, ChevronDown, Menu, Clock,
-  GripVertical, Search, X, Copy, Star, Infinity, User as UserIcon // Renomear User para evitar conflito, adicionar Infinity
+  GripVertical, Search, X, Copy, Star, Infinity, User as UserIcon, TrendingUp // Renomear User para evitar conflito, adicionar Infinity, TrendingUp
 } from 'lucide-react';
 import { Product, Category, StoreProfile, Order, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
 import { storageService } from '../services/storageService';
@@ -13,6 +13,8 @@ import { debounce } from '../src/utils/debounce'; // Import the debounce utility
 import { Modal } from '../src/components/ui/Modal'; // Importar o novo componente Modal
 import { AddSubProductModal } from '../src/components/AddSubProductModal'; // Importar o novo modal de sub-produto
 import { CopyOptionModal } from '../src/components/CopyOptionModal'; // Importar o novo modal de cópia
+import { SalesCharts } from '../src/components/SalesCharts'; // NOVO: Importar SalesCharts
+import { RecentOrders } from '../src/components/RecentOrders'; // NOVO: Importar RecentOrders
 
 // DND Kit Imports
 import {
@@ -110,6 +112,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   // NOVO: Estado para o grupo ativo sendo arrastado (para DragOverlay)
   const [activeGroup, setActiveGroup] = useState<Group | null>(null);
 
+  // NOVO: Estados para dados de gráficos e produtos mais vendidos
+  const [weeklySalesData, setWeeklySalesData] = useState<{ name: string; sales: number }[]>([]);
+  const [monthlySalesData, setMonthlySalesData] = useState<{ name: string; sales: number }[]>([]);
+  const [topSellingProducts, setTopSellingProducts] = useState<
+    { name: string; totalQuantity: number; totalRevenue: number }[]
+  >([]);
+
 
   // DND Kit Sensors
   const sensors = useSensors(
@@ -145,13 +154,87 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     [supabase] // Dependency array for useCallback
   );
 
+  // Função auxiliar para calcular o preço total de um item no carrinho, incluindo opções
+  const calculateItemTotalPrice = (item: Order['items'][0], allProducts: Product[]) => {
+    let total = item.price; // Base price of the product
+    if (item.selectedOptions) {
+      item.selectedOptions.forEach(selOpt => {
+        const originalProduct = allProducts.find(p => p.id === item.id);
+        const option = originalProduct?.options.find(opt => opt.id === selOpt.optionId);
+        const subProduct = option?.subProducts.find(sp => sp.id === selOpt.subProductId);
+        if (subProduct) {
+          total += subProduct.price * selOpt.quantity;
+        }
+      });
+    }
+    return total;
+  };
+
+  // Gerar dados fictícios para gráficos
+  const generateWeeklySalesData = () => {
+    const data = [];
+    const today = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const dayName = d.toLocaleDateString('pt-BR', { weekday: 'short' });
+      data.push({
+        name: dayName,
+        sales: Math.floor(Math.random() * 500) + 100, // Sales between 100 and 600
+      });
+    }
+    return data;
+  };
+
+  const generateMonthlySalesData = () => {
+    const data = [];
+    const today = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(today);
+      d.setMonth(today.getMonth() - i);
+      const monthName = d.toLocaleDateString('pt-BR', { month: 'short' });
+      data.push({
+        name: monthName,
+        sales: Math.floor(Math.random() * 5000) + 1000, // Sales between 1000 and 6000
+      });
+    }
+    return data;
+  };
+
+  const getTopSellingProducts = (orders: Order[], allProducts: Product[]) => {
+    const productSales: { [productId: string]: { name: string; totalQuantity: number; totalRevenue: number } } = {};
+
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        const productId = item.id!; // Assuming item.id is the product ID
+        if (!productSales[productId]) {
+          productSales[productId] = {
+            name: item.name,
+            totalQuantity: 0,
+            totalRevenue: 0,
+          };
+        }
+        productSales[productId].totalQuantity += item.quantity;
+        productSales[productId].totalRevenue += calculateItemTotalPrice(item, allProducts) * item.quantity;
+      });
+    });
+
+    return Object.values(productSales)
+      .sort((a, b) => b.totalQuantity - a.totalQuantity) // Sort by quantity sold
+      .slice(0, 5); // Get top 5
+  };
+
+
   // Carregar dados do Supabase ao montar o componente ou quando o userId mudar
   useEffect(() => {
     const loadData = async () => {
       if (userId) {
-        setProducts(await storageService.getProducts(supabase, userId));
-        setOrders(await storageService.getOrders(supabase, userId));
+        const fetchedProducts = await storageService.getProducts(supabase, userId);
+        const fetchedOrders = await storageService.getOrders(supabase, userId);
         const fetchedSchedule = await storageService.getStoreSchedule(supabase, userId);
+        
+        setProducts(fetchedProducts);
+        setOrders(fetchedOrders);
         setStoreSchedule(fetchedSchedule);
         
         // Define o estado de fechamento temporário com base em reopenAt ou isTemporariamenteClosedIndefinidamente
@@ -167,6 +250,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         // Carregar perfil do usuário
         const userProf = await storageService.getProfile(supabase, userId);
         setUserProfile(userProf);
+
+        // Gerar dados para gráficos e produtos mais vendidos
+        setWeeklySalesData(generateWeeklySalesData());
+        setMonthlySalesData(generateMonthlySalesData());
+        setTopSellingProducts(getTopSellingProducts(fetchedOrders, fetchedProducts));
 
         console.log('[Dashboard] Perfil da loja carregado. Logo URL:', profile.logoUrl, 'Cover URL:', profile.coverUrl);
       } else {
@@ -193,6 +281,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         setCoverPreview(null);
         setGroups([]);
         setUserProfile(null);
+        setWeeklySalesData([]);
+        setMonthlySalesData([]);
+        setTopSellingProducts([]);
         console.log('[Dashboard] Usuário deslogado, estados limpos.');
       }
     };
@@ -1210,6 +1301,53 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                 <span className="bg-yellow-100 text-yellow-600 p-2 rounded-lg shadow-md"><Store size={20} /></span>
                             </div>
                             <p className="text-3xl font-bold text-gray-800">{products.length}</p>
+                        </div>
+                    </div>
+
+                    {/* NOVO: Seção de Gráficos de Vendas */}
+                    <div className="mt-8">
+                        <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                            <TrendingUp className="drop-shadow-sm" style={{ color: storeProfile.primaryColor }} />
+                            Visão Geral de Vendas
+                        </h3>
+                        <SalesCharts 
+                            storePrimaryColor={storeProfile.primaryColor} 
+                            weeklySalesData={weeklySalesData} 
+                            monthlySalesData={monthlySalesData} 
+                        />
+                    </div>
+
+                    {/* NOVO: Seção de Pedidos Recentes e Produtos Mais Vendidos */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                        {/* Pedidos Recentes */}
+                        <RecentOrders 
+                            orders={orders} 
+                            storePrimaryColor={storeProfile.primaryColor} 
+                            onViewAllOrders={() => setActiveTab('orders')} 
+                        />
+
+                        {/* Produtos Mais Vendidos */}
+                        <div className="bg-white p-6 rounded-xl shadow-xl border border-gray-100 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
+                            <h3 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100">Produtos Mais Vendidos</h3>
+                            {topSellingProducts.length === 0 ? (
+                                <div className="text-center text-gray-500 py-4">Nenhum produto vendido ainda.</div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {topSellingProducts.map((product, index) => (
+                                        <div key={product.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 shadow-sm">
+                                            <div className="flex items-center gap-3">
+                                                <span className="font-bold text-gray-600">{index + 1}.</span>
+                                                <div>
+                                                    <p className="font-medium text-gray-800 text-sm">{product.name}</p>
+                                                    <p className="text-xs text-gray-500">{product.totalQuantity} unidades vendidas</p>
+                                                </div>
+                                            </div>
+                                            <p className="font-bold text-gray-900 text-sm">R$ {product.totalRevenue.toFixed(2)}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
