@@ -169,7 +169,7 @@ export const LoginPage: React.FC = () => {
         <a href="#/register" className="text-sm text-[#9f1239] hover:underline font-medium block">
           Não tem uma conta? Cadastre-se
         </a>
-        <a href="#/forgot-password" className="text-sm text-gray-500 hover:underline font-medium block">
+        <a href="#/reset-password" className="text-sm text-gray-500 hover:underline font-medium block">
           Esqueceu sua senha?
         </a>
       </div>
