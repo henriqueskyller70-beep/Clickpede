@@ -3,8 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useSession } from './SessionContextProvider'; // Importar o hook de sessão
+import { showSuccess, showError } from '../utils/toast'; // Importar toasts
 
-export const LoginPage: React.FC = () => {
+interface LoginPageProps {
+  onClose: () => void;
+  onSwitchToRegister: () => void;
+  onSwitchToForgotPassword: () => void;
+}
+
+export const LoginPage: React.FC<LoginPageProps> = ({ onClose, onSwitchToRegister, onSwitchToForgotPassword }) => {
   const { supabase } = useSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -51,11 +58,14 @@ export const LoginPage: React.FC = () => {
           errorMessage = 'Seu e-mail ainda não foi confirmado. Por favor, verifique sua caixa de entrada.';
         }
         setError(errorMessage);
+        showError(errorMessage);
       } else {
-        // Redirecionamento será tratado pelo useEffect no App.tsx
+        showSuccess('Login realizado com sucesso!');
+        onClose(); // Fechar o modal após o login bem-sucedido
       }
     } catch (err: any) {
       setError('Ocorreu um erro inesperado. Tente novamente.');
+      showError('Ocorreu um erro inesperado. Tente novamente.');
       console.error('Erro de login:', err);
     } finally {
       setLoading(false);
@@ -78,6 +88,7 @@ export const LoginPage: React.FC = () => {
     if (error) {
       console.error(error);
       setError('Erro ao autenticar com Google');
+      showError('Erro ao autenticar com Google');
       setLoading(false);
     }
   };
@@ -166,12 +177,12 @@ export const LoginPage: React.FC = () => {
       </button>
 
       <div className="mt-6 text-center space-y-2">
-        <a href="#/register" className="text-sm text-[#9f1239] hover:underline font-medium block">
+        <button onClick={onSwitchToRegister} className="text-sm text-[#9f1239] hover:underline font-medium block">
           Não tem uma conta? Cadastre-se
-        </a>
-        <a href="#/forgot-password" className="text-sm text-gray-500 hover:underline font-medium block">
+        </button>
+        <button onClick={onSwitchToForgotPassword} className="text-sm text-gray-500 hover:underline font-medium block">
           Esqueceu sua senha?
-        </a>
+        </button>
       </div>
     </div>
   );

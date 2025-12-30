@@ -3,8 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useSession } from './SessionContextProvider'; // Importar o hook de sessão
+import { showSuccess, showError } from '../utils/toast'; // Importar toasts
 
-export const RegisterPage: React.FC = () => {
+interface RegisterPageProps {
+  onClose: () => void;
+  onSwitchToLogin: () => void;
+}
+
+export const RegisterPage: React.FC<RegisterPageProps> = ({ onClose, onSwitchToLogin }) => {
   const { supabase } = useSession(); // Usar o cliente Supabase do contexto
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -26,6 +32,7 @@ export const RegisterPage: React.FC = () => {
 
     if (password !== confirmPassword) {
       setError('As senhas não coincidem.');
+      showError('As senhas não coincidem.');
       setLoading(false);
       return;
     }
@@ -45,13 +52,16 @@ export const RegisterPage: React.FC = () => {
 
       if (error) {
         setError(error.message);
+        showError(error.message);
       } else if (data.user) {
         setMessage('Cadastro realizado com sucesso! Verifique seu e-mail para confirmar sua conta.');
+        showSuccess('Cadastro realizado com sucesso! Verifique seu e-mail para confirmar sua conta.');
         // Redireciona para a página de login após o cadastro
-        window.location.hash = '#/'; 
+        onSwitchToLogin(); 
       }
     } catch (err: any) {
       setError(err.message);
+      showError(err.message);
     } finally {
       setLoading(false);
     }
@@ -79,11 +89,13 @@ export const RegisterPage: React.FC = () => {
             if (error) {
                 console.error(error);
                 setError(error.message);
+                showError(error.message);
             }
             // Se não houver erro, o Supabase redirecionará o usuário para o Google e depois de volta.
             // O useEffect no App.tsx cuidará do redirecionamento para o dashboard se a sessão for estabelecida.
         } catch (err: any) {
             setError('Erro ao tentar autenticar com Google.');
+            showError('Erro ao tentar autenticar com Google.');
             console.error('Erro Google Sign-In:', err);
         } finally {
             setLoading(false);
@@ -221,9 +233,9 @@ export const RegisterPage: React.FC = () => {
       </button>
 
       <div className="mt-6 text-center">
-        <a href="#/" className="text-sm text-[#9f1239] hover:underline font-medium">
+        <button onClick={onSwitchToLogin} className="text-sm text-[#9f1239] hover:underline font-medium">
           Já tem uma conta? Faça login
-        </a>
+        </button>
       </div>
     </div>
   );
