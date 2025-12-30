@@ -22,7 +22,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleHashChange = () => {
-      const currentHash = window.location.hash || '#/';
+      const currentHash = window.location.hash || ''; // Use string vazia para 'sem hash'
       setRoute(currentHash);
 
       // Fechar todos os modais antes de abrir o correto
@@ -33,12 +33,11 @@ const App: React.FC = () => {
       // Abrir modal específico baseado no hash
       if (currentHash === '#/register') {
         setIsRegisterModalOpen(true);
-      } else if (currentHash === '#/') {
-        setIsLoginModalOpen(true);
       } else if (currentHash === '#/forgot-password') {
         setIsForgotPasswordModalOpen(true);
       }
-      // Para #/reset-password, a página será renderizada diretamente, não como modal sobre a landing page
+      // REMOVIDO: Abertura automática do modal de login para '#/'
+      // O modal de login agora será aberto APENAS pelo clique no botão 'Login'
     };
 
     window.addEventListener('hashchange', handleHashChange);
@@ -132,9 +131,13 @@ const App: React.FC = () => {
             <a href="#/register" className="bg-yellow-400 text-gray-900 px-6 py-2 rounded-lg hover:bg-yellow-500 transition-colors text-sm font-medium shadow-md transform active:scale-95">
                 Cadastre-se
             </a>
-            <a href="#/" className="bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-black transition-colors text-sm font-medium shadow-md transform active:scale-95">
+            {/* Botão Login agora abre o modal diretamente */}
+            <button 
+                onClick={() => setIsLoginModalOpen(true)} 
+                className="bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-black transition-colors text-sm font-medium shadow-md transform active:scale-95"
+            >
                 Login
-            </a>
+            </button>
         </nav>
       </header>
 
