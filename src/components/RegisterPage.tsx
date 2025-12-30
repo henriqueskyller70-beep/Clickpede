@@ -107,29 +107,28 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onClose, onSwitchToL
       {/* <h2 className="text-3xl font-bold text-gray-900 text-center mb-6 mt-4">Crie sua Conta</h2> */} {/* Removido título */}
 
       <form onSubmit={handleRegister} className="space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Nome:</label>
-                <input 
-                    type="text" 
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-[#9f1239] focus:outline-none transition-shadow"
-                    placeholder="Seu nome"
-                    required
-                />
-            </div>
-            <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Sobrenome:</label>
-                <input 
-                    type="text" 
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-[#9f1239] focus:outline-none transition-shadow"
-                    placeholder="Seu sobrenome"
-                    required
-                />
-            </div>
+        {/* Removido o grid de 2 colunas para Nome e Sobrenome para manter o modal mais estreito */}
+        <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Nome:</label>
+            <input 
+                type="text" 
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-[#9f1239] focus:outline-none transition-shadow"
+                placeholder="Seu nome"
+                required
+            />
+        </div>
+        <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Sobrenome:</label>
+            <input 
+                type="text" 
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-[#9f1239] focus:outline-none transition-shadow"
+                placeholder="Seu sobrenome"
+                required
+            />
         </div>
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1">Telefone:</label>
