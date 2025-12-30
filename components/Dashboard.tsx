@@ -15,6 +15,7 @@ import { AddSubProductModal } from '../src/components/AddSubProductModal'; // Im
 import { CopyOptionModal } from '../src/components/CopyOptionModal'; // Importar o novo modal de cópia
 import { SalesCharts } from '../src/components/SalesCharts'; // NOVO: Importar SalesCharts
 import { RecentOrders } from '../src/components/RecentOrders'; // NOVO: Importar RecentOrders
+import { AppLogo } from '../src/components/AppLogo'; // Importar o novo componente AppLogo
 
 // DND Kit Imports
 import {
@@ -521,7 +522,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         const updatedProducts = prevProducts.map(product => {
           if (product.id === productId) {
             return {
-              ...product,
+              ...p,
               options: product.options.map(option => {
                 if (option.id === optionId) {
                   const oldIndex = option.subProducts.findIndex(subProduct => subProduct.id === active.id);
@@ -1052,10 +1053,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       >
         <div className="p-5 border-b border-gray-700 flex items-center justify-between">
            <div className={`flex items-center gap-2 ${isSidebarCollapsed ? 'hidden' : 'flex'}`}>
-               <div className="w-1 h-6 rounded-full shadow-md" style={{ backgroundColor: storeProfile.primaryColor }}></div>
-               <h1 className="text-xl font-bold text-white tracking-wide drop-shadow-sm">
-                 Click <span style={{ color: storeProfile.primaryColor }}>PEDE</span>
-               </h1>
+               {/* Usando o componente AppLogo aqui */}
+               <AppLogo 
+                   isCollapsed={isSidebarCollapsed} 
+                   textColor="text-white" 
+                   highlightColor={storeProfile.primaryColor} 
+               />
            </div>
            <button 
                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
