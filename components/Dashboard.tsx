@@ -1251,34 +1251,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
             {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
                 <div className="space-y-8 animate-in fade-in duration-500">
-                    <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl min-h-[300px] flex border border-gray-200 bg-gradient-to-br from-white to-gray-50">
-                        <div className="absolute inset-0 bg-[linear-gradient(115deg,#fbbf24_55%,#2d1a1a_55%)] opacity-90"></div>
-                        <div className="relative z-10 w-full flex items-center">
-                            <div className="w-[55%] p-12 pr-20 flex flex-col justify-center h-full">
-                                <h1 className="text-4xl font-extrabold text-white drop-shadow-lg mb-4">
-                                    Bem-vindo ao Painel!
-                                </h1>
-                                <h2 className="text-2xl font-bold text-white mb-4 drop-shadow-md">
-                                    Gerencie seu delivery com facilidade
-                                </h2>
-                                <p className="text-white/90 font-medium mb-8 leading-relaxed max-w-lg drop-shadow-sm">
-                                    Aqui você controla pedidos, cardápio, clientes e muito mais, tudo de forma rápida e moderna.
-                                </p>
-                                <div className="flex gap-4">
-                                    <button onClick={() => setActiveTab('orders')} className="bg-[#dc2626] text-white px-8 py-3 rounded-full font-bold hover:bg-red-700 transition-colors shadow-xl transform active:scale-95">
-                                        Ver Pedidos
-                                    </button>
-                                    <button className="bg-transparent border-2 border-white text-white px-8 py-3 rounded-full font-bold hover:bg-white/10 transition-colors transform active:scale-95">
-                                        Saiba Mais
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="w-[45%] h-full relative">
-                                <div className="absolute top-10 right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl animate-pulse"></div>
-                                <div className="absolute bottom-10 left-10 w-48 h-48 bg-yellow-500/15 rounded-full blur-3xl animate-pulse delay-100"></div>
-                            </div>
-                        </div>
-                    </div>
+                    {/* REMOVIDO: Painel de boas-vindas */}
                     {/* Stats grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                         <div className="bg-white p-6 rounded-xl shadow-xl border border-gray-100 transform hover:scale-[1.02] hover:shadow-2xl transition-all duration-200 relative overflow-hidden">
