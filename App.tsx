@@ -177,19 +177,19 @@ const App: React.FC = () => {
           <nav className="hidden md:flex items-center gap-8">
               <a href="#" className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium group relative overflow-hidden transform hover:scale-[1.02] hover:shadow-lg">
                   Home
-                  <span className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
+                  <span className="absolute inset-0 bg-yellow-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
               </a>
               <a href="#" className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium group relative overflow-hidden transform hover:scale-[1.02] hover:shadow-lg">
                   Funcionalidades
-                  <span className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
+                  <span className="absolute inset-0 bg-yellow-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
               </a>
               <a href="#" className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium group relative overflow-hidden transform hover:scale-[1.02] hover:shadow-lg">
                   Planos
-                  <span className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
+                  <span className="absolute inset-0 bg-yellow-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
               </a>
               <a href="#" className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium group relative overflow-hidden transform hover:scale-[1.02] hover:shadow-lg">
                   Sobre nós
-                  <span className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
+                  <span className="absolute inset-0 bg-yellow-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
               </a>
               <a href="#/register" className="bg-yellow-400 text-gray-900 px-6 py-2 rounded-lg hover:bg-yellow-500 transition-colors text-sm font-medium shadow-md transform active:scale-95">
                   Cadastre-se
