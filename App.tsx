@@ -69,7 +69,12 @@ const App: React.FC = () => {
         console.log('App.tsx - Usuário autenticado em rota de autenticação, redirecionando para dashboard.');
         window.location.hash = '#/dashboard';
       }
-      // Se estiver em '#/' (landing page), '#/dashboard', '#/store', permite.
+      // Se o usuário estiver logado e na rota raiz ('#/'), redireciona para o dashboard.
+      else if (route === '#/') {
+        console.log('App.tsx - Usuário autenticado na rota raiz, redirecionando para dashboard.');
+        window.location.hash = '#/dashboard';
+      }
+      // Se estiver em '#/dashboard' ou '#/store', permite.
     } else {
       // Usuário não autenticado
       if (route.startsWith('#/dashboard')) {
