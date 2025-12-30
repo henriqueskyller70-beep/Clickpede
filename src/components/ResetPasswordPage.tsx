@@ -50,56 +50,55 @@ export const ResetPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#9f1239] flex items-center justify-center p-8">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative z-10">
-        <h2 className="text-3xl font-bold text-gray-900 text-center mb-6 mt-4">Redefinir Senha</h2>
+    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative z-10">
+      <h2 className="text-3xl font-bold text-gray-900 text-center mb-6 mt-4">Redefinir Senha</h2>
 
-        <form onSubmit={handlePasswordReset} className="space-y-5">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Nova Senha:</label>
-            <div className="relative">
-              <input 
-                type={showNewPassword ? "text" : "password"}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-[#9f1239] focus:outline-none transition-shadow pr-10"
-                placeholder="******"
-                required
-                minLength={6}
-              />
-              <button 
-                type="button" 
-                onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showNewPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
-              </button>
-            </div>
+      <form onSubmit={handlePasswordReset} className="space-y-5">
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">Nova Senha:</label>
+          <div className="relative">
+            <input 
+              type={showNewPassword ? "text" : "password"}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-[#9f1239] focus:outline-none transition-shadow pr-10"
+              placeholder="******"
+              required
+              minLength={6}
+            />
+            <button 
+              type="button" 
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              {showNewPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
+            </button>
           </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Confirmar Nova Senha:</label>
-            <div className="relative">
-              <input 
-                type={showConfirmNewPassword ? "text" : "password"}
-                value={confirmNewPassword}
-                onChange={(e) => setConfirmNewPassword(e.target.value)}
-                className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-[#9f1239] focus:outline-none transition-shadow pr-10"
-                placeholder="******"
-                required
-                minLength={6}
-              />
-              <button 
-                type="button" 
-                onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showConfirmNewPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
-              </button>
-            </div>
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">Confirmar Nova Senha:</label>
+          <div className="relative">
+            <input 
+              type={showConfirmNewPassword ? "text" : "password"}
+              value={confirmNewPassword}
+              onChange={(e) => setConfirmNewPassword(e.target.value)}
+              className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-[#9f1239] focus:outline-none transition-shadow pr-10"
+              placeholder="******"
+              required
+              minLength={6}
+            />
+            <button 
+              type="button" 
+              onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              {showConfirmNewPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
+            </button>
           </div>
+        </div>
 
-          {error && (
-            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-md border border-red-200">
+        {error && (
+          <div className="bg-red-50 text-red-600 text-sm p-3 rounded-md border border-red-200">
               {error}
             </div>
           )}
@@ -123,6 +122,5 @@ export const ResetPasswordPage: React.FC = () => {
           </a>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };

@@ -5,15 +5,13 @@ import { RegisterPage } from './src/components/RegisterPage';
 import { LoginPage } from './src/components/LoginPage';
 import { ProfileSettingsPage } from './src/components/ProfileSettingsPage'; // Importar ProfileSettingsPage
 import { ResetPasswordPage } from './src/components/ResetPasswordPage'; // Import ResetPasswordPage
-import { Bike, Sandwich, PackageCheck, ChevronRight } from 'lucide-react';
+import { Bike, Sandwich, PackageCheck, ChevronRight, ShoppingCart } from 'lucide-react'; // Added ShoppingCart for logo
 import { useSession } from './src/components/SessionContextProvider';
 
 const App: React.FC = () => {
   console.log('App.tsx: Component rendering'); // Log no início da renderização do componente
   const { session, supabase } = useSession();
   const [route, setRoute] = useState(window.location.hash || '#/');
-
-  // O efeito para lidar com a limpeza inicial do hash foi movido para index.tsx
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -43,7 +41,7 @@ const App: React.FC = () => {
 
     if (session) {
       // Usuário autenticado
-      if (route === '#/' || route === '#/register') {
+      if (route === '#/' || route === '#/register' || route === '#/forgot-password' || route === '#/reset-password') { // Include forgot-password and reset-password
         console.log('App.tsx - Usuário autenticado em rota pública, redirecionando para dashboard.');
         window.location.hash = '#/dashboard';
       }
@@ -54,7 +52,7 @@ const App: React.FC = () => {
         console.log('App.tsx - Usuário não autenticado em rota de dashboard, redirecionando para raiz.');
         window.location.hash = '#/';
       }
-      // Se estiver em #/, #/register, ou #/store, permite.
+      // Se estiver em #/, #/register, #/store, #/forgot-password, #/reset-password, permite.
     }
   }, [session, route]);
 
@@ -71,106 +69,141 @@ const App: React.FC = () => {
     return <Dashboard onLogout={handleLogout} onNavigate={handleNavigate} />;
   }
 
-  if (route === '#/register') {
+  // Renderiza LoginPage, RegisterPage, ResetPasswordPage com um layout mais genérico
+  const renderAuthPage = (AuthComponent: React.FC) => {
     if (session) {
       return null; // Redirecionado pelo useEffect
     }
     return (
-      <div className="min-h-screen bg-[#9f1239] flex items-center justify-center p-8">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8"> {/* Changed background to light gray */}
         <div className="w-full max-w-md">
-          <RegisterPage />
+          <AuthComponent />
         </div>
       </div>
     );
+  };
+
+  if (route === '#/register') {
+    return renderAuthPage(RegisterPage);
   }
 
-  if (route === '#/reset-password') { // New route for password reset
-    return <ResetPasswordPage />;
+  if (route === '#/reset-password') {
+    return renderAuthPage(ResetPasswordPage);
   }
 
-  // Tela de Boas-vindas / Login
+  if (route === '#/forgot-password') { // Add a route for forgot password
+    // Need to create a ForgotPasswordPage component
+    // For now, I'll just redirect to login or handle it within LoginPage
+    // Let's add a simple ForgotPasswordPage for now.
+    return renderAuthPage(() => {
+      const [email, setEmail] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [message, setMessage] = useState('');
+      const [error, setError] = useState('');
+
+      const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setMessage('');
+        setLoading(true);
+        try {
+          await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/#/reset-password`,
+          });
+          setMessage('Verifique seu e-mail para o link de redefinição de senha.');
+        } catch (err: any) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      return (
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full relative z-10">
+          <h2 className="text-3xl font-bold text-gray-900 text-center mb-6 mt-4">Esqueceu sua Senha?</h2>
+          <p className="text-gray-600 text-center mb-6">
+            Insira seu e-mail para receber um link de redefinição de senha.
+          </p>
+          <form onSubmit={handleForgotPassword} className="space-y-5">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">E-mail:</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-[#9f1239] focus:outline-none transition-shadow"
+                placeholder="seuemail@exemplo.com"
+                required
+              />
+            </div>
+            {error && (
+              <div className="bg-red-50 text-red-600 text-sm p-3 rounded-md border border-red-200">
+                {error}
+              </div>
+            )}
+            {message && (
+              <div className="bg-green-50 text-green-600 text-sm p-3 rounded-md border border-green-200">
+                {message}
+              </div>
+            )}
+            <button
+              type="submit"
+              className="w-full bg-[#2d1a1a] text-white font-bold py-3 rounded-lg hover:bg-black transition-all transform active:scale-95 shadow-lg"
+              disabled={loading}
+            >
+              {loading ? 'Enviando...' : 'Redefinir Senha'}
+            </button>
+          </form>
+          <div className="mt-6 text-center">
+            <a href="#/" className="text-sm text-[#9f1239] hover:underline font-medium">
+              Voltar para o Login
+            </a>
+          </div>
+        </div>
+      );
+    });
+  }
+
+  // Tela de Boas-vindas / Login (Landing Page)
   if (!session) {
     return (
-      <div className="min-h-screen bg-[#1a1a1a] font-sans overflow-x-hidden">
+      <div className="min-h-screen bg-gray-50 font-sans overflow-x-hidden">
         {/* Header */}
-        <header className="w-full bg-[#1a1a1a] py-4 px-6 md:px-12 flex justify-between items-center fixed top-0 z-50 shadow-md border-b border-gray-800">
-          <div className="flex items-center gap-1">
-              <h1 className="text-2xl font-bold text-white tracking-tighter">Click <span className="text-yellow-400">PEDE</span></h1>
+        <header className="w-full bg-white py-4 px-6 md:px-12 flex justify-between items-center fixed top-0 z-50 shadow-md border-b border-gray-200">
+          <div className="flex items-center gap-2">
+              <ShoppingCart className="w-6 h-6 text-yellow-500" /> {/* Cart icon for logo */}
+              <h1 className="text-xl font-bold text-gray-900 tracking-tighter">Click<span className="text-yellow-500">Pede</span></h1>
           </div>
-          <div className="flex items-center gap-4">
-              <a href="#/" className="text-white bg-transparent border border-gray-600 px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium">
-                  Acesse sua conta
+          <nav className="hidden md:flex items-center gap-8">
+              <a href="#" className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium">Home</a>
+              <a href="#" className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium">Funcionalidades</a>
+              <a href="#" className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium">Planos</a>
+              <a href="#" className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium">Sobre nós</a>
+              <a href="#/" className="bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-black transition-colors text-sm font-medium shadow-md">
+                  Login
               </a>
-              <a href="#/register" className="bg-[#2d1a1a] border border-[#4a2b2b] text-white px-4 py-2 rounded-lg hover:bg-[#3d2424] transition-colors text-sm font-medium">
-                  Cadastre-se
-              </a>
-          </div>
+          </nav>
+          {/* Mobile menu button could go here */}
         </header>
 
-        {/* Main Content */}
-        <div className="flex flex-col md:flex-row min-h-screen pt-20">
-          
-          {/* Left Side - Hero Content */}
-          <div className="flex-1 bg-[#9f1239] text-white p-8 md:p-16 flex flex-col justify-center relative overflow-hidden">
-              {/* Background Shape Overlay */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[#be123c] rounded-bl-full opacity-50 translate-x-1/2 -translate-y-1/2"></div>
-              
-              <div className="max-w-xl z-10 mx-auto md:mx-0">
-                  <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
-                      Entrega Rápida e Segura
-                  </h2>
-                  <h3 className="text-2xl md:text-3xl font-semibold mb-6 opacity-95">
-                      Sua comida favorita na sua porta em minutos
-                  </h3>
-                  <p className="text-gray-100 text-lg mb-10 leading-relaxed max-w-lg">
-                      Peça agora e aproveite as melhores promoções e descontos exclusivos! 
-                      Comida quentinha, entregas rápidas e atendimento de qualidade.
-                  </p>
-
-                  <div className="flex flex-wrap gap-4 mb-16">
-                      <button className="bg-[#1a1a1a] text-white px-6 py-3 rounded-lg font-bold hover:bg-black transition-colors shadow-lg">
-                          Planos
-                      </button>
-                      <button className="bg-[#1a1a1a] text-white px-6 py-3 rounded-lg font-bold hover:bg-black transition-colors shadow-lg">
-                          Por que escolher a gente?
-                      </button>
-                      <a href="#/store" className="bg-white text-[#9f1239] px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors shadow-lg flex items-center gap-2">
-                          <Sandwich className="w-5 h-5" /> Peça Agora
-                      </a>
-                  </div>
-
-                  <div className="flex justify-center md:justify-start gap-8">
-                      <div className="bg-[#881337] p-4 rounded-2xl shadow-xl transform hover:scale-110 transition-transform">
-                          <Bike className="w-10 h-10 text-yellow-400" />
-                      </div>
-                      <div className="bg-[#881337] p-4 rounded-2xl shadow-xl transform hover:scale-110 transition-transform">
-                          <Sandwich className="w-10 h-10 text-yellow-400" />
-                      </div>
-                      <div className="bg-[#881337] p-4 rounded-2xl shadow-xl transform hover:scale-110 transition-transform">
-                          <PackageCheck className="w-10 h-10 text-yellow-400" />
-                      </div>
-                  </div>
-              </div>
+        {/* Main Content - Hero Section */}
+        <main className="flex flex-col items-center justify-center text-center pt-32 pb-16 px-4 md:px-8">
+          <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-tight max-w-4xl">
+            Seu negócio online em minutos com <span className="text-yellow-500">ClickPede!</span>
+          </h2>
+          <p className="text-lg md:text-xl text-gray-700 mb-10 max-w-3xl">
+            Crie seu cardápio digital, receba pedidos pelo WhatsApp e gerencie suas vendas de forma simples e eficiente.
+          </p>
+          <p className="text-gray-600 text-sm mb-8">
+            Assista ao nosso vídeo demonstrativo para ver como funciona!
+          </p>
+          {/* Video Placeholder */}
+          <div className="w-full max-w-4xl bg-gray-200 h-64 md:h-96 rounded-xl shadow-xl flex items-center justify-center text-gray-500 text-lg font-medium">
+            [Placeholder para Vídeo Demonstrativo]
           </div>
-
-          {/* Right Side - Login Form */}
-          <div className="md:w-[500px] bg-[#9f1239] md:bg-[#881337] flex items-center justify-center p-8 relative">
-               {/* White Card */}
-               <LoginPage />
-          </div>
-        </div>
+        </main>
         
-        {/* Footer Strip */}
-        <div className="bg-white py-8 px-6 text-center md:flex md:justify-around md:text-left">
-           <div className="mb-6 md:mb-0">
-               <h4 className="font-bold text-xl text-gray-900 mb-2">Entrega em Minutos</h4>
-               <p className="text-gray-600 text-sm max-w-xs mx-auto md:mx-0">Sua qualidade e rapidez garantida para qualquer tipo de pedido.</p>
-           </div>
-           <div>
-               <h4 className="font-bold text-xl text-gray-900 mb-2">Qualidade Garantida</h4>
-               <p className="text-gray-600 text-sm max-w-xs mx-auto md:mx-0">Produtos frescos e selecionados para sua melhor experiência.</p>
-           </div>
-        </div>
+        {/* Footer Strip - Removed as it's not in the image and the new design is simpler */}
       </div>
     );
   }
