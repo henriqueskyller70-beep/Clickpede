@@ -5,7 +5,7 @@ import { RegisterPage } from './src/components/RegisterPage';
 import { LoginPage } from './src/components/LoginPage';
 import { ProfileSettingsPage } from './src/components/ProfileSettingsPage'; // Importar ProfileSettingsPage
 import { ResetPasswordPage } from './src/components/ResetPasswordPage'; // Import ResetPasswordPage
-import { Bike, Sandwich, PackageCheck, ChevronRight, ShoppingCart } from 'lucide-react'; // Added ShoppingCart for logo
+import { ShoppingCart, Package, Smartphone, LineChart, Settings } from 'lucide-react'; // Added new icons for feature cards
 import { useSession } from './src/components/SessionContextProvider';
 
 const App: React.FC = () => {
@@ -198,7 +198,7 @@ const App: React.FC = () => {
             Assista ao nosso vídeo demonstrativo para ver como funciona!
           </p>
           {/* Video Demonstrativo */}
-          <div className="w-full max-w-4xl rounded-xl shadow-xl overflow-hidden aspect-video">
+          <div className="w-full max-w-4xl rounded-xl shadow-xl overflow-hidden aspect-video mb-12">
             <iframe
               width="100%"
               height="100%"
@@ -210,9 +210,69 @@ const App: React.FC = () => {
               allowFullScreen
             ></iframe>
           </div>
+
+          {/* Botão Falar com Especialista */}
+          <button className="bg-yellow-400 text-gray-900 font-bold px-8 py-3 rounded-full shadow-lg hover:bg-yellow-500 transition-colors transform active:scale-95 mb-20">
+            Falar com Especialista
+          </button>
+
+          {/* Seção "Por que escolher o ClickPede?" */}
+          <section className="w-full max-w-5xl mx-auto py-16">
+            <h3 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">
+              Por que escolher o <span className="text-yellow-500">ClickPede?</span>
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Card 1: Cardápio Digital Personalizado */}
+              <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 flex flex-col items-center text-center transform hover:scale-[1.02] hover:shadow-xl transition-all duration-200">
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4 shadow-md">
+                  <Package className="w-8 h-8 text-yellow-600" />
+                </div>
+                <h4 className="font-bold text-lg text-gray-900 mb-2">Cardápio Digital Personalizado</h4>
+                <p className="text-sm text-gray-600">
+                  Crie um cardápio online com fotos, descrições e preços, fácil de atualizar a qualquer momento.
+                </p>
+              </div>
+
+              {/* Card 2: Pedidos via WhatsApp */}
+              <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 flex flex-col items-center text-center transform hover:scale-[1.02] hover:shadow-xl transition-all duration-200">
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4 shadow-md">
+                  <Smartphone className="w-8 h-8 text-yellow-600" />
+                </div>
+                <h4 className="font-bold text-lg text-gray-900 mb-2">Pedidos via WhatsApp</h4>
+                <p className="text-sm text-gray-600">
+                  Receba pedidos diretamente no seu WhatsApp, simplificando a comunicação com seus clientes.
+                </p>
+              </div>
+
+              {/* Card 3: Aumente suas Vendas */}
+              <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 flex flex-col items-center text-center transform hover:scale-[1.02] hover:shadow-xl transition-all duration-200">
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4 shadow-md">
+                  <LineChart className="w-8 h-8 text-yellow-600" />
+                </div>
+                <h4 className="font-bold text-lg text-gray-900 mb-2">Aumente suas Vendas</h4>
+                <p className="text-sm text-gray-600">
+                  Alcance mais clientes e impulsione suas vendas com uma presença online profissional e eficiente.
+                </p>
+              </div>
+
+              {/* Card 4: Gestão Simplificada */}
+              <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 flex flex-col items-center text-center transform hover:scale-[1.02] hover:shadow-xl transition-all duration-200">
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4 shadow-md">
+                  <Settings className="w-8 h-8 text-yellow-600" />
+                </div>
+                <h4 className="font-bold text-lg text-gray-900 mb-2">Gestão Simplificada</h4>
+                <p className="text-sm text-gray-600">
+                  Gerencie seus pedidos, clientes e produtos de forma intuitiva e organizada, sem complicação.
+                </p>
+              </div>
+            </div>
+          </section>
         </main>
         
-        {/* Footer Strip - Removed as it's not in the image and the new design is simpler */}
+        {/* Footer de Copyright */}
+        <footer className="w-full bg-white py-6 text-center text-gray-500 text-sm border-t border-gray-100 shadow-inner">
+          © 2025 ClickPede. Todos os direitos reservados.
+        </footer>
       </div>
     );
   }
