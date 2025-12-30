@@ -47,7 +47,8 @@ const App: React.FC = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.hash = '#/';
+    // A navegação para a rota raiz ('#/') será tratada pelo useEffect
+    // quando a sessão for atualizada para null.
   };
 
   const handleNavigate = (path: string) => {
@@ -200,7 +201,7 @@ const App: React.FC = () => {
                 <Smartphone className="w-8 h-8 text-yellow-600" />
               </div>
               <h4 className="font-bold text-lg text-gray-900 mb-2">Pedidos via WhatsApp</h4>
-              <p className="text-sm text-gray-600">
+              <p className className="text-sm text-gray-600">
                 Receba pedidos diretamente no seu WhatsApp, simplificando a comunicação com seus clientes.
               </p>
             </div>
