@@ -61,7 +61,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onClose, onSwitchToRegiste
         showError(errorMessage);
       } else {
         showSuccess('Login realizado com sucesso!');
-        // REMOVIDO: onClose(); // O App.tsx agora gerenciará o fechamento do modal e o redirecionamento
+        onClose(); // Fechar o modal após o login bem-sucedido
       }
     } catch (err: any) {
       setError('Ocorreu um erro inesperado. Tente novamente.');
