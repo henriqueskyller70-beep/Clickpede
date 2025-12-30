@@ -43,7 +43,7 @@ const App: React.FC = () => {
 
     if (session) {
       // Usuário autenticado
-      if (route === '#/' || route === '#/register' || route === '#/login') { // Adicionado #/login aqui
+      if (route === '#/' || route === '#/register') {
         console.log('App.tsx - Usuário autenticado em rota pública, redirecionando para dashboard.');
         window.location.hash = '#/dashboard';
       }
@@ -54,7 +54,7 @@ const App: React.FC = () => {
         console.log('App.tsx - Usuário não autenticado em rota de dashboard, redirecionando para raiz.');
         window.location.hash = '#/';
       }
-      // Se estiver em #/, #/register, #/login ou #/store, permite.
+      // Se estiver em #/, #/register, ou #/store, permite.
     }
   }, [session, route]);
 
@@ -84,24 +84,11 @@ const App: React.FC = () => {
     );
   }
 
-  if (route === '#/login') { // Nova rota para a página de login
-    if (session) {
-      return null; // Redirecionado pelo useEffect
-    }
-    return (
-      <div className="min-h-screen bg-[#9f1239] flex items-center justify-center p-8">
-        <div className="w-full max-w-md">
-          <LoginPage />
-        </div>
-      </div>
-    );
-  }
-
   if (route === '#/reset-password') { // New route for password reset
     return <ResetPasswordPage />;
   }
 
-  // Tela de Boas-vindas / Apresentação (quando não autenticado e não em rota específica)
+  // Tela de Boas-vindas / Login
   if (!session) {
     return (
       <div className="min-h-screen bg-[#1a1a1a] font-sans overflow-x-hidden">
@@ -111,7 +98,7 @@ const App: React.FC = () => {
               <h1 className="text-2xl font-bold text-white tracking-tighter">Click <span className="text-yellow-400">PEDE</span></h1>
           </div>
           <div className="flex items-center gap-4">
-              <a href="#/login" className="text-white bg-transparent border border-gray-600 px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium">
+              <a href="#/" className="text-white bg-transparent border border-gray-600 px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium">
                   Acesse sua conta
               </a>
               <a href="#/register" className="bg-[#2d1a1a] border border-[#4a2b2b] text-white px-4 py-2 rounded-lg hover:bg-[#3d2424] transition-colors text-sm font-medium">
@@ -166,17 +153,10 @@ const App: React.FC = () => {
               </div>
           </div>
 
-          {/* Right Side - Presentation Image/Content (Login form removed) */}
-          <div className="md:w-[500px] bg-[#881337] flex items-center justify-center p-8 relative">
-               <div className="text-white text-center space-y-4">
-                   <h3 className="text-3xl font-bold">Gerencie seu Delivery!</h3>
-                   <p className="text-lg max-w-xs mx-auto">
-                       Acesse sua conta para gerenciar seus produtos, pedidos e configurações da loja.
-                   </p>
-                   <a href="#/login" className="inline-flex items-center justify-center bg-white text-[#9f1239] px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors shadow-lg mt-4">
-                       <ChevronRight className="w-5 h-5 mr-2" /> Ir para Login
-                   </a>
-               </div>
+          {/* Right Side - Login Form */}
+          <div className="md:w-[500px] bg-[#9f1239] md:bg-[#881337] flex items-center justify-center p-8 relative">
+               {/* White Card */}
+               <LoginPage />
           </div>
         </div>
         
