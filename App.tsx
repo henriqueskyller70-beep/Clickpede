@@ -228,7 +228,7 @@ const App: React.FC = () => {
 
       {/* Modais de Autenticação */}
       {isRegisterModalOpen && (
-        <Modal open={isRegisterModalOpen} onClose={() => { setIsRegisterModalOpen(false); window.location.hash = '#/'; }}>
+        <Modal open={isRegisterModalOpen} onClose={() => { setIsRegisterModalOpen(false); window.location.hash = '#/'; }} title="Crie sua Conta">
           <RegisterPage 
             onClose={() => { setIsRegisterModalOpen(false); window.location.hash = '#/'; }}
             onSwitchToLogin={() => { setIsRegisterModalOpen(false); setIsLoginModalOpen(true); window.location.hash = '#/'; }}
@@ -236,7 +236,7 @@ const App: React.FC = () => {
         </Modal>
       )}
       {isLoginModalOpen && (
-        <Modal open={isLoginModalOpen} onClose={() => { setIsLoginModalOpen(false); window.location.hash = '#/'; }}>
+        <Modal open={isLoginModalOpen} onClose={() => { setIsLoginModalOpen(false); window.location.hash = '#/'; }} title="Acesse sua Conta">
           <LoginPage 
             onClose={() => { setIsLoginModalOpen(false); window.location.hash = '#/'; }}
             onSwitchToRegister={() => { setIsLoginModalOpen(false); setIsRegisterModalOpen(true); window.location.hash = '#/register'; }}
@@ -245,7 +245,7 @@ const App: React.FC = () => {
         </Modal>
       )}
       {isForgotPasswordModalOpen && (
-        <Modal open={isForgotPasswordModalOpen} onClose={() => { setIsForgotPasswordModalOpen(false); window.location.hash = '#/'; }}>
+        <Modal open={isForgotPasswordModalOpen} onClose={() => { setIsForgotPasswordModalOpen(false); window.location.hash = '#/'; }} title="Esqueceu sua Senha?">
           <ForgotPasswordPage 
             onClose={() => { setIsForgotPasswordModalOpen(false); window.location.hash = '#/'; }}
             onSwitchToLogin={() => { setIsForgotPasswordModalOpen(false); setIsLoginModalOpen(true); window.location.hash = '#/'; }}

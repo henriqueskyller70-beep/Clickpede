@@ -94,8 +94,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onClose, onSwitchToRegiste
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full relative z-10">
-      <h2 className="text-3xl font-bold text-gray-900 text-center mb-6 mt-4">Acesse sua Conta</h2>
+    <div className="w-full"> {/* Removido bg, shadow, p-8, rounded-2xl, z-10 */}
+      {/* <h2 className="text-3xl font-bold text-gray-900 text-center mb-6 mt-4">Acesse sua Conta</h2> */} {/* Removido título */}
 
       <form onSubmit={handleLogin} className="space-y-5">
         <div>
