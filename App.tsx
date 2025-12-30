@@ -197,9 +197,18 @@ const App: React.FC = () => {
           <p className="text-gray-600 text-sm mb-8">
             Assista ao nosso vídeo demonstrativo para ver como funciona!
           </p>
-          {/* Video Placeholder */}
-          <div className="w-full max-w-4xl bg-gray-200 h-64 md:h-96 rounded-xl shadow-xl flex items-center justify-center text-gray-500 text-lg font-medium">
-            [Placeholder para Vídeo Demonstrativo]
+          {/* Video Demonstrativo */}
+          <div className="w-full max-w-4xl rounded-xl shadow-xl overflow-hidden aspect-video">
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=y_y_y_y_y_y_y_y_y" {/* Exemplo de vídeo do YouTube */}
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            ></iframe>
           </div>
         </main>
         
