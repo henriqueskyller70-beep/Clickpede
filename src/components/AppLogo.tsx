@@ -16,10 +16,10 @@ export const AppLogo: React.FC<AppLogoProps> = ({
 }) => {
   return (
     <div className={`flex items-center gap-2 ${isCollapsed ? 'justify-center' : ''}`}>
-      <ShoppingCart className={`w-6 h-6 ${highlightColor}`} />
+      <ShoppingCart className="w-6 h-6" style={{ color: highlightColor }} />
       {!isCollapsed && (
         <h1 className={`text-xl font-bold ${textColor} tracking-tighter`}>
-          Click<span className={highlightColor}>Pede</span>
+          Click<span style={{ color: highlightColor }}>Pede</span>
         </h1>
       )}
     </div>
