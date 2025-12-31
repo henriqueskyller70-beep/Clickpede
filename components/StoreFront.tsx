@@ -422,7 +422,7 @@ export const StoreFront: React.FC = () => {
         </div>
 
         {/* 2. Header Info (Logo, Name, Status) */}
-        <div className="px-4"> {/* Removido max-w-md mx-auto daqui, pois o pai já o tem */}
+        <div className="px-4 pt-4"> {/* Adicionado pt-4 aqui */}
             <div className="flex flex-col md:flex-row items-start md:items-center -mt-10 relative z-10 mb-6 gap-4">
                 
                 {/* Logo Box */}
