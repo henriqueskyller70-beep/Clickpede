@@ -535,7 +535,16 @@ export const StoreFront: React.FC = () => {
                             <div className="grid grid-cols-1 gap-4"> {/* Removido md:grid-cols-2 lg:grid-cols-2 */}
                                 {groupData.items.map(product => (
                                     <div key={product.id} className="bg-white rounded-xl border border-gray-100 p-4 flex gap-4 shadow-sm hover:shadow-md transition-all group">
-                                        {/* Content (Name, Description, Price) */}
+                                        {/* Product Image Container - now relative and overflow-hidden, moved to left */}
+                                        <div className="w-28 h-28 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative flex items-center justify-center">
+                                            {product.image_url ? (
+                                                <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                            ) : (
+                                                <span className="text-gray-400 text-xs text-center p-2">Sem Imagem</span>
+                                            )}
+                                        </div>
+
+                                        {/* Content (Name, Description, Price, Button) */}
                                         <div className="flex-1 flex flex-col justify-between py-1">
                                             <div>
                                                 <h3 className="text-base font-bold text-gray-900 line-clamp-1 leading-tight">{product.name}</h3>
@@ -557,16 +566,6 @@ export const StoreFront: React.FC = () => {
                                                     <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
                                                 </button>
                                             </div>
-                                        </div>
-
-                                        {/* Product Image Container - now relative and overflow-visible, moved to right */}
-                                        <div className="w-28 h-28 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative flex items-center justify-center">
-                                            {product.image_url ? (
-                                                <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                                            ) : (
-                                                <span className="text-gray-400 text-xs text-center p-2">Sem Imagem</span>
-                                            )}
-                                            {/* Removed button from here */}
                                         </div>
                                     </div>
                                 ))}
