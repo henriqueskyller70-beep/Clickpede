@@ -238,26 +238,26 @@ const App: React.FC = () => {
 
       {/* Modais de Autenticação */}
       {isRegisterModalOpen && (
-        <Modal open={isRegisterModalOpen} onClose={() => { setIsRegisterModalOpen(false); window.history.replaceState(null, '', window.location.pathname + window.location.search); }} title="Crie sua Conta">
+        <Modal open={isRegisterModalOpen} onClose={() => { setIsRegisterModalOpen(false); }} title="Crie sua Conta">
           <RegisterPage 
-            onClose={() => { setIsRegisterModalOpen(false); window.history.replaceState(null, '', window.location.pathname + window.location.search); }}
+            onClose={() => { setIsRegisterModalOpen(false); }}
             onSwitchToLogin={() => { setIsRegisterModalOpen(false); setIsLoginModalOpen(true); window.location.hash = '#/'; }}
           />
         </Modal>
       )}
       {isLoginModalOpen && (
-        <Modal open={isLoginModalOpen} onClose={() => { setIsLoginModalOpen(false); window.history.replaceState(null, '', window.location.pathname + window.location.search); }} title="Acesse sua Conta">
+        <Modal open={isLoginModalOpen} onClose={() => { setIsLoginModalOpen(false); }} title="Acesse sua Conta">
           <LoginPage 
-            onClose={() => { setIsLoginModalOpen(false); window.history.replaceState(null, '', window.location.pathname + window.location.search); }}
+            onClose={() => { setIsLoginModalOpen(false); }}
             onSwitchToRegister={() => { setIsLoginModalOpen(false); setIsRegisterModalOpen(true); window.location.hash = '#/register'; }}
             onSwitchToForgotPassword={() => { setIsLoginModalOpen(false); setIsForgotPasswordModalOpen(true); window.location.hash = '#/forgot-password'; }}
           />
         </Modal>
       )}
       {isForgotPasswordModalOpen && (
-        <Modal open={isForgotPasswordModalOpen} onClose={() => { setIsForgotPasswordModalOpen(false); window.history.replaceState(null, '', window.location.pathname + window.location.search); }} title="Esqueceu sua Senha?">
+        <Modal open={isForgotPasswordModalOpen} onClose={() => { setIsForgotPasswordModalOpen(false); }} title="Esqueceu sua Senha?">
           <ForgotPasswordPage 
-            onClose={() => { setIsForgotPasswordModalOpen(false); window.history.replaceState(null, '', window.location.pathname + window.location.search); }}
+            onClose={() => { setIsForgotPasswordModalOpen(false); }}
             onSwitchToLogin={() => { setIsForgotPasswordModalOpen(false); setIsLoginModalOpen(true); window.location.hash = '#/'; }}
           />
         </Modal>
