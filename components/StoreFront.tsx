@@ -554,7 +554,9 @@ export const StoreFront: React.FC = () => {
                                         <div className="flex-1 flex flex-col justify-between py-1">
                                             <div>
                                                 <h3 className="text-base font-bold text-gray-900 line-clamp-1 leading-tight">{product.name}</h3>
-                                                <p className="text-xs text-gray-500 line-clamp-2 mt-1.5">{product.description}</p>
+                                                {product.description && ( // Adicionado verificação para exibir a descrição
+                                                    <p className="text-xs text-gray-500 mt-1.5">{product.description}</p> // Removido line-clamp-2
+                                                )}
                                             </div>
                                             
                                             <div className="flex items-center justify-between mt-3">
