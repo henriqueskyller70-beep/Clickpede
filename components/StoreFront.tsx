@@ -544,11 +544,12 @@ export const StoreFront: React.FC = () => {
                                                 </span>
                                                 <button 
                                                     onClick={() => product.options && product.options.length > 0 ? openProductDetails(product) : addToCart(product)}
-                                                    className="bg-white border border-gray-200 text-green-700 text-xs font-bold px-4 py-2 rounded-lg hover:bg-green-50 hover:border-green-200 transition-all shadow-sm active:scale-95"
-                                                    style={{ color: store.primaryColor, borderColor: store.primaryColor, '--hover-bg-color': `${store.primaryColor}10` } as React.CSSProperties}
+                                                    className="relative overflow-hidden group bg-white border border-gray-200 text-xs font-bold px-4 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all active:scale-[0.98]"
+                                                    style={{ color: store.primaryColor, borderColor: store.primaryColor }}
                                                     disabled={!isStoreCurrentlyOpen} // Desabilita se a loja estiver fechada
                                                 >
                                                     {product.options && product.options.length > 0 ? 'Ver Opções' : 'Adicionar'}
+                                                    <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
                                                 </button>
                                             </div>
                                         </div>
@@ -676,7 +677,7 @@ export const StoreFront: React.FC = () => {
                                 disabled={!isStoreCurrentlyOpen} // Desabilita se a loja estiver fechada
                             >
                                 {userAddress ? 'Finalizar no WhatsApp' : 'Informar Endereço'}
-                                <ChevronRight className="w-4 h-4" />
+                                <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
                             </button>
                         </div>
                     )}
@@ -789,11 +790,12 @@ export const StoreFront: React.FC = () => {
                 <div className="pt-4 border-t border-gray-100 mt-4 flex-shrink-0">
                     <button 
                         onClick={addProductWithOptionsToCart}
-                        className="w-full text-white py-3 rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition-colors active:scale-[0.98]"
+                        className="relative overflow-hidden group w-full text-white py-3 rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition-colors active:scale-[0.98]"
                         style={{ backgroundColor: store.primaryColor }}
                         disabled={!isStoreCurrentlyOpen} // Desabilita se a loja estiver fechada
                     >
                         Adicionar ao Carrinho - R$ {calculateCurrentModalProductPrice().toFixed(2)}
+                        <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
                     </button>
                 </div>
             </div>
@@ -829,10 +831,11 @@ export const StoreFront: React.FC = () => {
                       </div>
                       
                       <button type="submit" 
-                          className="w-full text-white py-3.5 rounded-xl font-bold text-sm mt-4 shadow-lg hover:shadow-xl transition-colors"
+                          className="relative overflow-hidden group w-full text-white py-3.5 rounded-xl font-bold text-sm mt-4 shadow-lg hover:shadow-xl transition-colors active:scale-[0.98]"
                           style={{ backgroundColor: store.primaryColor }}
                       >
                           Confirmar e Continuar
+                          <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
                       </button>
                   </form>
                   <button onClick={() => setIsAddressModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-2"><X className="w-5 h-5"/></button>
