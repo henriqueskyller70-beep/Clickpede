@@ -435,7 +435,7 @@ export const StoreFront: React.FC = () => {
         <div className="absolute top-28 left-1/2 -translate-x-1/2 w-28 h-28 bg-white rounded-full shadow-xl p-1 border border-gray-100 flex items-center justify-center z-20">
             <div className="w-full h-full rounded-full overflow-hidden bg-gray-50 flex items-center justify-center">
                 {store.logoUrl ? (
-                    <img src={store.logoUrl} className="w-full h-full object-cover" /> {/* Alterado para object-cover */}
+                    <img src={store.logoUrl} className="w-full h-full object-cover" /> 
                 ) : (
                     <span className="text-2xl font-bold text-gray-400">{store.name ? store.name[0] : ''}</span>
                 )}
