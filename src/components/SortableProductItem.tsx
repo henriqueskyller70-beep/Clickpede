@@ -279,11 +279,39 @@ const SortableOptionItemWrapper: React.FC<SortableOptionItemWrapperProps> = ({
             className="font-bold text-gray-900 bg-transparent border-b border-gray-200 focus:outline-none text-base transition-all"
             style={{ borderColor: storeProfile.primaryColor, '--tw-ring-color': `${storeProfile.primaryColor}20` } as React.CSSProperties}
           />
-          <span className="text-xs text-gray-500 ml-2">
-            Mín: <input type="number" value={option.minSelection} onChange={e => onOptionChange(productId, option.id, 'minSelection', parseInt(e.target.value))} className="w-10 text-xs bg-transparent border-b border-gray-200 focus:outline-none transition-all" style={{ borderColor: storeProfile.primaryColor }} /> |
-            Máx: <input type="number" value={option.maxSelection} onChange={e => onOptionChange(productId, option.id, 'maxSelection', parseInt(e.target.value))} className="w-10 text-xs bg-transparent border-b border-gray-200 focus:outline-none transition-all" style={{ borderColor: storeProfile.primaryColor }} /> |
-            Repetir: <input type="checkbox" checked={option.allowRepeat} onChange={e => onOptionChange(productId, option.id, 'allowRepeat', e.target.checked)} className="form-checkbox h-3 w-3 rounded shadow-sm" style={{ color: storeProfile.primaryColor }} />
-          </span>
+          {/* NOVO: Design para Mín, Máx e Repetir */}
+          <div className="flex items-center gap-3 ml-2 text-xs text-gray-600">
+            <div className="flex items-center gap-1 bg-gray-100 rounded-md px-2 py-1 shadow-sm border border-gray-200">
+              <span className="font-medium">Mín:</span>
+              <input
+                type="number"
+                value={option.minSelection}
+                onChange={e => onOptionChange(productId, option.id, 'minSelection', parseInt(e.target.value))}
+                className="w-8 text-sm bg-transparent border-none focus:outline-none focus:ring-0"
+                style={{ color: storeProfile.primaryColor }}
+              />
+            </div>
+            <div className="flex items-center gap-1 bg-gray-100 rounded-md px-2 py-1 shadow-sm border border-gray-200">
+              <span className="font-medium">Máx:</span>
+              <input
+                type="number"
+                value={option.maxSelection}
+                onChange={e => onOptionChange(productId, option.id, 'maxSelection', parseInt(e.target.value))}
+                className="w-8 text-sm bg-transparent border-none focus:outline-none focus:ring-0"
+                style={{ color: storeProfile.primaryColor }}
+              />
+            </div>
+            <label className="flex items-center gap-1 bg-gray-100 rounded-md px-2 py-1 shadow-sm border border-gray-200 cursor-pointer">
+              <span className="font-medium">Repetir:</span>
+              <input
+                type="checkbox"
+                checked={option.allowRepeat}
+                onChange={e => onOptionChange(productId, option.id, 'allowRepeat', e.target.checked)}
+                className="form-checkbox h-4 w-4 rounded shadow-sm"
+                style={{ color: storeProfile.primaryColor }}
+              />
+            </label>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button 
