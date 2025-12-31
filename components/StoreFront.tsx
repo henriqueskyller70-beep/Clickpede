@@ -558,12 +558,10 @@ export const StoreFront: React.FC = () => {
                                                 {/* Button moved here, inside the content area */}
                                                 <button 
                                                     onClick={() => product.options && product.options.length > 0 ? openProductDetails(product) : addToCart(product)}
-                                                    className="relative overflow-hidden group bg-white border border-gray-200 text-xs font-bold px-4 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all active:scale-[0.98]"
-                                                    style={{ color: store.primaryColor, borderColor: store.primaryColor, backgroundColor: 'white', '--hover-bg-color': `${store.primaryColor}10` } as React.CSSProperties}
+                                                    className="bg-yellow-400 text-gray-900 text-xs font-bold px-4 py-2 rounded-lg shadow-lg hover:bg-yellow-500 transition-all active:scale-[0.98]"
                                                     disabled={!isStoreCurrentlyOpen}
                                                 >
                                                     {product.options && product.options.length > 0 ? 'Ver Opções' : 'Adicionar'}
-                                                    <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
                                                 </button>
                                             </div>
                                         </div>
