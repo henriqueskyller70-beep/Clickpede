@@ -50,7 +50,7 @@ export const ResetPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative z-10">
+    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative z-10 max-h-[90vh] overflow-y-auto">
       <h2 className="text-3xl font-bold text-gray-900 text-center mb-6 mt-4">Redefinir Senha</h2>
 
       <form onSubmit={handlePasswordReset} className="space-y-5">
