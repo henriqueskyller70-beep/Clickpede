@@ -759,7 +759,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       // Se estiver buscando, o toggle deve ativar se algum item filtrado estiver inativo, caso contrário, desativar.
       targetActiveState = !filteredSubProducts.every(sp => sp.isActive);
     } else {
-      // Se não estiver buscando, o toggle deve simplesmente inverter o estado ativo atual da opção.
+      // Se não há termo de busca, o toggle deve simplesmente inverter o estado ativo atual da opção.
       targetActiveState = !currentOption.isActive;
     }
 
@@ -1374,9 +1374,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                             {groups.length > 0 && (
                                 <button 
                                     onClick={() => setSelectedGroupId('all')}
-                                    className={`w-full text-left px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 relative overflow-hidden
+                                    className={`w-full text-center px-4 py-2 rounded-lg font-bold text-sm transition-all duration-200 relative overflow-hidden
                                         ${selectedGroupId === 'all' 
-                                            ? 'text-white shadow-lg transform scale-[1.01]' 
+                                            ? 'text-gray-900 shadow-lg transform scale-[1.01]' 
                                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200 shadow-md hover:shadow-lg hover:translate-x-0.5'}`}
                                     style={selectedGroupId === 'all' 
                                         ? { backgroundColor: storeProfile.primaryColor } 
