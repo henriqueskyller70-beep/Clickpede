@@ -422,7 +422,7 @@ export const StoreFront: React.FC = () => {
       </div>
 
       {/* 2. Header Info (Logo, Name, Status) */}
-      <div className="max-w-5xl mx-auto px-4">
+      <div className="max-w-md mx-auto px-4"> {/* Alterado de max-w-5xl para max-w-md */}
           <div className="flex flex-col md:flex-row items-start md:items-center -mt-10 relative z-10 mb-6 gap-4">
               
               {/* Logo Box */}
@@ -565,7 +565,7 @@ export const StoreFront: React.FC = () => {
 
       {/* 7. Bottom Navigation (Fixed) */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-[0_-5px_20px_rgba(0,0,0,0.03)] z-40">
-          <div className="max-w-5xl mx-auto flex justify-between items-center h-16 px-6">
+          <div className="max-w-md mx-auto flex justify-between items-center h-16 px-6"> {/* Alterado de max-w-5xl para max-w-md */}
               <button 
                 onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} 
                 className="flex flex-col items-center justify-center text-gray-800 gap-1 w-16"
