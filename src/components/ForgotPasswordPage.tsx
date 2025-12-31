@@ -36,7 +36,7 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onClose,
   };
 
   return (
-    <div className="w-full"> {/* Removido bg, shadow, p-8, rounded-2xl, z-10 */}
+    <div className="w-full max-w-sm mx-auto"> {/* Adicionado max-w-sm e mx-auto */}
       {/* <h2 className="text-3xl font-bold text-gray-900 text-center mb-6 mt-4">Esqueceu sua Senha?</h2> */} {/* Removido título */}
       <p className="text-gray-600 text-center mb-6">
         Insira seu e-mail para receber um link de redefinição de senha.

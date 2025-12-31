@@ -94,7 +94,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onClose, onSwitchToRegiste
   };
 
   return (
-    <div className="w-full"> {/* Removido bg, shadow, p-8, rounded-2xl, z-10 */}
+    <div className="w-full max-w-sm mx-auto"> {/* Adicionado max-w-sm e mx-auto */}
       {/* <h2 className="text-3xl font-bold text-gray-900 text-center mb-6 mt-4">Acesse sua Conta</h2> */} {/* Removido título */}
 
       <form onSubmit={handleLogin} className="space-y-5">
@@ -124,7 +124,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onClose, onSwitchToRegiste
         </div>
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1">Senha:</label>
-          <div className="relative"> {/* Removido overflow-hidden aqui */}
+          <div className="relative">
             <input 
               type={showPassword ? "text" : "password"}
               value={password}
