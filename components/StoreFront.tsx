@@ -492,22 +492,28 @@ export const StoreFront: React.FC = () => {
                 </div>
             </div> */}
 
-            {/* 4. Categories Dropdown e Search Bar */}
-            <div className="flex gap-3 mb-8">
-                <div className="relative flex-1">
-                    <select 
-                        className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-4 pr-10 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-400 appearance-none shadow-sm"
-                        value={selectedCategory}
-                        onChange={e => setSelectedCategory(e.target.value)}
+            {/* 4. Categories Horizontal List e Search Bar */}
+            <div className="flex flex-col gap-4 mb-8">
+                <div className="flex overflow-x-auto pb-2 scrollbar-hide gap-2">
+                    <button
+                        onClick={() => setSelectedCategory('all')}
+                        className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap
+                            ${selectedCategory === 'all' ? 'bg-yellow-400 text-gray-900 shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                     >
-                        <option value="all">Todas as Categorias</option>
-                        {groups.map(group => (
-                            <option key={group.id} value={group.id}>{group.name}</option>
-                        ))}
-                    </select>
-                    <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 rotate-90 pointer-events-none" />
+                        Todas as Categorias
+                    </button>
+                    {groups.map(group => (
+                        <button
+                            key={group.id}
+                            onClick={() => setSelectedCategory(group.id!)}
+                            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap
+                                ${selectedCategory === group.id ? 'bg-yellow-400 text-gray-900 shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                        >
+                            {group.name}
+                        </button>
+                    ))}
                 </div>
-                <div className="relative w-2/3"> {/* Ajustado para ocupar 2/3 da largura */}
+                <div className="relative w-full">
                     <input 
                         type="text" 
                         placeholder="Buscar..."
