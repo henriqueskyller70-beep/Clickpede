@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Plus, Minus, X, Search, MapPin, Clock, CreditCard, ShoppingBag, Home, FileText, ChevronRight, Bike } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, X, Search, MapPin, Clock, CreditCard, ShoppingBag, Home, FileText, ChevronRight, Bike, Info, History, Tag, User } from 'lucide-react'; // Adicionado Info, History, Tag, User
 import { Product, Category, StoreProfile, CartItem, Address, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
 import { storageService } from '../services/storageService';
 import { useSession } from '../src/components/SessionContextProvider'; // Importar o hook de sessão
@@ -41,6 +41,7 @@ export const StoreFront: React.FC = () => {
 
   // Estado para grupos
   const [groups, setGroups] = useState<Group[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all'); // 'all' para todas as categorias
 
   // Estados para o modal de detalhes do produto
   const [selectedProductForDetails, setSelectedProductForDetails] = useState<Product | null>(null);
@@ -281,7 +282,11 @@ export const StoreFront: React.FC = () => {
   // Agrupar produtos pelo group_id, usando os nomes dos grupos para exibição
   const productsByGroup = groups.map(group => ({
       group: group,
-      items: products.filter(p => p.group_id === group.id && p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      items: products.filter(p => 
+        p.group_id === group.id && 
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        (selectedCategory === 'all' || p.group_id === selectedCategory)
+      )
   })).filter(group => group.items.length > 0);
 
   // Modal de detalhes do produto
@@ -408,15 +413,9 @@ export const StoreFront: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-white font-sans pb-24">
-      <div className="max-w-md mx-auto relative"> {/* Wrapper para todo o conteúdo principal, adicionado 'relative' */}
-        {/* Status "Aberto" posicionado absolutamente */}
-        <div className={`absolute top-4 right-4 z-20 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 border shadow-sm 
-            ${isStoreCurrentlyOpen ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
-            <div className={`w-2 h-2 rounded-full animate-pulse ${isStoreCurrentlyOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
-            {isStoreCurrentlyOpen ? 'Aberto' : 'Fechado'}
-        </div>
-
+    <div className="min-h-screen bg-gray-100 font-sans pb-24"> {/* Alterado bg-white para bg-gray-100 */}
+      <div className="max-w-md mx-auto relative bg-white shadow-lg"> {/* Wrapper para todo o conteúdo principal, adicionado 'relative' */}
+        
         {/* 1. Top Banner (Image) */}
         <div className="w-full h-40 bg-gray-200 relative overflow-hidden">
            {store.coverUrl ? (
@@ -426,40 +425,55 @@ export const StoreFront: React.FC = () => {
                    Capa da Loja
                </div>
            )}
+           {/* Botão de voltar/fechar no canto superior direito do banner */}
+           <button className="absolute top-4 right-4 bg-gray-800/50 backdrop-blur-sm text-white p-2 rounded-full shadow-md hover:bg-gray-700/70 transition-colors">
+                <X className="w-5 h-5" />
+           </button>
         </div>
 
-        {/* 2. Header Info (Logo, Name, Address) */}
-        <div className="px-4 pt-4">
-            <div className="flex flex-col md:flex-row items-start md:items-center -mt-10 relative z-10 mb-6 gap-4">
-                
-                {/* Logo Box */}
-                <div className="w-24 h-24 bg-white rounded-xl shadow-md p-1 border border-gray-100 flex-shrink-0">
-                    <div className="w-full h-full rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
-                      {store.logoUrl ? (
-                          <img src={store.logoUrl} className="w-full h-full object-contain" />
-                      ) : (
-                          <span className="text-2xl font-bold text-gray-400">{store.name ? store.name[0] : ''}</span>
-                      )}
-                    </div>
-                </div>
+        {/* Logo Box - Posicionado sobre o banner */}
+        <div className="absolute top-28 left-1/2 -translate-x-1/2 w-28 h-28 bg-white rounded-full shadow-xl p-1 border border-gray-100 flex items-center justify-center z-20">
+            <div className="w-full h-full rounded-full overflow-hidden bg-gray-50 flex items-center justify-center">
+                {store.logoUrl ? (
+                    <img src={store.logoUrl} className="w-full h-full object-cover" /> {/* Alterado para object-cover */}
+                ) : (
+                    <span className="text-2xl font-bold text-gray-400">{store.name ? store.name[0] : ''}</span>
+                )}
+            </div>
+        </div>
 
-                {/* Text Info */}
-                <div className="flex-1 pt-10 md:pt-0 w-full">
-                    <div className="flex justify-between items-start w-full">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900 leading-tight">{store.name || 'Nome da Loja'}</h1>
-                            <div className="flex items-center gap-1 text-gray-500 text-sm mt-1">
-                                <MapPin className="w-3.5 h-3.5" />
-                                <span className="truncate max-w-[250px] md:max-w-md">{store.address || 'Endereço não informado'}</span>
-                            </div>
-                        </div>
-                        {/* REMOVIDO: O status "Aberto" foi movido para fora deste bloco */}
-                    </div>
+        {/* Conteúdo principal abaixo do banner e logo */}
+        <div className="px-4 pt-16 pb-4"> {/* Ajustado padding-top para acomodar o logo */}
+            
+            {/* Barra de Status da Loja (Loja aberta | Tempo de entrega | Info) */}
+            <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3 mb-6 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-2">
+                    <div className={`w-2.5 h-2.5 rounded-full ${isStoreCurrentlyOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <span className={`text-sm font-semibold ${isStoreCurrentlyOpen ? 'text-green-700' : 'text-red-700'}`}>
+                        {isStoreCurrentlyOpen ? 'Loja aberta' : 'Loja fechada'}
+                    </span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600 text-sm font-medium">
+                    <Clock className="w-4 h-4" />
+                    <span>45 a 55 min</span> {/* Placeholder para tempo de entrega */}
+                </div>
+                <button className="flex items-center gap-1 text-gray-600 text-sm font-medium hover:text-gray-800 transition-colors">
+                    <Info className="w-4 h-4" />
+                    <span>Info</span>
+                </button>
+            </div>
+
+            {/* Nome e Endereço da Loja */}
+            <div className="mb-6 text-center">
+                <h1 className="text-2xl font-bold text-gray-900 leading-tight">{store.name || 'Nome da Loja'}</h1>
+                <div className="flex items-center justify-center gap-1 text-gray-500 text-sm mt-1">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span className="truncate max-w-[250px] md:max-w-md">{store.address || 'Endereço não informado'}</span>
                 </div>
             </div>
 
-            {/* 3. Service Icons Grid (4 Blocks like Skyller) */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            {/* 3. Service Icons Grid (4 Blocks like Skyller) - Mantido, mas pode ser removido se não for necessário */}
+            {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                 <div className="bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer border border-slate-100">
                     <Bike className="w-6 h-6 text-gray-700" />
                     <span className="text-[10px] font-semibold text-gray-600">Entrega</span>
@@ -476,34 +490,33 @@ export const StoreFront: React.FC = () => {
                     <CreditCard className="w-6 h-6 text-gray-700" />
                     <span className="text-[10px] font-semibold text-gray-600">Pagamentos</span>
                 </div>
-            </div>
+            </div> */}
 
-            {/* 4. Categories Tabs */}
-            <div className="mb-6">
-               <h3 className="text-sm font-bold text-gray-900 mb-3 ml-1">Categorias</h3>
-               <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                  <button className="px-5 py-2 rounded-full bg-gray-900 text-white text-xs font-bold whitespace-nowrap shadow-sm">
-                      Tudo
-                  </button>
-                  {/* Usar grupos para as abas */}
-                  {groups.map(group => (
-                      <a key={group.id} href={`#cat-${group.id}`} className="px-5 py-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 text-xs font-bold whitespace-nowrap transition-colors">
-                          {group.name} {/* Exibir nome do grupo */}
-                      </a>
-                  ))}
-               </div>
-            </div>
-
-            {/* 5. Search Bar */}
-            <div className="relative mb-8">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input 
-                    type="text" 
-                    placeholder="Buscar produtos... (ex: calabresa)"
-                    className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100 transition-all"
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                />
+            {/* 4. Categories Dropdown e Search Bar */}
+            <div className="flex gap-3 mb-8">
+                <div className="relative flex-1">
+                    <select 
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-4 pr-10 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-400 appearance-none shadow-sm"
+                        value={selectedCategory}
+                        onChange={e => setSelectedCategory(e.target.value)}
+                    >
+                        <option value="all">Todas as Categorias</option>
+                        {groups.map(group => (
+                            <option key={group.id} value={group.id}>{group.name}</option>
+                        ))}
+                    </select>
+                    <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 rotate-90 pointer-events-none" />
+                </div>
+                <div className="relative w-2/3"> {/* Ajustado para ocupar 2/3 da largura */}
+                    <input 
+                        type="text" 
+                        placeholder="Buscar..."
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-4 pr-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-400 shadow-sm"
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                    />
+                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                </div>
             </div>
 
             {/* 6. Product List */}
@@ -515,14 +528,28 @@ export const StoreFront: React.FC = () => {
                 ) : (
                     productsByGroup.map((groupData) => (
                         <div key={groupData.group.id} id={`cat-${groupData.group.id}`} className="scroll-mt-32">
-                            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">
+                            <h2 className="text-base font-bold text-gray-900 mb-4">
                                 {groupData.group.name}
                             </h2>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4"> {/* Removido md:grid-cols-2 lg:grid-cols-2 */}
                                 {groupData.items.map(product => (
                                     <div key={product.id} className="bg-white rounded-xl border border-gray-100 p-4 flex gap-4 shadow-sm hover:shadow-md transition-all group">
-                                        {/* Product Image Container - now relative and overflow-visible */}
+                                        {/* Content (Name, Description, Price) */}
+                                        <div className="flex-1 flex flex-col justify-between py-1">
+                                            <div>
+                                                <h3 className="text-base font-bold text-gray-900 line-clamp-1 leading-tight">{product.name}</h3>
+                                                <p className="text-xs text-gray-500 line-clamp-2 mt-1.5">{product.description}</p>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between mt-3">
+                                                <span className="text-base font-bold text-gray-900">
+                                                    R$ {product.price.toFixed(2)}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Product Image Container - now relative and overflow-visible, moved to right */}
                                         <div className="w-28 h-28 bg-gray-100 rounded-lg overflow-visible flex-shrink-0 relative flex items-center justify-center">
                                             {product.image_url ? (
                                                 <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -540,21 +567,6 @@ export const StoreFront: React.FC = () => {
                                                 <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
                                             </button>
                                         </div>
-
-                                        {/* Content */}
-                                        <div className="flex-1 flex flex-col justify-between py-1">
-                                            <div>
-                                                <h3 className="text-base font-bold text-gray-900 line-clamp-1 leading-tight">{product.name}</h3>
-                                                <p className="text-xs text-gray-500 line-clamp-2 mt-1.5">{product.description}</p>
-                                            </div>
-                                            
-                                            <div className="flex items-center justify-between mt-3">
-                                                <span className="text-base font-bold text-gray-900">
-                                                    R$ {product.price.toFixed(2)}
-                                                </span>
-                                                {/* O botão foi removido daqui */}
-                                            </div>
-                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -570,7 +582,7 @@ export const StoreFront: React.FC = () => {
 
       {/* 7. Bottom Navigation (Fixed) */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-[0_-5px_20px_rgba(0,0,0,0.03)] z-40">
-          <div className="max-w-md mx-auto flex justify-between items-center h-16 px-6"> {/* Alterado de max-w-5xl para max-w-md */}
+          <div className="max-w-md mx-auto flex justify-around items-center h-16 px-6"> {/* Alterado de max-w-5xl para max-w-md e justify-between para justify-around */}
               <button 
                 onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} 
                 className="flex flex-col items-center justify-center text-gray-800 gap-1 w-16"
@@ -595,8 +607,18 @@ export const StoreFront: React.FC = () => {
               </button>
               
               <button className="flex flex-col items-center justify-center text-gray-400 hover:text-gray-800 gap-1 w-16">
-                  <FileText className="w-5 h-5" />
-                  <span className="text-[10px] font-bold">Pedidos</span>
+                  <History className="w-5 h-5" /> {/* Alterado de FileText para History */}
+                  <span className="text-[10px] font-bold">Histórico</span> {/* Alterado de Pedidos para Histórico */}
+              </button>
+
+              <button className="flex flex-col items-center justify-center text-gray-400 hover:text-gray-800 gap-1 w-16">
+                  <Tag className="w-5 h-5" /> {/* Novo ícone para Descontos */}
+                  <span className="text-[10px] font-bold">Descontos</span> {/* Novo item de menu */}
+              </button>
+
+              <button className="flex flex-col items-center justify-center text-gray-400 hover:text-gray-800 gap-1 w-16">
+                  <User className="w-5 h-5" /> {/* Novo ícone para Perfil */}
+                  <span className="text-[10px] font-bold">Perfil</span> {/* Novo item de menu */}
               </button>
           </div>
       </div>
