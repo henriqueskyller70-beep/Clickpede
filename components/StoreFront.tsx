@@ -411,7 +411,7 @@ export const StoreFront: React.FC = () => {
     <div className="min-h-screen bg-white font-sans pb-24">
       <div className="max-w-md mx-auto relative"> {/* Wrapper para todo o conteúdo principal, adicionado 'relative' */}
         {/* Status "Aberto" posicionado absolutamente */}
-        <div className={`absolute top-4 left-4 z-20 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 border shadow-sm 
+        <div className={`absolute top-4 right-4 z-20 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 border shadow-sm 
             ${isStoreCurrentlyOpen ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
             <div className={`w-2 h-2 rounded-full animate-pulse ${isStoreCurrentlyOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
             {isStoreCurrentlyOpen ? 'Aberto' : 'Fechado'}
