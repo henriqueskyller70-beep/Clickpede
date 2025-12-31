@@ -61,7 +61,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onClose, onSwitchToRegiste
         showError(errorMessage);
       } else {
         showSuccess('Login realizado com sucesso!');
-        onClose(); // Fechar o modal após o login bem-sucedido
+        onClose(); // Fechar o modal
+        window.location.hash = '#/dashboard'; // Navegar para o dashboard
       }
     } catch (err: any) {
       setError('Ocorreu um erro inesperado. Tente novamente.');
