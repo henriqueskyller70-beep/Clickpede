@@ -409,159 +409,160 @@ export const StoreFront: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white font-sans pb-24">
-      
-      {/* 1. Top Banner (Image) */}
-      <div className="w-full h-40 bg-gray-200 relative overflow-hidden">
-         {store.coverUrl ? (
-             <img src={store.coverUrl} alt="Capa" className="w-full h-full object-cover" />
-         ) : (
-             <div className="w-full h-full bg-slate-800 flex items-center justify-center text-white">
-                 Capa da Loja
-             </div>
-         )}
-      </div>
+      <div className="max-w-md mx-auto"> {/* Wrapper para todo o conteúdo principal */}
+        {/* 1. Top Banner (Image) */}
+        <div className="w-full h-40 bg-gray-200 relative overflow-hidden">
+           {store.coverUrl ? (
+               <img src={store.coverUrl} alt="Capa" className="w-full h-full object-cover" />
+           ) : (
+               <div className="w-full h-full bg-slate-800 flex items-center justify-center text-white">
+                   Capa da Loja
+               </div>
+           )}
+        </div>
 
-      {/* 2. Header Info (Logo, Name, Status) */}
-      <div className="max-w-md mx-auto px-4"> {/* Alterado de max-w-5xl para max-w-md */}
-          <div className="flex flex-col md:flex-row items-start md:items-center -mt-10 relative z-10 mb-6 gap-4">
-              
-              {/* Logo Box */}
-              <div className="w-24 h-24 bg-white rounded-xl shadow-md p-1 border border-gray-100 flex-shrink-0">
-                  <div className="w-full h-full rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
-                    {store.logoUrl ? (
-                        <img src={store.logoUrl} className="w-full h-full object-contain" />
-                    ) : (
-                        <span className="text-2xl font-bold text-gray-400">{store.name ? store.name[0] : ''}</span>
-                    )}
-                  </div>
-              </div>
+        {/* 2. Header Info (Logo, Name, Status) */}
+        <div className="px-4"> {/* Removido max-w-md mx-auto daqui, pois o pai já o tem */}
+            <div className="flex flex-col md:flex-row items-start md:items-center -mt-10 relative z-10 mb-6 gap-4">
+                
+                {/* Logo Box */}
+                <div className="w-24 h-24 bg-white rounded-xl shadow-md p-1 border border-gray-100 flex-shrink-0">
+                    <div className="w-full h-full rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
+                      {store.logoUrl ? (
+                          <img src={store.logoUrl} className="w-full h-full object-contain" />
+                      ) : (
+                          <span className="text-2xl font-bold text-gray-400">{store.name ? store.name[0] : ''}</span>
+                      )}
+                    </div>
+                </div>
 
-              {/* Text Info */}
-              <div className="flex-1 pt-10 md:pt-0 w-full">
-                  <div className="flex justify-between items-start w-full">
-                      <div>
-                          <h1 className="text-2xl font-bold text-gray-900 leading-tight">{store.name || 'Nome da Loja'}</h1>
-                          <div className="flex items-center gap-1 text-gray-500 text-sm mt-1">
-                              <MapPin className="w-3.5 h-3.5" />
-                              <span className="truncate max-w-[250px] md:max-w-md">{store.address || 'Endereço não informado'}</span>
-                          </div>
-                      </div>
-                      
-                      <div className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 border shadow-sm 
-                          ${isStoreCurrentlyOpen ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
-                          <div className={`w-2 h-2 rounded-full animate-pulse ${isStoreCurrentlyOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                          {isStoreCurrentlyOpen ? 'Aberto' : 'Fechado'}
-                          {/* O contador não será exibido na vitrine */}
-                      </div>
-                  </div>
-              </div>
-          </div>
+                {/* Text Info */}
+                <div className="flex-1 pt-10 md:pt-0 w-full">
+                    <div className="flex justify-between items-start w-full">
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900 leading-tight">{store.name || 'Nome da Loja'}</h1>
+                            <div className="flex items-center gap-1 text-gray-500 text-sm mt-1">
+                                <MapPin className="w-3.5 h-3.5" />
+                                <span className="truncate max-w-[250px] md:max-w-md">{store.address || 'Endereço não informado'}</span>
+                            </div>
+                        </div>
+                        
+                        <div className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 border shadow-sm 
+                            ${isStoreCurrentlyOpen ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
+                            <div className={`w-2 h-2 rounded-full animate-pulse ${isStoreCurrentlyOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                            {isStoreCurrentlyOpen ? 'Aberto' : 'Fechado'}
+                            {/* O contador não será exibido na vitrine */}
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-          {/* 3. Service Icons Grid (4 Blocks like Skyller) */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-              <div className="bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer border border-slate-100">
-                  <Bike className="w-6 h-6 text-gray-700" />
-                  <span className="text-[10px] font-semibold text-gray-600">Entrega</span>
-              </div>
-              <div className="bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer border border-slate-100">
-                  <ShoppingBag className="w-6 h-6 text-gray-700" />
-                  <span className="text-[10px] font-semibold text-gray-600">Retirada</span>
-              </div>
-              <div className="bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer border border-slate-100">
-                  <Clock className="w-6 h-6 text-gray-700" />
-                  <span className="text-[10px] font-semibold text-gray-600">Funcionamento</span>
-              </div>
-              <div className="bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer border border-slate-100">
-                  <CreditCard className="w-6 h-6 text-gray-700" />
-                  <span className="text-[10px] font-semibold text-gray-600">Pagamentos</span>
-              </div>
-          </div>
+            {/* 3. Service Icons Grid (4 Blocks like Skyller) */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                <div className="bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer border border-slate-100">
+                    <Bike className="w-6 h-6 text-gray-700" />
+                    <span className="text-[10px] font-semibold text-gray-600">Entrega</span>
+                </div>
+                <div className="bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer border border-slate-100">
+                    <ShoppingBag className="w-6 h-6 text-gray-700" />
+                    <span className="text-[10px] font-semibold text-gray-600">Retirada</span>
+                </div>
+                <div className="bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer border border-slate-100">
+                    <Clock className="w-6 h-6 text-gray-700" />
+                    <span className="text-[10px] font-semibold text-gray-600">Funcionamento</span>
+                </div>
+                <div className="bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer border border-slate-100">
+                    <CreditCard className="w-6 h-6 text-gray-700" />
+                    <span className="text-[10px] font-semibold text-gray-600">Pagamentos</span>
+                </div>
+            </div>
 
-          {/* 4. Categories Tabs */}
-          <div className="mb-6">
-             <h3 className="text-sm font-bold text-gray-900 mb-3 ml-1">Categorias</h3>
-             <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                <button className="px-5 py-2 rounded-full bg-gray-900 text-white text-xs font-bold whitespace-nowrap shadow-sm">
-                    Tudo
-                </button>
-                {/* Usar grupos para as abas */}
-                {groups.map(group => (
-                    <a key={group.id} href={`#cat-${group.id}`} className="px-5 py-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 text-xs font-bold whitespace-nowrap transition-colors">
-                        {group.name} {/* Exibir nome do grupo */}
-                    </a>
-                ))}
-             </div>
-          </div>
+            {/* 4. Categories Tabs */}
+            <div className="mb-6">
+               <h3 className="text-sm font-bold text-gray-900 mb-3 ml-1">Categorias</h3>
+               <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                  <button className="px-5 py-2 rounded-full bg-gray-900 text-white text-xs font-bold whitespace-nowrap shadow-sm">
+                      Tudo
+                  </button>
+                  {/* Usar grupos para as abas */}
+                  {groups.map(group => (
+                      <a key={group.id} href={`#cat-${group.id}`} className="px-5 py-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 text-xs font-bold whitespace-nowrap transition-colors">
+                          {group.name} {/* Exibir nome do grupo */}
+                      </a>
+                  ))}
+               </div>
+            </div>
 
-          {/* 5. Search Bar */}
-          <div className="relative mb-8">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input 
-                  type="text" 
-                  placeholder="Buscar produtos... (ex: calabresa)"
-                  className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100 transition-all"
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-              />
-          </div>
+            {/* 5. Search Bar */}
+            <div className="relative mb-8">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input 
+                    type="text" 
+                    placeholder="Buscar produtos... (ex: calabresa)"
+                    className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100 transition-all"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                />
+            </div>
 
-          {/* 6. Product List */}
-          <div className="space-y-8">
-              {productsByGroup.length === 0 ? (
-                  <div className="text-center text-gray-500 p-8 bg-white rounded-xl shadow-xl border border-gray-100">
-                      Nenhum produto encontrado. Configure sua loja no painel administrativo.
-                  </div>
-              ) : (
-                  productsByGroup.map((groupData) => (
-                      <div key={groupData.group.id} id={`cat-${groupData.group.id}`} className="scroll-mt-32">
-                          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">
-                              {groupData.group.name}
-                          </h2>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-                              {groupData.items.map(product => (
-                                  <div key={product.id} className="bg-white rounded-xl border border-gray-100 p-4 flex gap-4 shadow-sm hover:shadow-md transition-all group">
-                                      {/* Product Image */}
-                                      <div className="w-28 h-28 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative flex items-center justify-center">
-                                          {product.image_url ? (
-                                              <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                                          ) : (
-                                              <span className="text-gray-400 text-xs text-center p-2">Sem Imagem</span>
-                                          )}
-                                      </div>
+            {/* 6. Product List */}
+            <div className="space-y-8">
+                {productsByGroup.length === 0 ? (
+                    <div className="text-center text-gray-500 p-8 bg-white rounded-xl shadow-xl border border-gray-100">
+                        Nenhum produto encontrado. Configure sua loja no painel administrativo.
+                    </div>
+                ) : (
+                    productsByGroup.map((groupData) => (
+                        <div key={groupData.group.id} id={`cat-${groupData.group.id}`} className="scroll-mt-32">
+                            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">
+                                {groupData.group.name}
+                            </h2>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                                {groupData.items.map(product => (
+                                    <div key={product.id} className="bg-white rounded-xl border border-gray-100 p-4 flex gap-4 shadow-sm hover:shadow-md transition-all group">
+                                        {/* Product Image */}
+                                        <div className="w-28 h-28 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative flex items-center justify-center">
+                                            {product.image_url ? (
+                                                <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                            ) : (
+                                                <span className="text-gray-400 text-xs text-center p-2">Sem Imagem</span>
+                                            )}
+                                        </div>
 
-                                      {/* Content */}
-                                      <div className="flex-1 flex flex-col justify-between py-1">
-                                          <div>
-                                              <h3 className="text-base font-bold text-gray-900 line-clamp-1 leading-tight">{product.name}</h3>
-                                              <p className="text-xs text-gray-500 line-clamp-2 mt-1.5">{product.description}</p>
-                                          </div>
-                                          
-                                          <div className="flex items-center justify-between mt-3">
-                                              <span className="text-base font-bold text-gray-900">
-                                                  R$ {product.price.toFixed(2)}
-                                              </span>
-                                              <button 
-                                                  onClick={() => product.options && product.options.length > 0 ? openProductDetails(product) : addToCart(product)}
-                                                  className="bg-white border border-gray-200 text-green-700 text-xs font-bold px-4 py-2 rounded-lg hover:bg-green-50 hover:border-green-200 transition-all shadow-sm active:scale-95"
-                                                  style={{ color: store.primaryColor, borderColor: store.primaryColor, '--hover-bg-color': `${store.primaryColor}10` } as React.CSSProperties}
-                                                  disabled={!isStoreCurrentlyOpen} // Desabilita se a loja estiver fechada
-                                              >
-                                                  {product.options && product.options.length > 0 ? 'Ver Opções' : 'Adicionar'}
-                                              </button>
-                                          </div>
-                                      </div>
-                                  </div>
-                              ))}
-                          </div>
-                      </div>
-                  ))
-              )}
-          </div>
-          
-          {/* Footer Spacer */}
-          <div className="h-10"></div>
-      </div>
+                                        {/* Content */}
+                                        <div className="flex-1 flex flex-col justify-between py-1">
+                                            <div>
+                                                <h3 className="text-base font-bold text-gray-900 line-clamp-1 leading-tight">{product.name}</h3>
+                                                <p className="text-xs text-gray-500 line-clamp-2 mt-1.5">{product.description}</p>
+                                            </div>
+                                            
+                                            <div className="flex items-center justify-between mt-3">
+                                                <span className="text-base font-bold text-gray-900">
+                                                    R$ {product.price.toFixed(2)}
+                                                </span>
+                                                <button 
+                                                    onClick={() => product.options && product.options.length > 0 ? openProductDetails(product) : addToCart(product)}
+                                                    className="bg-white border border-gray-200 text-green-700 text-xs font-bold px-4 py-2 rounded-lg hover:bg-green-50 hover:border-green-200 transition-all shadow-sm active:scale-95"
+                                                    style={{ color: store.primaryColor, borderColor: store.primaryColor, '--hover-bg-color': `${store.primaryColor}10` } as React.CSSProperties}
+                                                    disabled={!isStoreCurrentlyOpen} // Desabilita se a loja estiver fechada
+                                                >
+                                                    {product.options && product.options.length > 0 ? 'Ver Opções' : 'Adicionar'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+            
+            {/* Footer Spacer */}
+            <div className="h-10"></div>
+        </div>
+      </div> {/* Fim do wrapper max-w-md mx-auto */}
 
       {/* 7. Bottom Navigation (Fixed) */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-[0_-5px_20px_rgba(0,0,0,0.03)] z-40">
