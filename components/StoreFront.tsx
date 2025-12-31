@@ -455,7 +455,7 @@ export const StoreFront: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2 text-gray-600 text-sm font-medium">
                     <Clock className="w-4 h-4" />
-                    <span>45 a 55 min</span> {/* Placeholder para tempo de entrega */}
+                    <span className="leading-none">45 a 55 min</span> {/* Placeholder para tempo de entrega */}
                 </div>
                 <button className="flex items-center gap-1 text-gray-600 text-sm font-medium hover:text-gray-800 transition-colors">
                     <Info className="w-4 h-4" />
