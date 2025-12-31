@@ -560,7 +560,7 @@ export const StoreFront: React.FC = () => {
                                             </div>
                                             
                                             <div className="flex items-center justify-between mt-3">
-                                                <span className="text-base font-bold text-gray-900">
+                                                <span className="text-base font-bold text-green-600">
                                                     R$ {product.price.toFixed(2)}
                                                 </span>
                                                 {/* Button moved here, inside the content area */}
@@ -684,7 +684,7 @@ export const StoreFront: React.FC = () => {
                                                 <span className="px-2 text-xs font-bold text-gray-900">{item.quantity}</span>
                                                 <button onClick={() => updateQuantity(item, 1)} className="px-2 py-1 rounded-r-lg" style={{ color: store.primaryColor, '--hover-bg-color': `${store.primaryColor}10` } as React.CSSProperties}><Plus className="w-3 h-3"/></button>
                                             </div>
-                                            <span className="font-bold text-sm text-gray-900 ml-auto">
+                                            <span className="font-bold text-sm text-green-600 ml-auto">
                                                 R$ {calculateItemTotalPrice(item).toFixed(2)}
                                             </span>
                                         </div>
@@ -698,7 +698,7 @@ export const StoreFront: React.FC = () => {
                         <div className="p-5 border-t border-gray-100 bg-gray-50">
                             <div className="flex justify-between items-center mb-4">
                                 <span className="text-sm font-medium text-gray-500">Total do Pedido</span>
-                                <span className="text-xl font-extrabold text-gray-900">R$ {cart.reduce((acc, item) => acc + calculateItemTotalPrice(item), 0).toFixed(2)}</span>
+                                <span className="text-xl font-extrabold text-green-600">R$ {cart.reduce((acc, item) => acc + calculateItemTotalPrice(item), 0).toFixed(2)}</span>
                             </div>
                             <button 
                                 onClick={() => userAddress ? handleCheckout() : setIsAddressModalOpen(true)}
@@ -735,7 +735,7 @@ export const StoreFront: React.FC = () => {
                         )}
                     </div>
                     <p className="text-sm text-gray-600 mb-4">{selectedProductForDetails.description}</p>
-                    <p className="text-lg font-bold text-gray-900 mb-6">Preço Base: R$ {selectedProductForDetails.price.toFixed(2)}</p>
+                    <p className="text-lg font-bold text-green-600 mb-6">Preço Base: R$ {selectedProductForDetails.price.toFixed(2)}</p>
 
                     {selectedProductForDetails.options.map(option => (
                         <div key={option.id} className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-100">
@@ -786,7 +786,7 @@ export const StoreFront: React.FC = () => {
                                             
                                             <div className="flex items-center gap-3">
                                                 {subProduct.price > 0 && (
-                                                    <span className="text-sm font-bold text-gray-700">
+                                                    <span className="text-sm font-bold text-green-600">
                                                         +R$ {subProduct.price.toFixed(2)}
                                                     </span>
                                                 )}
