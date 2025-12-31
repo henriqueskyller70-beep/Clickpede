@@ -409,7 +409,14 @@ export const StoreFront: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white font-sans pb-24">
-      <div className="max-w-md mx-auto"> {/* Wrapper para todo o conteúdo principal */}
+      <div className="max-w-md mx-auto relative"> {/* Wrapper para todo o conteúdo principal, adicionado 'relative' */}
+        {/* Status "Aberto" posicionado absolutamente */}
+        <div className={`absolute top-4 left-4 z-20 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 border shadow-sm 
+            ${isStoreCurrentlyOpen ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
+            <div className={`w-2 h-2 rounded-full animate-pulse ${isStoreCurrentlyOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
+            {isStoreCurrentlyOpen ? 'Aberto' : 'Fechado'}
+        </div>
+
         {/* 1. Top Banner (Image) */}
         <div className="w-full h-40 bg-gray-200 relative overflow-hidden">
            {store.coverUrl ? (
@@ -421,8 +428,8 @@ export const StoreFront: React.FC = () => {
            )}
         </div>
 
-        {/* 2. Header Info (Logo, Name, Status) */}
-        <div className="px-4 pt-4"> {/* Adicionado pt-4 aqui */}
+        {/* 2. Header Info (Logo, Name, Address) */}
+        <div className="px-4 pt-4">
             <div className="flex flex-col md:flex-row items-start md:items-center -mt-10 relative z-10 mb-6 gap-4">
                 
                 {/* Logo Box */}
@@ -446,13 +453,7 @@ export const StoreFront: React.FC = () => {
                                 <span className="truncate max-w-[250px] md:max-w-md">{store.address || 'Endereço não informado'}</span>
                             </div>
                         </div>
-                        
-                        <div className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 border shadow-sm 
-                            ${isStoreCurrentlyOpen ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
-                            <div className={`w-2 h-2 rounded-full animate-pulse ${isStoreCurrentlyOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                            {isStoreCurrentlyOpen ? 'Aberto' : 'Fechado'}
-                            {/* O contador não será exibido na vitrine */}
-                        </div>
+                        {/* REMOVIDO: O status "Aberto" foi movido para fora deste bloco */}
                     </div>
                 </div>
             </div>
