@@ -124,7 +124,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onClose, onSwitchToRegiste
         </div>
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1">Senha:</label>
-          <div className="relative">
+          <div className="relative overflow-hidden"> {/* Adicionado overflow-hidden aqui */}
             <input 
               type={showPassword ? "text" : "password"}
               value={password}
