@@ -522,13 +522,23 @@ export const StoreFront: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
                                 {groupData.items.map(product => (
                                     <div key={product.id} className="bg-white rounded-xl border border-gray-100 p-4 flex gap-4 shadow-sm hover:shadow-md transition-all group">
-                                        {/* Product Image */}
-                                        <div className="w-28 h-28 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative flex items-center justify-center">
+                                        {/* Product Image Container - now relative and overflow-visible */}
+                                        <div className="w-28 h-28 bg-gray-100 rounded-lg overflow-visible flex-shrink-0 relative flex items-center justify-center">
                                             {product.image_url ? (
                                                 <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                             ) : (
                                                 <span className="text-gray-400 text-xs text-center p-2">Sem Imagem</span>
                                             )}
+                                            {/* Button moved inside image container, positioned absolutely */}
+                                            <button 
+                                                onClick={() => product.options && product.options.length > 0 ? openProductDetails(product) : addToCart(product)}
+                                                className="absolute -bottom-4 right-0 z-10 relative overflow-hidden group bg-white border border-gray-200 text-xs font-bold px-4 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all active:scale-[0.98]"
+                                                style={{ color: store.primaryColor, borderColor: store.primaryColor, backgroundColor: 'white', '--hover-bg-color': `${store.primaryColor}10` } as React.CSSProperties}
+                                                disabled={!isStoreCurrentlyOpen}
+                                            >
+                                                {product.options && product.options.length > 0 ? 'Ver Opções' : 'Adicionar'}
+                                                <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
+                                            </button>
                                         </div>
 
                                         {/* Content */}
@@ -542,15 +552,7 @@ export const StoreFront: React.FC = () => {
                                                 <span className="text-base font-bold text-gray-900">
                                                     R$ {product.price.toFixed(2)}
                                                 </span>
-                                                <button 
-                                                    onClick={() => product.options && product.options.length > 0 ? openProductDetails(product) : addToCart(product)}
-                                                    className="relative overflow-hidden group bg-white border border-gray-200 text-xs font-bold px-4 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all active:scale-[0.98]"
-                                                    style={{ color: store.primaryColor, borderColor: store.primaryColor }}
-                                                    disabled={!isStoreCurrentlyOpen} // Desabilita se a loja estiver fechada
-                                                >
-                                                    {product.options && product.options.length > 0 ? 'Ver Opções' : 'Adicionar'}
-                                                    <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
-                                                </button>
+                                                {/* O botão foi removido daqui */}
                                             </div>
                                         </div>
                                     </div>
