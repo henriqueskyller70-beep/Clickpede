@@ -6,7 +6,7 @@ import { LoginPage } from './src/components/LoginPage';
 import { ProfileSettingsPage } from './src/components/ProfileSettingsPage';
 import { ResetPasswordPage } from './src/components/ResetPasswordPage';
 import { ForgotPasswordPage } from './src/components/ForgotPasswordPage'; // Importar o novo ForgotPasswordPage
-import { ShoppingCart, Package, Smartphone, LineChart, Settings } from 'lucide-react';
+import { ShoppingCart, Package, Smartphone, LineChart, Settings, Menu, X, Home as HomeIcon, Info, FileText, Star } from 'lucide-react'; // Adicionado Menu, X, HomeIcon, Info, FileText, Star
 import { useSession } from './src/components/SessionContextProvider';
 import { Modal } from './src/components/ui/Modal'; // Importar o componente Modal
 
@@ -19,6 +19,7 @@ const App: React.FC = () => {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // NOVO: Estado para o menu mobile
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -29,6 +30,7 @@ const App: React.FC = () => {
       setIsRegisterModalOpen(false);
       setIsLoginModalOpen(false);
       setIsForgotPasswordModalOpen(false);
+      setIsMobileMenuOpen(false); // Fechar menu mobile também
 
       // Abrir modal específico baseado no hash
       if (currentHash === '#/register') {
@@ -118,6 +120,7 @@ const App: React.FC = () => {
             <ShoppingCart className="w-6 h-6 text-yellow-500" />
             <h1 className="text-xl font-bold text-gray-900 tracking-tighter">Click<span className="text-yellow-500">Pede</span></h1>
         </div>
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
             <a href="#" className="text-gray-700 hover:text-gray-900 transition-colors text-sm font-medium group relative overflow-hidden transform hover:scale-[1.02] hover:shadow-lg">
                 Home
@@ -146,6 +149,13 @@ const App: React.FC = () => {
                 Login
             </button>
         </nav>
+        {/* Mobile Menu Button */}
+        <button 
+            onClick={() => setIsMobileMenuOpen(true)} 
+            className="md:hidden p-2 rounded-full text-gray-700 hover:bg-gray-100 transition-colors"
+        >
+            <Menu className="w-6 h-6" />
+        </button>
       </header>
 
       {/* Main Content - Hero Section */}
@@ -260,6 +270,56 @@ const App: React.FC = () => {
             onClose={() => { setIsForgotPasswordModalOpen(false); }}
             onSwitchToLogin={() => { setIsForgotPasswordModalOpen(false); setIsLoginModalOpen(true); window.location.hash = '#/'; }}
           />
+        </Modal>
+      )}
+
+      {/* NOVO: Modal para Menu Mobile */}
+      {isMobileMenuOpen && (
+        <Modal open={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} title="Menu">
+          <div className="flex flex-col space-y-4 py-4">
+            <a 
+              href="#" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+            >
+              <HomeIcon className="w-5 h-5 text-gray-500" /> Home
+            </a>
+            <a 
+              href="#" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+            >
+              <Info className="w-5 h-5 text-gray-500" /> Funcionalidades
+            </a>
+            <a 
+              href="#" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+            >
+              <FileText className="w-5 h-5 text-gray-500" /> Planos
+            </a>
+            <a 
+              href="#" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+            >
+              <Star className="w-5 h-5 text-gray-500" /> Sobre nós
+            </a>
+            <div className="border-t border-gray-100 my-2"></div>
+            <a 
+              href="#/register" 
+              onClick={() => { setIsMobileMenuOpen(false); setIsRegisterModalOpen(true); }}
+              className="w-full bg-yellow-400 text-gray-900 px-6 py-2 rounded-lg hover:bg-yellow-500 transition-colors text-sm font-medium shadow-md text-center"
+            >
+              Cadastre-se
+            </a>
+            <button 
+              onClick={() => { setIsMobileMenuOpen(false); setIsLoginModalOpen(true); }} 
+              className="w-full bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-black transition-colors text-sm font-medium shadow-md text-center"
+            >
+              Login
+            </button>
+          </div>
         </Modal>
       )}
     </div>
