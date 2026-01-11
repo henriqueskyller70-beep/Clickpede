@@ -573,6 +573,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         options: currentProduct.options || [],
         order_index: products.length, // Assign a default order_index for new products
         id: undefined, // Explicitamente definido como undefined para que o Supabase gere o UUID
+        isFeatured: currentProduct.isFeatured || false, // NOVO: Incluir isFeatured
       };
       productsToUpdateState = [...products, productToCreate];
     }
@@ -607,6 +608,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     } else {
       setLocalImagePreview(currentProduct.image_url || null);
     }
+  };
+
+  // NOVO: Função para alternar o status de destaque de um produto
+  const handleToggleProductFeatured = async (productId: string, isFeatured: boolean) => {
+    if (!userId) return;
+
+    const updatedProducts = products.map(p => 
+      p.id === productId ? { ...p, isFeatured: isFeatured } : p
+    );
+    setProducts(updatedProducts); // Atualiza a UI imediatamente
+    await storageService.saveProducts(supabase, userId, updatedProducts); // Salva no DB
+    showSuccess(`Produto ${isFeatured ? 'adicionado aos destaques' : 'removido dos destaques'}!`);
   };
 
   // Option/SubProduct Management
@@ -744,7 +757,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   };
 
   // Função atualizada para toggle de opção ou sub-produtos filtrados
-  const handleToggleOptionOrFilteredSubProductsActive = async (
+  const handleToggleOptionOrFilteredSubProductsActive = (
     productId: string, 
     optionId: string, 
     searchTerm: string = '', 
@@ -1607,6 +1620,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                             onOptionDragEnd={handleOptionDragEnd}
                                             onSubProductDragEnd={handleSubProductDragEnd}
                                             onOpenCopyOptionModal={handleOpenCopyOptionModal} // Passar a nova função
+                                            onToggleProductFeatured={handleToggleProductFeatured} // NOVO: Passar a função
                                         />
                                     ))}
                                 </SortableContext>

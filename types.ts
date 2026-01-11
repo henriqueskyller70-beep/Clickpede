@@ -35,6 +35,7 @@ export interface Product {
   stock: number;
   group_id: string; // Alterado de groupId para group_id
   options: Option[]; // Novo: Opções de personalização do produto
+  isFeatured?: boolean; // NOVO: Para marcar produtos em destaque
 }
 
 export interface Group {
@@ -89,5 +90,5 @@ export interface StoreSchedule {
   isAlwaysOpen: boolean;
   dailySchedules: DailySchedule[];
   reopenAt?: string | null; // Nova propriedade para o horário de reabertura automática
-  isTemporarilyClosedIndefinidamente?: boolean; // Nova propriedade para fechamento temporário indefinido
+  isTemporariamenteClosedIndefinidamente?: boolean; // Nova propriedade para fechamento temporário indefinido
 }

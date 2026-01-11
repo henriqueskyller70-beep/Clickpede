@@ -42,6 +42,7 @@ interface SortableProductItemProps {
   onOptionDragEnd: (productId: string, event: DragEndEvent) => void;
   onSubProductDragEnd: (productId: string, optionId: string, event: DragEndEvent) => void;
   onOpenCopyOptionModal: (productId: string, optionId: string) => void; // NOVO: Prop para abrir o modal de cópia
+  onToggleProductFeatured: (productId: string, isFeatured: boolean) => void; // NOVO: Prop para alternar destaque
 }
 
 export const SortableProductItem: React.FC<SortableProductItemProps> = ({
@@ -65,6 +66,7 @@ export const SortableProductItem: React.FC<SortableProductItemProps> = ({
   onOptionDragEnd,
   onSubProductDragEnd,
   onOpenCopyOptionModal, // NOVO: Desestruturar a nova prop
+  onToggleProductFeatured, // NOVO: Desestruturar a nova prop
 }) => {
   const {
     attributes,
@@ -120,7 +122,13 @@ export const SortableProductItem: React.FC<SortableProductItemProps> = ({
           <p className="font-bold text-gray-800">Preço: R$ {product.price.toFixed(2)}</p>
         </div>
         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <button className="p-2 hover:bg-[#9f1239]/10 rounded-lg transform active:scale-95 shadow-md" style={{ color: storeProfile.primaryColor }}><Star className="w-4 h-4" /></button>
+          <button 
+            onClick={() => onToggleProductFeatured(product.id!, !product.isFeatured)} // NOVO: Botão de destaque
+            className="p-2 hover:bg-[#9f1239]/10 rounded-lg transform active:scale-95 shadow-md" 
+            style={{ color: product.isFeatured ? storeProfile.primaryColor : '#9f1239' }} // Cor da estrela
+          >
+            <Star className={`w-4 h-4 ${product.isFeatured ? 'fill-current' : ''}`} /> {/* Preenche a estrela se for destaque */}
+          </button>
           <button onClick={() => onEditProduct(product)} className="p-2 hover:bg-[#9f1239]/10 rounded-lg transform active:scale-95 shadow-md" style={{ color: storeProfile.primaryColor }}><Edit className="w-4 h-4" /></button>
           <button onClick={() => onDeleteProduct(product.id!)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transform active:scale-95 shadow-md"><X className="w-4 h-4" /></button>
         </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Plus, Minus, X, Search, MapPin, Clock, CreditCard, ShoppingBag, Home, FileText, ChevronRight, Bike, Info, History, Tag, User } from 'lucide-react'; // Adicionado Info, History, Tag, User
+import { ShoppingCart, Plus, Minus, X, Search, MapPin, Clock, CreditCard, ShoppingBag, Home, FileText, ChevronRight, Bike, Info, History, Tag, User, Star } from 'lucide-react'; // Adicionado Info, History, Tag, User, Star
 import { Product, Category, StoreProfile, CartItem, Address, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
 import { storageService } from '../services/storageService';
 import { useSession } from '../src/components/SessionContextProvider'; // Importar o hook de sessão
@@ -289,6 +289,9 @@ export const StoreFront: React.FC = () => {
       )
   })).filter(group => group.items.length > 0);
 
+  // Produtos em destaque
+  const featuredProducts = products.filter(p => p.isFeatured && p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
   // Modal de detalhes do produto
   const openProductDetails = (product: Product) => {
     setSelectedProductForDetails(product);
@@ -525,9 +528,51 @@ export const StoreFront: React.FC = () => {
                 </div>
             </div>
 
+            {/* NOVO: Seção de Produtos em Destaque */}
+            {featuredProducts.length > 0 && (
+                <div className="mb-8">
+                    <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" /> Produtos em Destaque
+                    </h2>
+                    <div className="grid grid-cols-1 gap-4">
+                        {featuredProducts.map(product => (
+                            <div key={product.id} className="bg-white rounded-xl border border-gray-100 p-4 flex gap-4 shadow-sm hover:shadow-md transition-all group">
+                                <div className="w-28 h-28 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative flex items-center justify-center">
+                                    {product.image_url ? (
+                                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                    ) : (
+                                        <span className="text-gray-400 text-xs text-center p-2">Sem Imagem</span>
+                                    )}
+                                </div>
+                                <div className="flex-1 flex flex-col justify-between py-1">
+                                    <div>
+                                        <h3 className="text-base font-bold text-gray-900 line-clamp-1 leading-tight">{product.name}</h3>
+                                        {product.description && (
+                                            <p className="text-xs font-bold text-gray-500 mt-1.5">{product.description}</p> 
+                                        )}
+                                    </div>
+                                    <div className="flex items-center justify-between mt-3">
+                                        <span className="text-base font-bold text-green-600">
+                                            R$ {product.price.toFixed(2)}
+                                        </span>
+                                        <button 
+                                            onClick={() => product.options && product.options.length > 0 ? openProductDetails(product) : addToCart(product)}
+                                            className="bg-yellow-400 text-gray-900 text-xs font-bold px-4 py-2 rounded-lg shadow-lg hover:bg-yellow-500 transition-all active:scale-[0.98]"
+                                            disabled={!isStoreCurrentlyOpen}
+                                        >
+                                            {product.options && product.options.length > 0 ? 'Ver Opções' : 'Adicionar'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* 6. Product List */}
             <div className="space-y-8">
-                {productsByGroup.length === 0 ? (
+                {productsByGroup.length === 0 && featuredProducts.length === 0 ? ( // Ajustado para verificar também featuredProducts
                     <div className="text-center text-gray-500 p-8 bg-white rounded-xl shadow-xl border border-gray-100">
                         Nenhum produto encontrado. Configure sua loja no painel administrativo.
                     </div>

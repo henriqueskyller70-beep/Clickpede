@@ -197,6 +197,7 @@ export const storageService = {
       group_id: p.group_id,   // Mapeamento direto
       options: (p.options as Option[] || []),
       order_index: p.order_index, // Ensure order_index is mapped
+      isFeatured: p.is_featured || false, // NOVO: Mapear is_featured
     })) || [];
   },
 
@@ -241,6 +242,7 @@ export const storageService = {
           options: product.options || [],
           user_id: userId,
           order_index: product.order_index !== undefined ? product.order_index : index, // Use provided order_index or default
+          is_featured: product.isFeatured || false, // NOVO: Incluir is_featured
           // id is omitted here, Supabase will generate it
         }));
         const { error: insertError } = await supabase
@@ -262,6 +264,7 @@ export const storageService = {
           options: product.options || [],
           user_id: userId,
           order_index: product.order_index, // Include order_index for updates
+          is_featured: product.isFeatured || false, // NOVO: Incluir is_featured
         }));
         const { error: upsertError } = await supabase
           .from('products')
