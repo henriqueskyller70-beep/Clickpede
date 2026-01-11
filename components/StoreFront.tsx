@@ -45,6 +45,7 @@ export const StoreFront: React.FC = () => {
   // Estados para o modal de detalhes do produto
   const [selectedProductForDetails, setSelectedProductForDetails] = useState<Product | null>(null);
   const [tempSelectedOptions, setTempSelectedOptions] = useState<Record<string, Record<string, number>>>({});
+  const [editingCartItemId, setEditingCartItemId] = useState<string | null>(null); // NOVO: Para saber qual item do carrinho está sendo editado
 
   useEffect(() => {
     const loadStoreData = async () => {
@@ -178,14 +179,14 @@ export const StoreFront: React.FC = () => {
       if (existing) {
         return prev.map(item => item.id === product.id && !item.selectedOptions ? { ...item, quantity: item.quantity + 1 } : item);
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...product, quantity: 1, cartItemId: Date.now().toString() + Math.random().toString(36).substring(2, 9) }]; // Assign unique cartItemId
     });
   };
 
   const updateQuantity = (itemToUpdate: CartItem, delta: number) => {
     setCart(prev => prev.map(item => {
-      const isSameItem = item.id === itemToUpdate.id && 
-                         JSON.stringify(item.selectedOptions) === JSON.stringify(itemToUpdate.selectedOptions);
+      // Compare by cartItemId to ensure uniqueness
+      const isSameItem = item.cartItemId === itemToUpdate.cartItemId;
       if (isSameItem) {
         return { ...item, quantity: Math.max(0, item.quantity + delta) };
       }
@@ -254,18 +255,34 @@ export const StoreFront: React.FC = () => {
 
   const featuredProducts = products.filter(p => p.isFeatured && p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  const openProductDetails = (product: Product) => {
+  const openProductDetails = (product: Product, cartItemToEdit?: CartItem) => {
     setSelectedProductForDetails(product);
+    setEditingCartItemId(cartItemToEdit?.cartItemId || null); // Set the cartItemId if editing
+
     const initialSelections: Record<string, Record<string, number>> = {};
-    product.options.forEach(option => {
-        initialSelections[option.id] = {};
-    });
+    if (cartItemToEdit && cartItemToEdit.selectedOptions) {
+        // Pre-fill options from the cart item being edited
+        product.options.forEach(option => {
+            initialSelections[option.id] = {};
+            cartItemToEdit.selectedOptions?.forEach(selOpt => {
+                if (selOpt.optionId === option.id) {
+                    initialSelections[option.id][selOpt.subProductId] = selOpt.quantity;
+                }
+            });
+        });
+    } else {
+        // Default empty selections for new product
+        product.options.forEach(option => {
+            initialSelections[option.id] = {};
+        });
+    }
     setTempSelectedOptions(initialSelections);
   };
 
   const closeProductDetails = () => {
     setSelectedProductForDetails(null);
     setTempSelectedOptions({});
+    setEditingCartItemId(null); // Clear editing state
   };
 
   const handleTempSubProductChange = (optionId: string, subProductId: string, quantityChange: number) => {
@@ -344,27 +361,34 @@ export const StoreFront: React.FC = () => {
         });
     });
 
-    const itemToAdd: CartItem = {
+    const newItem: CartItem = {
         ...selectedProductForDetails,
-        quantity: 1,
+        quantity: 1, // Always add/update with quantity 1 initially, then user can adjust in cart
         selectedOptions: selectedOptionsArray,
+        cartItemId: editingCartItemId || Date.now().toString() + Math.random().toString(36).substring(2, 9), // Use existing ID if editing, otherwise generate new
     };
 
     setCart(prev => {
-        const existingItemIndex = prev.findIndex(item => 
-            item.id === itemToAdd.id && 
-            JSON.stringify(item.selectedOptions) === JSON.stringify(itemToAdd.selectedOptions)
-        );
+        if (editingCartItemId) {
+            // If editing an existing item
+            return prev.map(item => item.cartItemId === editingCartItemId ? { ...newItem, quantity: item.quantity } : item); // Keep original quantity
+        } else {
+            // If adding a new item, check for identical items to merge quantity
+            const existingItemIndex = prev.findIndex(item => 
+                item.id === newItem.id && 
+                JSON.stringify(item.selectedOptions) === JSON.stringify(newItem.selectedOptions)
+            );
 
-        if (existingItemIndex > -1) {
-            const updatedCart = [...prev];
-            updatedCart[existingItemIndex] = {
-                ...updatedCart[existingItemIndex],
-                quantity: updatedCart[existingItemIndex].quantity + 1
-            };
-            return updatedCart;
+            if (existingItemIndex > -1) {
+                const updatedCart = [...prev];
+                updatedCart[existingItemIndex] = {
+                    ...updatedCart[existingItemIndex],
+                    quantity: updatedCart[existingItemIndex].quantity + 1
+                };
+                return updatedCart;
+            }
+            return [...prev, newItem];
         }
-        return [...prev, itemToAdd];
     });
 
     closeProductDetails();
@@ -443,10 +467,17 @@ export const StoreFront: React.FC = () => {
 
             <div className="flex flex-col gap-4 mb-8">
                 <div className="flex overflow-x-auto pb-2 scrollbar-hide gap-2">
+                    <button
+                        onClick={() => setSelectedCategory('all')}
+                        className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap
+                            ${false ? 'bg-yellow-400 text-gray-900 shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                    >
+                        Todas as Categorias
+                    </button>
                     {groups.map(group => (
                         <button
                             key={group.id}
-                            // onClick={() => setSelectedCategory(group.id!)} // Removido selectedCategory
+                            onClick={() => setSelectedCategory(group.id!)}
                             className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap
                                 ${false ? 'bg-yellow-400 text-gray-900 shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                         >
@@ -626,7 +657,7 @@ export const StoreFront: React.FC = () => {
                             </div>
                         ) : (
                             cart.map((item, index) => (
-                                <div key={item.id + JSON.stringify(item.selectedOptions) + index} className="flex gap-4">
+                                <div key={item.cartItemId} className="flex gap-4"> {/* Usar cartItemId como key */}
                                     <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
                                         {item.image_url ? (
                                             <img src={item.image_url} className="w-full h-full object-cover" />
@@ -662,6 +693,21 @@ export const StoreFront: React.FC = () => {
                                             <span className="font-bold text-sm text-green-600 ml-auto">
                                                 R$ {calculateItemTotalPrice(item).toFixed(2)}
                                             </span>
+                                            {/* NOVO: Botão de Editar Item */}
+                                            <button 
+                                                onClick={() => {
+                                                    const originalProduct = products.find(p => p.id === item.id);
+                                                    if (originalProduct) {
+                                                        openProductDetails(originalProduct, item);
+                                                        setIsCartOpen(false); // Fecha o carrinho para abrir o modal de detalhes
+                                                    } else {
+                                                        showError("Produto original não encontrado para edição.");
+                                                    }
+                                                }}
+                                                className="p-1 text-blue-600 hover:bg-blue-50 rounded-lg transform active:scale-95 shadow-sm"
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -827,7 +873,7 @@ export const StoreFront: React.FC = () => {
                         style={{ backgroundColor: store.primaryColor }}
                         disabled={!isStoreCurrentlyOpen}
                     >
-                        Adicionar ao Carrinho - R$ {calculateCurrentModalProductPrice().toFixed(2)}
+                        {editingCartItemId ? 'Atualizar Item' : 'Adicionar ao Carrinho'} - R$ {calculateCurrentModalProductPrice().toFixed(2)}
                         <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
                     </button>
                 </div>

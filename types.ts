@@ -44,18 +44,8 @@ export interface Group {
   order_index: number; // New: Order index for sorting
 }
 
-export interface StoreProfile {
-  name: string;
-  description: string;
-  primaryColor: string;
-  secondaryColor?: string; // Nova propriedade para a cor secundária
-  logoUrl?: string; // Tornando logoUrl opcional para corresponder ao esquema do DB
-  coverUrl?: string; // Nova capa
-  address?: string; // Endereço da loja
-  phone?: string;   // Contato
-}
-
 export interface CartItem extends Product {
+  cartItemId: string; // NOVO: ID único para cada entrada no carrinho
   quantity: number;
   selectedOptions?: { optionId: string; subProductId: string; quantity: number }[]; // Para itens do carrinho com opções
 }
