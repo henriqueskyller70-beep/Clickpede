@@ -46,7 +46,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const { supabase, session } = useSession(); // Obter supabase e session do contexto
   const userId = session?.user?.id;
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders' | 'store-settings' | 'schedule' | 'clients' | 'staff' | 'reports' | 'profile-settings'>('overview'); // Default to overview tab
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders-parent' | 'order-manager' | 'store-settings' | 'schedule' | 'clients' | 'staff' | 'reports' | 'profile-settings'>('overview'); // Default to overview tab
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [storeProfile, setStoreProfile] = useState<StoreProfile>({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '' }); // Estado inicial vazio
@@ -55,6 +55,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false); // Renomeado de showTemporaryCloseOptions
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isStoreSubmenuOpen, setIsStoreSubmenuOpen] = useState(false);
+  const [isOrdersSubmenuOpen, setIsOrdersSubmenuOpen] = useState(false); // NOVO: Estado para o submenu de Pedidos
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false); // Novo estado para o dropdown do perfil
   const [userProfile, setUserProfile] = useState<{ first_name: string; last_name: string; avatar_url: string | null } | null>(null); // Estado para o perfil do usuário
   
@@ -77,7 +78,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   // Product/Group Management States
   const [groups, setGroups] = useState<Group[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<string | 'all'>('all'); // 'all' para todos os produtos
-  const [groupSearchTerm, setGroupSearchTerm] = useState('');
+  const [groupSearchTerm, setSearchTerm] = useState('');
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [showOptionsForProduct, setShowOptionsForProduct] = useState<string | null>(null); // ID do produto para mostrar opções
   const [isAddingProduct, setIsAddingProduct] = useState(false);
@@ -522,7 +523,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         const updatedProducts = prevProducts.map(product => {
           if (product.id === productId) {
             return {
-              ...p,
+              ...product,
               options: product.options.map(option => {
                 if (option.id === optionId) {
                   const oldIndex = option.subProducts.findIndex(subProduct => subProduct.id === active.id);
@@ -1030,10 +1031,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               { id: 'schedule', label: 'Horário de Funcionamento', icon: Clock }
           ]
       },
-      { id: 'orders', label: 'Pedidos', icon: ShoppingBag },
+      { 
+          id: 'orders-parent', // ID do item pai
+          label: 'Pedidos', 
+          icon: ShoppingBag, 
+          hasSubmenu: true,
+          children: [
+              { id: 'order-manager', label: 'Gerenciador de Pedidos', icon: ShoppingBag }, // Novo item de submenu
+          ]
+      },
       { id: 'clients', label: 'Clientes', icon: Users },
       { id: 'staff', label: 'Funcionários', icon: Users },
-      { id: 'reports', label: 'Relatórios', icon: FileText, hasSubmenu: false }, // Alterado para hasSubmenu: false
+      { id: 'reports', label: 'Relatórios', icon: FileText, hasSubmenu: false },
   ];
 
   const filteredGroups = groups.filter(group => 
@@ -1086,14 +1095,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                 <React.Fragment key={item.id}>
                     <button
                         onClick={() => {
-                            if (item.id === 'store') { // Lógica específica para o item 'Loja'
-                                setIsStoreSubmenuOpen(prev => !prev); // Alterna o submenu da loja
-                                if (!isStoreSubmenuOpen) { // Se estiver abrindo o submenu da loja
-                                    setActiveTab('store-settings'); // Define a aba padrão para 'Configurações da Loja'
+                            if (item.id === 'store') {
+                                setIsStoreSubmenuOpen(prev => !prev);
+                                setIsOrdersSubmenuOpen(false); // Fechar submenu de pedidos
+                                if (!isStoreSubmenuOpen) {
+                                    setActiveTab('store-settings');
                                 }
-                            } else { // Para todos os outros itens (incluindo 'Relatórios')
+                            } else if (item.id === 'orders-parent') { // Lógica para o item 'Pedidos'
+                                setIsOrdersSubmenuOpen(prev => !prev);
+                                setIsStoreSubmenuOpen(false); // Fechar submenu da loja
+                                if (!isOrdersSubmenuOpen) {
+                                    setActiveTab('order-manager'); // Define a aba padrão para 'Gerenciador de Pedidos'
+                                }
+                            } else {
                                 setActiveTab(item.id as any);
                                 setIsStoreSubmenuOpen(false); // Garante que o submenu da loja esteja fechado
+                                setIsOrdersSubmenuOpen(false); // Garante que o submenu de pedidos esteja fechado
                             }
                         }}
                         className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'justify-between px-6'} py-3.5 transition-all duration-200 group relative overflow-hidden
@@ -1113,7 +1130,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                             <span className={`text-sm font-medium ${isSidebarCollapsed ? 'hidden' : ''}`}>{item.label}</span>
                         </div>
                         {item.hasSubmenu && !isSidebarCollapsed && (
-                            <ChevronDown className={`w-3 h-3 text-gray-500 transition-transform ${isStoreSubmenuOpen && item.id === 'store' ? 'rotate-180' : ''}`} />
+                            <ChevronDown className={`w-3 h-3 text-gray-500 transition-transform 
+                                ${ (item.id === 'store' && isStoreSubmenuOpen) || (item.id === 'orders-parent' && isOrdersSubmenuOpen) ? 'rotate-180' : ''}`} />
                         )}
                         {/* 3D effect on hover */}
                         <span className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
@@ -1124,7 +1142,33 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                             {item.children?.map(child => (
                                 <button
                                     key={child.id}
-                                    onClick={() => setActiveTab(child.id as any)} // Sub-items ainda navegam diretamente
+                                    onClick={() => setActiveTab(child.id as any)}
+                                    className={`w-full flex items-center gap-3 px-6 py-2 transition-all duration-200 relative overflow-hidden
+                                        ${activeTab === child.id
+                                            ? 'text-white border-l-4 shadow-md'
+                                            : 'border-l-4 border-transparent hover:bg-gray-700/30 hover:text-white hover:shadow-sm'
+                                        }`}
+                                    style={activeTab === child.id
+                                        ? { backgroundColor: `${storeProfile.primaryColor}10`, borderColor: storeProfile.primaryColor }
+                                        : {}
+                                    }
+                                >
+                                    <child.icon className={`w-4 h-4 ${activeTab === child.id ? 'text-white' : 'text-gray-400'} transition-colors`} 
+                                        style={activeTab === child.id ? { color: storeProfile.primaryColor } : {}}
+                                    />
+                                    <span className="text-sm font-medium">{child.label}</span>
+                                    <span className="absolute inset-0 bg-white/5 opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {item.hasSubmenu && item.id === 'orders-parent' && isOrdersSubmenuOpen && !isSidebarCollapsed && (
+                        <div className="ml-8 space-y-1 border-l border-gray-700">
+                            {item.children?.map(child => (
+                                <button
+                                    key={child.id}
+                                    onClick={() => setActiveTab(child.id as any)}
                                     className={`w-full flex items-center gap-3 px-6 py-2 transition-all duration-200 relative overflow-hidden
                                         ${activeTab === child.id
                                             ? 'text-white border-l-4 shadow-md'
@@ -1312,7 +1356,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                         <RecentOrders 
                             orders={orders} 
                             storePrimaryColor={storeProfile.primaryColor} 
-                            onViewAllOrders={() => setActiveTab('orders')} 
+                            onViewAllOrders={() => setActiveTab('order-manager')} // Navega para o gerenciador de pedidos
                         />
 
                         {/* Produtos Mais Vendidos */}
@@ -1355,7 +1399,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                 placeholder="Buscar grupos..."
                                 className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-[#9f1239] focus:ring-2 focus:ring-[#9f1239]/20 shadow-sm transition-all"
                                 value={groupSearchTerm}
-                                onChange={e => setGroupSearchTerm(e.target.value)}
+                                onChange={e => setSearchTerm(e.target.value)}
                             />
                         </div>
 
@@ -1630,12 +1674,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                 </div>
             )}
 
-            {/* ORDERS TAB */}
-            {activeTab === 'orders' && (
+            {/* ORDER MANAGER TAB */}
+            {activeTab === 'order-manager' && (
                 <div className="space-y-6">
                     <h2 className="2xl font-bold text-gray-800 flex items-center gap-2">
                          <ShoppingBag className="drop-shadow-sm" style={{ color: storeProfile.primaryColor }} />
-                         Pedidos Recentes
+                         Gerenciador de Pedidos
                     </h2>
                     <div className="grid grid-cols-1 gap-4">
                         {orders.length === 0 ? (
