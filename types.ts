@@ -44,6 +44,17 @@ export interface Group {
   order_index: number; // New: Order index for sorting
 }
 
+export interface StoreProfile {
+  name: string;
+  description: string;
+  primaryColor: string;
+  secondaryColor?: string; // Nova propriedade para a cor secundária
+  logoUrl?: string; // Tornando logoUrl opcional para corresponder ao esquema do DB
+  coverUrl?: string; // Nova capa
+  address?: string; // Endereço da loja
+  phone?: string;   // Contato
+}
+
 export interface CartItem extends Product {
   cartItemId: string; // NOVO: ID único para cada entrada no carrinho
   quantity: number;
@@ -83,4 +94,23 @@ export interface StoreSchedule {
   dailySchedules: DailySchedule[];
   reopenAt?: string | null; // Nova propriedade para o horário de reabertura automática
   isTemporariamenteClosedIndefinidamente?: boolean; // Nova propriedade para fechamento temporário indefinido
+}
+
+// NOVO: Interfaces para gerenciamento de mesas
+export enum TableStatus {
+  AVAILABLE = 'Disponível',
+  OCCUPIED = 'Ocupada',
+  RESERVED = 'Reservada',
+  CLEANING = 'Limpeza'
+}
+
+export interface Table {
+  id: string;
+  name: string; // e.g., "Mesa 1", "Balcão A"
+  capacity: number;
+  status: TableStatus;
+  orderId?: string; // Optional: Link to an active order
+  notes?: string;
+  user_id: string; // To link tables to a specific store owner
+  order_index: number; // For sorting
 }

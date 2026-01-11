@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Package, ShoppingBag, Settings, Plus, 
   Trash2, Edit, LogOut, Store, Users, FileText, ChevronDown, Menu, Clock,
-  GripVertical, Search, X, Copy, Star, Infinity, User as UserIcon, TrendingUp // Renomear User para evitar conflito, adicionar Infinity, TrendingUp
+  GripVertical, Search, X, Copy, Star, Infinity, User as UserIcon, TrendingUp, Table as TableIcon // Renomear User para evitar conflito, adicionar Infinity, TrendingUp, TableIcon
 } from 'lucide-react';
 import { Product, Category, StoreProfile, Order, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
 import { storageService } from '../services/storageService';
@@ -16,6 +16,7 @@ import { CopyOptionModal } from '../src/components/CopyOptionModal'; // Importar
 import { SalesCharts } from '../src/components/SalesCharts'; // NOVO: Importar SalesCharts
 import { RecentOrders } from '../src/components/RecentOrders'; // NOVO: Importar RecentOrders
 import { AppLogo } from '../src/components/AppLogo'; // Importar o novo componente AppLogo
+import { TableManagerPage } from '../src/components/TableManagerPage'; // NOVO: Importar TableManagerPage
 
 // DND Kit Imports
 import {
@@ -46,7 +47,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const { supabase, session } = useSession(); // Obter supabase e session do contexto
   const userId = session?.user?.id;
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders-parent' | 'order-manager' | 'store-settings' | 'schedule' | 'clients' | 'staff' | 'reports' | 'profile-settings'>('overview'); // Default to overview tab
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders-parent' | 'order-manager' | 'table-manager' | 'store-settings' | 'schedule' | 'clients' | 'staff' | 'reports' | 'profile-settings'>('overview'); // Default to overview tab
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [storeProfile, setStoreProfile] = useState<StoreProfile>({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '' }); // Estado inicial vazio
@@ -1038,6 +1039,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
           hasSubmenu: true,
           children: [
               { id: 'order-manager', label: 'Gerenciador de Pedidos', icon: ShoppingBag }, // Novo item de submenu
+              { id: 'table-manager', label: 'Gerenciador de Mesas', icon: TableIcon }, // NOVO: Item de submenu para Gerenciador de Mesas
           ]
       },
       { id: 'clients', label: 'Clientes', icon: Users },
@@ -1710,6 +1712,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                         )}
                     </div>
                 </div>
+            )}
+
+            {/* TABLE MANAGER TAB */}
+            {activeTab === 'table-manager' && (
+                <TableManagerPage storeProfile={storeProfile} />
             )}
             
             {/* STORE SETTINGS TAB */}

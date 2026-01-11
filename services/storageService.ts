@@ -1,4 +1,4 @@
-import { Product, Category, StoreProfile, Order, Address, StoreSchedule, Group, Option, SubProduct } from '../types';
+import { Product, Category, StoreProfile, Order, Address, StoreSchedule, Group, Option, SubProduct, Table, TableStatus } from '../types';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { showSuccess, showError, showLoading, dismissToast } from '../src/utils/toast'; // Importar utilitários de toast
 
@@ -643,5 +643,86 @@ export const storageService = {
     storageService.saveAddresses(updatedAddresses);
     showSuccess("Endereço padrão atualizado!");
     return updatedAddresses;
+  },
+
+  // --- Mesas ---
+  getTables: async (supabase: SupabaseClient, userId: string): Promise<Table[]> => {
+    const { data, error } = await supabase.from('tables').select('*').eq('user_id', userId).order('order_index', { ascending: true });
+    if (error) {
+      console.error('Erro ao buscar mesas:', error);
+      showError(`Erro ao buscar mesas: ${error.message}`);
+      return [];
+    }
+    return data || [];
+  },
+
+  saveTables: async (supabase: SupabaseClient, userId: string, tables: Table[]) => {
+    const toastId = showLoading("Salvando mesas...");
+    try {
+      const { data: existingTablesData, error: fetchError } = await supabase
+        .from('tables')
+        .select('id')
+        .eq('user_id', userId);
+
+      if (fetchError) throw new Error(`Erro ao buscar mesas existentes: ${fetchError.message}`);
+      const existingTableIds = new Set(existingTablesData.map(t => t.id));
+
+      const tablesToDelete = Array.from(existingTableIds).filter(dbId =>
+        !tables.some(clientTable => clientTable.id === dbId)
+      );
+
+      if (tablesToDelete.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('tables')
+          .delete()
+          .in('id', tablesToDelete);
+        if (deleteError) throw new Error(`Erro ao deletar mesas: ${deleteError.message}`);
+      }
+
+      const tablesToInsert = tables.filter(table => !table.id || isClientGeneratedTemporaryId(table.id));
+      const tablesToUpdate = tables.filter(table => table.id && !isClientGeneratedTemporaryId(table.id));
+
+      if (tablesToInsert.length > 0) {
+        const payloadToInsert = tablesToInsert.map((table, index) => ({
+          name: table.name,
+          capacity: table.capacity,
+          status: table.status,
+          orderId: table.orderId,
+          notes: table.notes,
+          user_id: userId,
+          order_index: table.order_index !== undefined ? table.order_index : index,
+        }));
+        const { error: insertError } = await supabase
+          .from('tables')
+          .insert(payloadToInsert);
+        if (insertError) throw new Error(`Erro ao inserir novas mesas: ${insertError.message}`);
+      }
+
+      if (tablesToUpdate.length > 0) {
+        const payloadToUpdate = tablesToUpdate.map(table => ({
+          id: table.id,
+          name: table.name,
+          capacity: table.capacity,
+          status: table.status,
+          orderId: table.orderId,
+          notes: table.notes,
+          user_id: userId,
+          order_index: table.order_index,
+        }));
+        const { error: upsertError } = await supabase
+          .from('tables')
+          .upsert(payloadToUpdate, { onConflict: 'id' });
+        if (upsertError) throw new Error(`Erro ao atualizar mesas existentes: ${upsertError.message}`);
+      }
+
+      showSuccess("Mesas salvas com sucesso!");
+      return await storageService.getTables(supabase, userId);
+    } catch (err: any) {
+      console.error('Erro ao salvar mesas:', err);
+      showError(err.message || "Erro desconhecido ao salvar mesas.");
+      return null;
+    } finally {
+      dismissToast(toastId);
+    }
   },
 };
