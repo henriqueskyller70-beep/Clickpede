@@ -1,4 +1,4 @@
-import { Product, Category, StoreProfile, Order, Address, StoreSchedule, Group, Option, SubProduct, Table, TableStatus } from '../types';
+import { Product, Category, StoreProfile, Order, Address, StoreSchedule, Group, Option, SubProduct, Table, TableStatus, Counter, CounterStatus } from '../types';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { showSuccess, showError, showLoading, dismissToast } from '../src/utils/toast'; // Importar utilitários de toast
 
@@ -720,6 +720,85 @@ export const storageService = {
     } catch (err: any) {
       console.error('Erro ao salvar mesas:', err);
       showError(err.message || "Erro desconhecido ao salvar mesas.");
+      return null;
+    } finally {
+      dismissToast(toastId);
+    }
+  },
+
+  // --- Balcões (Counters) ---
+  getCounters: async (supabase: SupabaseClient, userId: string): Promise<Counter[]> => {
+    const { data, error } = await supabase.from('counters').select('*').eq('user_id', userId).order('order_index', { ascending: true });
+    if (error) {
+      console.error('Erro ao buscar balcões:', error);
+      showError(`Erro ao buscar balcões: ${error.message}`);
+      return [];
+    }
+    return data || [];
+  },
+
+  saveCounters: async (supabase: SupabaseClient, userId: string, counters: Counter[]) => {
+    const toastId = showLoading("Salvando balcões...");
+    try {
+      const { data: existingCountersData, error: fetchError } = await supabase
+        .from('counters')
+        .select('id')
+        .eq('user_id', userId);
+
+      if (fetchError) throw new Error(`Erro ao buscar balcões existentes: ${fetchError.message}`);
+      const existingCounterIds = new Set(existingCountersData.map(c => c.id));
+
+      const countersToDelete = Array.from(existingCounterIds).filter(dbId =>
+        !counters.some(clientCounter => clientCounter.id === dbId)
+      );
+
+      if (countersToDelete.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('counters')
+          .delete()
+          .in('id', countersToDelete);
+        if (deleteError) throw new Error(`Erro ao deletar balcões: ${deleteError.message}`);
+      }
+
+      const countersToInsert = counters.filter(counter => !counter.id || isClientGeneratedTemporaryId(counter.id));
+      const countersToUpdate = counters.filter(counter => counter.id && !isClientGeneratedTemporaryId(counter.id));
+
+      if (countersToInsert.length > 0) {
+        const payloadToInsert = countersToInsert.map((counter, index) => ({
+          name: counter.name,
+          status: counter.status,
+          orderId: counter.orderId,
+          notes: counter.notes,
+          user_id: userId,
+          order_index: counter.order_index !== undefined ? counter.order_index : index,
+        }));
+        const { error: insertError } = await supabase
+          .from('counters')
+          .insert(payloadToInsert);
+        if (insertError) throw new Error(`Erro ao inserir novos balcões: ${insertError.message}`);
+      }
+
+      if (countersToUpdate.length > 0) {
+        const payloadToUpdate = countersToUpdate.map(counter => ({
+          id: counter.id,
+          name: counter.name,
+          status: counter.status,
+          orderId: counter.orderId,
+          notes: counter.notes,
+          user_id: userId,
+          order_index: counter.order_index,
+        }));
+        const { error: upsertError } = await supabase
+          .from('counters')
+          .upsert(payloadToUpdate, { onConflict: 'id' });
+        if (upsertError) throw new Error(`Erro ao atualizar balcões existentes: ${upsertError.message}`);
+      }
+
+      showSuccess("Balcões salvos com sucesso!");
+      return await storageService.getCounters(supabase, userId);
+    } catch (err: any) {
+      console.error('Erro ao salvar balcões:', err);
+      showError(err.message || "Erro desconhecido ao salvar balcões.");
       return null;
     } finally {
       dismissToast(toastId);

@@ -96,7 +96,7 @@ export interface StoreSchedule {
   isTemporariamenteClosedIndefinidamente?: boolean; // Nova propriedade para fechamento temporário indefinido
 }
 
-// NOVO: Interfaces para gerenciamento de mesas
+// Interfaces para gerenciamento de mesas
 export enum TableStatus {
   AVAILABLE = 'Disponível',
   OCCUPIED = 'Ocupada',
@@ -112,5 +112,23 @@ export interface Table {
   orderId?: string; // Optional: Link to an active order
   notes?: string;
   user_id: string; // To link tables to a specific store owner
+  order_index: number; // For sorting
+}
+
+// NOVO: Interfaces para gerenciamento de balcões
+export enum CounterStatus {
+  AVAILABLE = 'Disponível',
+  OCCUPIED = 'Ocupado',
+  CLOSED = 'Fechado',
+  CLEANING = 'Limpeza'
+}
+
+export interface Counter {
+  id: string;
+  name: string; // e.g., "Balcão Principal", "Caixa 1"
+  status: CounterStatus;
+  orderId?: string; // Optional: Link to an active order
+  notes?: string;
+  user_id: string; // To link counters to a specific store owner
   order_index: number; // For sorting
 }
