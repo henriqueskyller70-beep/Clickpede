@@ -3,7 +3,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { showSuccess, showError, showLoading, dismissToast } from '../src/utils/toast'; // Importar utilitários de toast
 
 // O endereço do usuário ainda será armazenado no localStorage, pois é específico do cliente (vitrine)
-const USER_ADDRESS_KEY = 'omnidelivery_user_address';
+const USER_ADDRESSES_KEY = 'omnidelivery_user_addresses'; // Alterado para armazenar múltiplos endereços
 
 // Dados iniciais padrão para um novo perfil de loja
 const DEFAULT_STORE_PROFILE: StoreProfile = {
@@ -555,13 +555,93 @@ export const storageService = {
     }
   },
 
-  // --- Endereço do Usuário (ainda no localStorage) ---
-  getUserAddress: (): Address | null => {
-    const data = localStorage.getItem(USER_ADDRESS_KEY);
-    return data ? JSON.parse(data) : null;
+  // --- Endereços do Usuário (agora múltiplos no localStorage) ---
+  getAddresses: (): Address[] => {
+    const data = localStorage.getItem(USER_ADDRESSES_KEY);
+    if (data) {
+      try {
+        const addresses: Address[] = JSON.parse(data);
+        // Migration logic for old single address format
+        if (!Array.isArray(addresses) && typeof addresses === 'object' && addresses !== null && addresses.id) {
+          console.log('[StorageService] Migrating old single address to array format.');
+          const migratedAddress: Address = { ...addresses, isDefault: true };
+          localStorage.setItem(USER_ADDRESSES_KEY, JSON.stringify([migratedAddress]));
+          return [migratedAddress];
+        }
+        return addresses;
+      } catch (e) {
+        console.error('[StorageService] Error parsing addresses from localStorage, returning empty array.', e);
+        return [];
+      }
+    }
+
+    // Check for old single address key and migrate if found
+    const oldSingleAddressKey = 'omnidelivery_user_address';
+    const oldData = localStorage.getItem(oldSingleAddressKey);
+    if (oldData) {
+      try {
+        const oldAddress: Address = JSON.parse(oldData);
+        if (oldAddress && oldAddress.street) { // Basic validation
+          console.log('[StorageService] Migrating old single address key to new array format.');
+          const newAddress: Address = { ...oldAddress, id: Date.now().toString(), isDefault: true };
+          localStorage.setItem(USER_ADDRESSES_KEY, JSON.stringify([newAddress]));
+          localStorage.removeItem(oldSingleAddressKey); // Clean up old key
+          return [newAddress];
+        }
+      } catch (e) {
+        console.error('[StorageService] Error parsing old single address from localStorage.', e);
+      }
+    }
+    return [];
   },
 
-  saveUserAddress: (address: Address) => {
-    localStorage.setItem(USER_ADDRESS_KEY, JSON.stringify(address));
+  saveAddresses: (addresses: Address[]) => {
+    localStorage.setItem(USER_ADDRESSES_KEY, JSON.stringify(addresses));
+  },
+
+  addAddress: (newAddress: Omit<Address, 'id'>): Address[] => {
+    const addresses = storageService.getAddresses();
+    const id = Date.now().toString(); // Simple unique ID
+    const addressToAdd: Address = { ...newAddress, id, isDefault: addresses.length === 0 }; // First address is default
+    const updatedAddresses = [...addresses, addressToAdd];
+    storageService.saveAddresses(updatedAddresses);
+    showSuccess("Endereço adicionado com sucesso!");
+    return updatedAddresses;
+  },
+
+  updateAddress: (updatedAddress: Address): Address[] => {
+    let addresses = storageService.getAddresses();
+    const index = addresses.findIndex(addr => addr.id === updatedAddress.id);
+    if (index > -1) {
+      addresses[index] = updatedAddress;
+      storageService.saveAddresses(addresses);
+      showSuccess("Endereço atualizado com sucesso!");
+      return addresses;
+    }
+    showError("Endereço não encontrado para atualização.");
+    return addresses;
+  },
+
+  deleteAddress: (id: string): Address[] => {
+    let addresses = storageService.getAddresses();
+    const updatedAddresses = addresses.filter(addr => addr.id !== id);
+    // If the deleted address was default, set the first remaining address as default
+    if (addresses.find(addr => addr.id === id)?.isDefault && updatedAddresses.length > 0) {
+      updatedAddresses[0].isDefault = true;
+    }
+    storageService.saveAddresses(updatedAddresses);
+    showSuccess("Endereço excluído com sucesso!");
+    return updatedAddresses;
+  },
+
+  setPrimaryAddress: (id: string): Address[] => {
+    let addresses = storageService.getAddresses();
+    const updatedAddresses = addresses.map(addr => ({
+      ...addr,
+      isDefault: addr.id === id,
+    }));
+    storageService.saveAddresses(updatedAddresses);
+    showSuccess("Endereço padrão atualizado!");
+    return updatedAddresses;
   },
 };

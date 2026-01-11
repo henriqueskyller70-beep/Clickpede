@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Plus, Minus, X, Search, MapPin, Clock, CreditCard, ShoppingBag, Home, FileText, ChevronRight, Bike, Info, History, Tag, User, Star, Edit } from 'lucide-react'; // Adicionado Edit
+import { ShoppingCart, Plus, Minus, X, Search, MapPin, Clock, CreditCard, ShoppingBag, Home, FileText, ChevronRight, Bike, Info, History, Tag, User, Star, Edit } from 'lucide-react';
 import { Product, Category, StoreProfile, CartItem, Address, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
 import { storageService } from '../services/storageService';
-import { useSession } from '../src/components/SessionContextProvider'; // Importar o hook de sessão
-import { showError } from '../src/utils/toast'; // Importar showError para feedback
+import { useSession } from '../src/components/SessionContextProvider';
+import { showError } from '../src/utils/toast';
+import { AddressManagerModal } from '../src/components/AddressManagerModal'; // Importar o novo modal
 
 export const StoreFront: React.FC = () => {
-  const { supabase, session } = useSession(); // Obter supabase e session do contexto
+  const { supabase, session } = useSession();
   const userId = session?.user?.id;
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -15,12 +16,10 @@ export const StoreFront: React.FC = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Address State
-  const [userAddress, setUserAddress] = useState<Address | null>(null);
-  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-  const [addressForm, setAddressForm] = useState<Address>({
-    street: '', number: '', neighborhood: '', city: '', complement: '', reference: ''
-  });
+  // Address States
+  const [userAddresses, setUserAddresses] = useState<Address[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [isAddressManagerModalOpen, setIsAddressManagerModalOpen] = useState(false); // Novo estado para o modal de gerenciamento
 
   // Horário de funcionamento
   const [storeSchedule, setStoreSchedule] = useState<StoreSchedule>({
@@ -34,19 +33,18 @@ export const StoreFront: React.FC = () => {
       { day: 'Sexta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
       { day: 'Sábado', isOpen: false, openTime: '00:00', closeTime: '00:00' },
     ],
-    reopenAt: null, // Adicionado valor padrão
-    isTemporariamenteClosedIndefinidamente: false, // Adicionado valor padrão
+    reopenAt: null,
+    isTemporariamenteClosedIndefinidamente: false,
   });
   const [isStoreCurrentlyOpen, setIsStoreCurrentlyOpen] = useState(false);
-  const [reopenCountdown, setReopenCountdown] = useState<string | null>(null); // Contador para a vitrine
+  const [reopenCountdown, setReopenCountdown] = useState<string | null>(null);
 
   // Estado para grupos
   const [groups, setGroups] = useState<Group[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all'); // 'all' para todas as categorias
 
   // Estados para o modal de detalhes do produto
   const [selectedProductForDetails, setSelectedProductForDetails] = useState<Product | null>(null);
-  const [tempSelectedOptions, setTempSelectedOptions] = useState<Record<string, Record<string, number>>>({}); // { optionId: { subProductId: quantity } }
+  const [tempSelectedOptions, setTempSelectedOptions] = useState<Record<string, Record<string, number>>>({});
 
   useEffect(() => {
     const loadStoreData = async () => {
@@ -57,14 +55,12 @@ export const StoreFront: React.FC = () => {
         const fetchedStoreSchedule = await storageService.getStoreSchedule(supabase, userId);
         const fetchedGroups = await storageService.getGroups(supabase, userId);
 
-        console.log('[StoreFront] Perfil da loja carregado do serviço:', fetchedStoreProfile); // NOVO LOG
         setProducts(fetchedProducts);
         setStore(fetchedStoreProfile);
         setStoreSchedule(fetchedStoreSchedule);
         setGroups(fetchedGroups);
       } else {
         console.log('[StoreFront] Nenhum userId, limpando dados da loja.');
-        // Limpar estados se não houver userId (ex: não logado)
         setProducts([]);
         setStore({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '' });
         setStoreSchedule({
@@ -86,80 +82,61 @@ export const StoreFront: React.FC = () => {
     };
     loadStoreData();
 
-    const savedAddress = storageService.getUserAddress();
-    if (savedAddress) {
-      setUserAddress(savedAddress);
-      setAddressForm(savedAddress);
+    // Load user addresses
+    const savedAddresses = storageService.getAddresses();
+    setUserAddresses(savedAddresses);
+    const defaultAddress = savedAddresses.find(addr => addr.isDefault);
+    if (defaultAddress) {
+      setSelectedAddressId(defaultAddress.id);
+    } else if (savedAddresses.length > 0) {
+      setSelectedAddressId(savedAddresses[0].id); // Select the first if no default
     }
   }, [userId, supabase]);
 
-  // NOVO useEffect para logar o estado 'store' após ser atualizado
   useEffect(() => {
     console.log('[StoreFront] Estado da loja atualizado:', store);
   }, [store]);
 
   useEffect(() => {
     checkStoreStatus();
-    const interval = setInterval(checkStoreStatus, 1000); // Verifica a cada segundo para o contador
+    const interval = setInterval(checkStoreStatus, 1000);
     return () => clearInterval(interval);
   }, [storeSchedule]);
 
   const checkStoreStatus = () => {
     const now = new Date();
-    const currentDay = now.getDay(); // 0 for Sunday, 1 for Monday, etc.
-    const currentTime = now.getHours() * 60 + now.getMinutes(); // Current time in minutes from midnight
+    const currentDay = now.getDay();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
 
-    console.log(`[StoreStatus] Verificando status da loja em: ${now.toLocaleTimeString()} (${now.toLocaleDateString('pt-BR', { weekday: 'long' })})`);
-    console.log(`[StoreStatus] isAlwaysOpen: ${storeSchedule.isAlwaysOpen}`);
-    console.log(`[StoreStatus] reopenAt: ${storeSchedule.reopenAt}`);
-    console.log(`[StoreStatus] isTemporariamenteClosedIndefinidamente: ${storeSchedule.isTemporariamenteClosedIndefinidamente}`);
-
-    // 1. Verificar fechamento temporário (indefinido)
     if (storeSchedule.isTemporariamenteClosedIndefinidamente) {
       setIsStoreCurrentlyOpen(false);
-      setReopenCountdown(null); // Não mostra contador na vitrine para fechamento indefinido
-      console.log('[StoreStatus] Loja fechada por tempo indeterminado. Status: Fechado');
+      setReopenCountdown(null);
       return;
     }
 
-    // 2. Verificar fechamento temporário (com tempo definido)
     if (storeSchedule.reopenAt) {
       const reopenTime = new Date(storeSchedule.reopenAt);
       if (now < reopenTime) {
-        // Loja fechada temporariamente, ainda não reabriu
-        // O contador não será exibido na vitrine, apenas o status "Fechado"
         setIsStoreCurrentlyOpen(false);
-        setReopenCountdown(null); // Não mostra contador na vitrine
-        console.log('[StoreStatus] Loja fechada temporariamente (com tempo). Status: Fechado');
+        setReopenCountdown(null);
         return;
       } else {
-        // Tempo de fechamento temporário expirou, limpar reopenAt
         if (userId) {
           storageService.saveStoreSchedule(supabase, userId, { ...storeSchedule, reopenAt: null, isTemporariamenteClosedIndefinidamente: false });
         }
         setReopenCountdown(null);
-        console.log('[StoreStatus] Tempo de fechamento temporário expirou. Reabrindo...');
       }
     } else {
-      setReopenCountdown(null); // Garante que o contador esteja limpo se não houver fechamento temporário
+      setReopenCountdown(null);
     }
 
-    // 3. Verificar "Sempre Aberto"
     if (storeSchedule.isAlwaysOpen) {
       setIsStoreCurrentlyOpen(true);
-      console.log('[StoreStatus] Loja sempre aberta. Status: Aberto');
       return;
     }
 
-    // 4. Verificar horário de funcionamento diário
     const daysOfWeek = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
     const todaySchedule = storeSchedule.dailySchedules.find(s => s.day === daysOfWeek[currentDay]);
-
-    if (todaySchedule) {
-      console.log(`[StoreStatus] Agendamento para hoje (${todaySchedule.day}):`, todaySchedule);
-    } else {
-      console.log(`[StoreStatus] Nenhum agendamento encontrado para o dia atual.`);
-    }
 
     if (todaySchedule && todaySchedule.isOpen) {
       const [openHour, openMinute] = todaySchedule.openTime.split(':').map(Number);
@@ -168,31 +145,20 @@ export const StoreFront: React.FC = () => {
       const openTimeInMinutes = openHour * 60 + openMinute;
       const closeTimeInMinutes = closeHour * 60 + closeMinute;
 
-      console.log(`[StoreStatus] Horário de abertura (minutos): ${openTimeInMinutes}`);
-      console.log(`[StoreStatus] Horário de fechamento (minutos): ${closeTimeInMinutes}`);
-      console.log(`[StoreStatus] Hora atual (minutos): ${currentTime}`);
-
       let isOpenNow = false;
       if (closeTimeInMinutes < openTimeInMinutes) {
-        // Horário que vira a noite (ex: 22:00 - 02:00)
         isOpenNow = currentTime >= openTimeInMinutes || currentTime <= closeTimeInMinutes;
-        console.log(`[StoreStatus] Horário noturno. Aberto se (atual >= abertura) OU (atual <= fechamento): ${isOpenNow}`);
       } else {
-        // Horário dentro do mesmo dia (ex: 09:00 - 18:00)
         isOpenNow = currentTime >= openTimeInMinutes && currentTime <= closeTimeInMinutes;
-        console.log(`[StoreStatus] Horário diurno. Aberto se (atual >= abertura) E (atual <= fechamento): ${isOpenNow}`);
       }
       setIsStoreCurrentlyOpen(isOpenNow);
-      console.log(`[StoreStatus] Status final para hoje: ${isOpenNow ? 'Aberto' : 'Fechado'}`);
     } else {
       setIsStoreCurrentlyOpen(false);
-      console.log('[StoreStatus] Agendamento de hoje não está aberto. Status: Fechado');
     }
   };
 
-  // Função para calcular o preço total de um item no carrinho, incluindo opções
   const calculateItemTotalPrice = (item: CartItem) => {
-    let total = item.price; // Base price of the product
+    let total = item.price;
     if (item.selectedOptions) {
       item.selectedOptions.forEach(selOpt => {
         const originalProduct = products.find(p => p.id === item.id);
@@ -207,10 +173,8 @@ export const StoreFront: React.FC = () => {
   };
 
   const addToCart = (product: Product) => {
-    // This function is now replaced by openProductDetails
-    // It will only be called if a product has no options
     setCart(prev => {
-      const existing = prev.find(item => item.id === product.id && !item.selectedOptions); // Only merge if no options
+      const existing = prev.find(item => item.id === product.id && !item.selectedOptions);
       if (existing) {
         return prev.map(item => item.id === product.id && !item.selectedOptions ? { ...item, quantity: item.quantity + 1 } : item);
       }
@@ -220,7 +184,6 @@ export const StoreFront: React.FC = () => {
 
   const updateQuantity = (itemToUpdate: CartItem, delta: number) => {
     setCart(prev => prev.map(item => {
-      // Compare by ID and selectedOptions to ensure uniqueness
       const isSameItem = item.id === itemToUpdate.id && 
                          JSON.stringify(item.selectedOptions) === JSON.stringify(itemToUpdate.selectedOptions);
       if (isSameItem) {
@@ -230,24 +193,25 @@ export const StoreFront: React.FC = () => {
     }).filter(item => item.quantity > 0));
   };
 
-  const handleSaveAddress = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!addressForm.street || !addressForm.number || !addressForm.neighborhood) {
-        alert("Preencha Rua, Número e Bairro.");
-        return;
-    }
-    setUserAddress(addressForm);
-    storageService.saveUserAddress(addressForm);
-    setIsAddressModalOpen(false);
+  const handleAddressSelected = (addressId: string) => {
+    setSelectedAddressId(addressId);
+    // Optionally, you might want to update the default address in storage here
+    // storageService.setPrimaryAddress(addressId); // If selecting also makes it default
   };
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
     
+    const selectedAddress = userAddresses.find(addr => addr.id === selectedAddressId);
+
     let addressText = "Retirada no Local";
-    if (userAddress) {
-        addressText = `*Entrega em:*\n${userAddress.street}, ${userAddress.number} - ${userAddress.neighborhood}, ${userAddress.city}`;
-        if (userAddress.complement) addressText += `\nCompl: ${userAddress.complement}`;
+    if (selectedAddress) {
+        addressText = `*Entrega em:*\n${selectedAddress.street}, ${selectedAddress.number} - ${selectedAddress.neighborhood}, ${selectedAddress.city}`;
+        if (selectedAddress.complement) addressText += `\nCompl: ${selectedAddress.complement}`;
+        if (selectedAddress.reference) addressText += `\nRef: ${selectedAddress.reference}`;
+    } else {
+        showError("Por favor, selecione um endereço para entrega.");
+        return;
     }
 
     const cartSummary = cart.map(item => {
@@ -280,20 +244,16 @@ export const StoreFront: React.FC = () => {
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  // Agrupar produtos pelo group_id, usando os nomes dos grupos para exibição
   const productsByGroup = groups.map(group => ({
       group: group,
       items: products.filter(p => 
         p.group_id === group.id && 
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        (selectedCategory === 'all' || p.group_id === selectedCategory)
+        p.name.toLowerCase().includes(searchTerm.toLowerCase())
       )
   })).filter(group => group.items.length > 0);
 
-  // Produtos em destaque
   const featuredProducts = products.filter(p => p.isFeatured && p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  // Modal de detalhes do produto
   const openProductDetails = (product: Product) => {
     setSelectedProductForDetails(product);
     const initialSelections: Record<string, Record<string, number>> = {};
@@ -319,23 +279,20 @@ export const StoreFront: React.FC = () => {
         let currentOptionSelections = { ...newSelections[optionId] };
         let currentQuantity = currentOptionSelections[subProductId] || 0;
         
-        // Calculate total selected quantity for this option across all sub-products
         const totalSelectedInOption = Object.values(currentOptionSelections).reduce((sum, qty) => sum + qty, 0);
 
         if (option.allowRepeat) {
-            // Logic for repeatable items (e.g., multiple scoops of the same flavor)
-            if (quantityChange > 0) { // Trying to add
-                // Check if adding this item would exceed the global max selection for the option
+            if (quantityChange > 0) {
                 if (totalSelectedInOption + 1 > option.maxSelection) {
                     showError(`Você pode selecionar no máximo ${option.maxSelection} item(s) para a opção "${option.title}".`);
-                    return prev; // Prevent adding
+                    return prev;
                 }
                 currentQuantity++;
-            } else { // Trying to subtract
+            } else {
                 currentQuantity--;
             }
             
-            if (currentQuantity < 0) currentQuantity = 0; // Don't go below zero
+            if (currentQuantity < 0) currentQuantity = 0;
 
             if (currentQuantity === 0) {
                 delete currentOptionSelections[subProductId];
@@ -343,20 +300,18 @@ export const StoreFront: React.FC = () => {
                 currentOptionSelections[subProductId] = currentQuantity;
             }
         } else {
-            // Logic for non-repeatable items (e.g., unique flavors)
-            if (quantityChange > 0) { // Trying to select
-                if (option.maxSelection === 1) { // Radio-like behavior (only one selection allowed)
+            if (quantityChange > 0) {
+                if (option.maxSelection === 1) {
                     currentOptionSelections = { [subProductId]: 1 };
-                } else { // Checkbox-like behavior (multiple distinct selections up to maxSelection)
-                    // Check if adding a new distinct item would exceed the max selection
+                } else {
                     if (totalSelectedInOption < option.maxSelection) {
                         currentOptionSelections[subProductId] = 1;
                     } else {
                         showError(`Você pode selecionar no máximo ${option.maxSelection} item(s) para a opção "${option.title}".`);
-                        return prev; // Prevent adding if max reached
+                        return prev;
                     }
                 }
-            } else { // Deselecting
+            } else {
                 delete currentOptionSelections[subProductId];
             }
         }
@@ -368,15 +323,12 @@ export const StoreFront: React.FC = () => {
   const addProductWithOptionsToCart = () => {
     if (!selectedProductForDetails) return;
 
-    // Validate min/max selections for each option
     for (const option of selectedProductForDetails.options) {
         const selectedCount = Object.values(tempSelectedOptions[option.id] || {}).reduce((sum, qty) => sum + qty, 0);
         if (selectedCount < option.minSelection) {
             alert(`Por favor, selecione pelo menos ${option.minSelection} item(s) para a opção "${option.title}".`);
             return;
         }
-        // The maxSelection check is now handled in handleTempSubProductChange
-        // but we keep this validation for a final check before adding to cart
         if (selectedCount > option.maxSelection) {
             alert(`Você pode selecionar no máximo ${option.maxSelection} item(s) para a opção "${option.title}".`);
             return;
@@ -399,7 +351,6 @@ export const StoreFront: React.FC = () => {
     };
 
     setCart(prev => {
-        // Check if an identical item (same product + same options) already exists
         const existingItemIndex = prev.findIndex(item => 
             item.id === itemToAdd.id && 
             JSON.stringify(item.selectedOptions) === JSON.stringify(itemToAdd.selectedOptions)
@@ -419,7 +370,6 @@ export const StoreFront: React.FC = () => {
     closeProductDetails();
   };
 
-  // Calcula o preço atual do produto no modal, incluindo as opções temporariamente selecionadas
   const calculateCurrentModalProductPrice = () => {
     if (!selectedProductForDetails) return 0;
     let currentPrice = selectedProductForDetails.price;
@@ -435,12 +385,12 @@ export const StoreFront: React.FC = () => {
     return currentPrice;
   };
 
+  const currentSelectedAddress = userAddresses.find(addr => addr.id === selectedAddressId);
 
   return (
-    <div className="min-h-screen bg-gray-100 font-sans pb-24"> {/* Alterado bg-white para bg-gray-100 */}
-      <div className="max-w-md mx-auto relative bg-white shadow-lg"> {/* Wrapper para todo o conteúdo principal, adicionado 'relative' */}
+    <div className="min-h-screen bg-gray-100 font-sans pb-24">
+      <div className="max-w-md mx-auto relative bg-white shadow-lg">
         
-        {/* 1. Top Banner (Image) */}
         <div className="w-full h-40 bg-gray-200 relative overflow-hidden">
            {store.coverUrl ? (
                <img src={store.coverUrl} alt="Capa" className="w-full h-full object-cover" />
@@ -449,13 +399,11 @@ export const StoreFront: React.FC = () => {
                    Capa da Loja
                </div>
            )}
-           {/* Botão de voltar/fechar no canto superior direito do banner */}
            <button className="absolute top-4 right-4 bg-gray-800/50 backdrop-blur-sm text-white p-2 rounded-full shadow-md hover:bg-gray-700/70 transition-colors">
                 <X className="w-5 h-5" />
            </button>
         </div>
 
-        {/* Logo Box - Posicionado sobre o banner */}
         <div className="absolute top-28 left-1/2 -translate-x-1/2 w-28 h-28 bg-white rounded-full shadow-xl p-1 border border-gray-100 flex items-center justify-center z-20">
             <div className="w-full h-full rounded-full overflow-hidden bg-gray-50 flex items-center justify-center">
                 {store.logoUrl ? (
@@ -466,10 +414,8 @@ export const StoreFront: React.FC = () => {
             </div>
         </div>
 
-        {/* Conteúdo principal abaixo do banner e logo */}
-        <div className="px-4 pt-16 pb-4"> {/* Ajustado padding-top para acomodar o logo */}
+        <div className="px-4 pt-16 pb-4">
             
-            {/* Barra de Status da Loja (Loja aberta | Tempo de entrega | Info) */}
             <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3 mb-6 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-2">
                     <div className={`w-2.5 h-2.5 rounded-full ${isStoreCurrentlyOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
@@ -479,7 +425,7 @@ export const StoreFront: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2 text-gray-600 text-sm font-medium">
                     <Clock className="w-4 h-4" />
-                    <span className="leading-none">45 a 55 min</span> {/* Placeholder para tempo de entrega */}
+                    <span className="leading-none">45 a 55 min</span>
                 </div>
                 <button className="flex items-center gap-1 text-gray-600 text-sm font-medium hover:text-gray-800 transition-colors">
                     <Info className="w-4 h-4" />
@@ -487,7 +433,6 @@ export const StoreFront: React.FC = () => {
                 </button>
             </div>
 
-            {/* Nome e Endereço da Loja */}
             <div className="mb-6 text-center">
                 <h1 className="text-2xl font-bold text-gray-900 leading-tight">{store.name || 'Nome da Loja'}</h1>
                 <div className="flex items-center justify-center gap-1 text-gray-500 text-sm mt-1">
@@ -496,42 +441,14 @@ export const StoreFront: React.FC = () => {
                 </div>
             </div>
 
-            {/* 3. Service Icons Grid (4 Blocks like Skyller) - Mantido, mas pode ser removido se não for necessário */}
-            {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                <div className="bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer border border-slate-100">
-                    <Bike className="w-6 h-6 text-gray-700" />
-                    <span className="text-[10px] font-semibold text-gray-600">Entrega</span>
-                </div>
-                <div className="bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer border border-slate-100">
-                    <ShoppingBag className="w-6 h-6 text-gray-700" />
-                    <span className="text-[10px] font-semibold text-gray-600">Retirada</span>
-                </div>
-                <div className="bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer border border-slate-100">
-                    <Clock className="w-6 h-6 text-gray-700" />
-                    <span className="text-[10px] font-semibold text-gray-600">Funcionamento</span>
-                </div>
-                <div className="bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer border border-slate-100">
-                    <CreditCard className="w-6 h-6 text-gray-700" />
-                    <span className="text-[10px] font-semibold text-gray-600">Pagamentos</span>
-                </div>
-            </div> */}
-
-            {/* 4. Categories Horizontal List e Search Bar */}
             <div className="flex flex-col gap-4 mb-8">
                 <div className="flex overflow-x-auto pb-2 scrollbar-hide gap-2">
-                    <button
-                        onClick={() => setSelectedCategory('all')}
-                        className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap
-                            ${selectedCategory === 'all' ? 'bg-yellow-400 text-gray-900 shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                    >
-                        Todas as Categorias
-                    </button>
                     {groups.map(group => (
                         <button
                             key={group.id}
-                            onClick={() => setSelectedCategory(group.id!)}
+                            // onClick={() => setSelectedCategory(group.id!)} // Removido selectedCategory
                             className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap
-                                ${selectedCategory === group.id ? 'bg-yellow-400 text-gray-900 shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                                ${false ? 'bg-yellow-400 text-gray-900 shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                         >
                             {group.name}
                         </button>
@@ -549,7 +466,6 @@ export const StoreFront: React.FC = () => {
                 </div>
             </div>
 
-            {/* NOVO: Seção de Produtos em Destaque */}
             {featuredProducts.length > 0 && (
                 <div className="mb-8">
                     <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -591,9 +507,8 @@ export const StoreFront: React.FC = () => {
                 </div>
             )}
 
-            {/* 6. Product List */}
             <div className="space-y-8">
-                {productsByGroup.length === 0 && featuredProducts.length === 0 ? ( // Ajustado para verificar também featuredProducts
+                {productsByGroup.length === 0 && featuredProducts.length === 0 ? (
                     <div className="text-center text-gray-500 p-8 bg-white rounded-xl shadow-xl border border-gray-100">
                         Nenhum produto encontrado. Configure sua loja no painel administrativo.
                     </div>
@@ -604,10 +519,9 @@ export const StoreFront: React.FC = () => {
                                 {groupData.group.name}
                             </h2>
                             
-                            <div className="grid grid-cols-1 gap-4"> {/* Removido md:grid-cols-2 lg:grid-cols-2 */}
+                            <div className="grid grid-cols-1 gap-4">
                                 {groupData.items.map(product => (
                                     <div key={product.id} className="bg-white rounded-xl border border-gray-100 p-4 flex gap-4 shadow-sm hover:shadow-md transition-all group">
-                                        {/* Product Image Container - now relative and overflow-hidden, moved to left */}
                                         <div className="w-28 h-28 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative flex items-center justify-center">
                                             {product.image_url ? (
                                                 <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -616,11 +530,10 @@ export const StoreFront: React.FC = () => {
                                             )}
                                         </div>
 
-                                        {/* Content (Name, Description, Price, Button) */}
                                         <div className="flex-1 flex flex-col justify-between py-1">
                                             <div>
                                                 <h3 className="text-base font-bold text-gray-900 line-clamp-1 leading-tight">{product.name}</h3>
-                                                {product.description && ( // Adicionado verificação para exibir a descrição
+                                                {product.description && (
                                                     <p className="text-xs font-bold text-gray-500 mt-1.5">{product.description}</p> 
                                                 )}
                                             </div>
@@ -629,7 +542,6 @@ export const StoreFront: React.FC = () => {
                                                 <span className="text-base font-bold text-green-600">
                                                     R$ {product.price.toFixed(2)}
                                                 </span>
-                                                {/* Button moved here, inside the content area */}
                                                 <button 
                                                     onClick={() => product.options && product.options.length > 0 ? openProductDetails(product) : addToCart(product)}
                                                     className="bg-yellow-400 text-gray-900 text-xs font-bold px-4 py-2 rounded-lg shadow-lg hover:bg-yellow-500 transition-all active:scale-[0.98]"
@@ -647,14 +559,12 @@ export const StoreFront: React.FC = () => {
                 )}
             </div>
             
-            {/* Footer Spacer */}
             <div className="h-10"></div>
         </div>
-      </div> {/* Fim do wrapper max-w-md mx-auto */}
+      </div>
 
-      {/* 7. Bottom Navigation (Fixed) */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-[0_-5px_20px_rgba(0,0,0,0.03)] z-40">
-          <div className="max-w-md mx-auto flex justify-around items-center h-16 px-6"> {/* Alterado de max-w-5xl para max-w-md e justify-between para justify-around */}
+          <div className="max-w-md mx-auto flex justify-around items-center h-16 px-6">
               <button 
                 onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} 
                 className="flex flex-col items-center justify-center text-gray-800 gap-1 w-16"
@@ -679,23 +589,22 @@ export const StoreFront: React.FC = () => {
               </button>
               
               <button className="flex flex-col items-center justify-center text-gray-400 hover:text-gray-800 gap-1 w-16">
-                  <History className="w-5 h-5" /> {/* Alterado de FileText para History */}
-                  <span className="text-[10px] font-bold">Histórico</span> {/* Alterado de Pedidos para Histórico */}
+                  <History className="w-5 h-5" />
+                  <span className="text-[10px] font-bold">Histórico</span>
               </button>
 
               <button className="flex flex-col items-center justify-center text-gray-400 hover:text-gray-800 gap-1 w-16">
-                  <Tag className="w-5 h-5" /> {/* Novo ícone para Descontos */}
-                  <span className="text-[10px] font-bold">Descontos</span> {/* Novo item de menu */}
+                  <Tag className="w-5 h-5" />
+                  <span className="text-[10px] font-bold">Descontos</span>
               </button>
 
               <button className="flex flex-col items-center justify-center text-gray-400 hover:text-gray-800 gap-1 w-16">
-                  <User className="w-5 h-5" /> {/* Novo ícone para Perfil */}
-                  <span className="text-[10px] font-bold">Perfil</span> {/* Novo item de menu */}
+                  <User className="w-5 h-5" />
+                  <span className="text-[10px] font-bold">Perfil</span>
               </button>
           </div>
       </div>
 
-      {/* Cart Drawer */}
       {isCartOpen && (
         <div className="fixed inset-0 z-[60] overflow-hidden">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={() => setIsCartOpen(false)} />
@@ -767,19 +676,20 @@ export const StoreFront: React.FC = () => {
                                 <div className="flex items-center justify-between mb-2">
                                     <h3 className="text-sm font-bold text-gray-800">Endereço de Entrega</h3>
                                     <button 
-                                        onClick={() => setIsAddressModalOpen(true)}
+                                        onClick={() => setIsAddressManagerModalOpen(true)} // Abre o novo modal de gerenciamento
                                         className="text-xs font-medium flex items-center gap-1 text-blue-600 hover:underline"
                                     >
-                                        <Edit className="w-3 h-3" /> {userAddress ? 'Editar' : 'Adicionar'}
+                                        <Edit className="w-3 h-3" /> {currentSelectedAddress ? 'Editar/Mudar' : 'Adicionar'}
                                     </button>
                                 </div>
-                                {userAddress ? (
+                                {currentSelectedAddress ? (
                                     <p className="text-sm text-gray-600">
-                                        {userAddress.street}, {userAddress.number} - {userAddress.neighborhood}, {userAddress.city}
-                                        {userAddress.complement && `, ${userAddress.complement}`}
+                                        {currentSelectedAddress.street}, {currentSelectedAddress.number} - {currentSelectedAddress.neighborhood}, {currentSelectedAddress.city}
+                                        {currentSelectedAddress.complement && `, ${currentSelectedAddress.complement}`}
+                                        {currentSelectedAddress.reference && ` (Ref: ${currentSelectedAddress.reference})`}
                                     </p>
                                 ) : (
-                                    <p className="text-sm text-gray-500 italic">Nenhum endereço adicionado. Clique em "Adicionar" para informar.</p>
+                                    <p className="text-sm text-gray-500 italic">Nenhum endereço selecionado. Clique em "Adicionar" para informar.</p>
                                 )}
                             </div>
 
@@ -788,12 +698,12 @@ export const StoreFront: React.FC = () => {
                                 <span className="text-xl font-extrabold text-green-600">R$ {cart.reduce((acc, item) => acc + calculateItemTotalPrice(item), 0).toFixed(2)}</span>
                             </div>
                             <button 
-                                onClick={() => userAddress ? handleCheckout() : setIsAddressModalOpen(true)}
+                                onClick={handleCheckout}
                                 className="w-full text-white py-4 rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                                 style={{ backgroundColor: store.primaryColor }}
-                                disabled={!isStoreCurrentlyOpen} // Desabilita se a loja estiver fechada
+                                disabled={!isStoreCurrentlyOpen || !currentSelectedAddress}
                             >
-                                {userAddress ? 'Finalizar no WhatsApp' : 'Informar Endereço'}
+                                {currentSelectedAddress ? 'Finalizar no WhatsApp' : 'Informar Endereço'}
                                 <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
                             </button>
                         </div>
@@ -803,7 +713,6 @@ export const StoreFront: React.FC = () => {
         </div>
       )}
       
-      {/* Product Details Modal */}
       {selectedProductForDetails && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeProductDetails}></div>
@@ -813,7 +722,7 @@ export const StoreFront: React.FC = () => {
                     <button onClick={closeProductDetails} className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-50"><X className="w-5 h-5"/></button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto pr-2 -mr-2"> {/* Added pr-2 -mr-2 for custom scrollbar */}
+                <div className="flex-1 overflow-y-auto pr-2 -mr-2">
                     <div className="w-full h-40 bg-gray-100 rounded-lg overflow-hidden mb-4 flex items-center justify-center">
                         {selectedProductForDetails.image_url ? (
                             <img src={selectedProductForDetails.image_url} alt={selectedProductForDetails.name} className="w-full h-full object-cover" />
@@ -835,7 +744,6 @@ export const StoreFront: React.FC = () => {
                                     const currentQuantity = tempSelectedOptions[option.id]?.[subProduct.id] || 0;
                                     const totalSelectedInOption = Object.values(tempSelectedOptions[option.id] || {}).reduce((sum, qty) => sum + qty, 0);
 
-                                    // Determine if the '+' button or checkbox/radio should be disabled
                                     const isAddDisabled = totalSelectedInOption >= option.maxSelection;
                                     const isCheckboxRadioDisabled = !option.allowRepeat && currentQuantity === 0 && totalSelectedInOption >= option.maxSelection;
 
@@ -846,7 +754,6 @@ export const StoreFront: React.FC = () => {
                                                 ${(isAddDisabled && currentQuantity === 0) || (isCheckboxRadioDisabled && currentQuantity === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         >
                                             <div className={`flex items-center flex-1 ${((isAddDisabled && currentQuantity === 0) || (isCheckboxRadioDisabled && currentQuantity === 0)) ? '' : 'cursor-pointer'}`} onClick={() => {
-                                                // Only toggle selection for non-repeatable options when clicking the name/checkbox area
                                                 if (!option.allowRepeat && !isCheckboxRadioDisabled) {
                                                     handleTempSubProductChange(option.id, subProduct.id, currentQuantity > 0 ? -1 : 1);
                                                 }
@@ -900,7 +807,7 @@ export const StoreFront: React.FC = () => {
                                                             onClick={() => handleTempSubProductChange(option.id, subProduct.id, 1)} 
                                                             className="px-2 py-1 rounded-r-lg"
                                                             style={{ color: store.primaryColor, '--hover-bg-color': `${store.primaryColor}10` } as React.CSSProperties}
-                                                            disabled={isAddDisabled} // Desabilita se o total já atingiu o máximo
+                                                            disabled={isAddDisabled}
                                                         ><Plus className="w-3 h-3"/></button>
                                                     </div>
                                                 )}
@@ -918,7 +825,7 @@ export const StoreFront: React.FC = () => {
                         onClick={addProductWithOptionsToCart}
                         className="relative overflow-hidden group w-full text-white py-3 rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition-colors active:scale-[0.98]"
                         style={{ backgroundColor: store.primaryColor }}
-                        disabled={!isStoreCurrentlyOpen} // Desabilita se a loja estiver fechada
+                        disabled={!isStoreCurrentlyOpen}
                     >
                         Adicionar ao Carrinho - R$ {calculateCurrentModalProductPrice().toFixed(2)}
                         <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
@@ -928,46 +835,30 @@ export const StoreFront: React.FC = () => {
         </div>
       )}
 
-      {/* Address Modal */}
-      {isAddressModalOpen && (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsAddressModalOpen(false)}></div>
-              <div className="bg-white rounded-2xl w-full max-w-sm relative z-10 p-6 shadow-2xl animate-in zoom-in-95">
-                  <h3 className="font-bold text-xl mb-1 text-gray-900">Onde entregar?</h3>
-                  <p className="text-gray-500 text-sm mb-6">Precisamos do seu endereço para calcular a entrega.</p>
-                  
-                  <form onSubmit={handleSaveAddress} className="space-y-4">
-                      <div className="space-y-1">
-                          <label className="text-xs font-bold text-gray-700 uppercase ml-1">Rua / Avenida</label>
-                          <input required placeholder="Ex: Rua das Flores" value={addressForm.street} onChange={e => setAddressForm({...addressForm, street: e.target.value})} className="w-full bg-gray-50 border border-gray-200 p-3 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"/>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-1">
-                               <label className="text-xs font-bold text-gray-700 uppercase ml-1">Número</label>
-                               <input required placeholder="123" value={addressForm.number} onChange={e => setAddressForm({...addressForm, number: e.target.value})} className="w-full bg-gray-50 border border-gray-200 p-3 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"/>
-                          </div>
-                          <div className="space-y-1">
-                               <label className="text-xs font-bold text-gray-700 uppercase ml-1">Bairro</label>
-                               <input required placeholder="Centro" value={addressForm.neighborhood} onChange={e => setAddressForm({...addressForm, neighborhood: e.target.value})} className="w-full bg-gray-50 border border-gray-200 p-3 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"/>
-                          </div>
-                      </div>
-                      <div className="space-y-1">
-                          <label className="text-xs font-bold text-gray-700 uppercase ml-1">Complemento</label>
-                          <input placeholder="Apto 101, Bloco B" value={addressForm.complement} onChange={e => setAddressForm({...addressForm, complement: e.target.value})} className="w-full bg-gray-50 border border-gray-200 p-3 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"/>
-                      </div>
-                      
-                      <button type="submit" 
-                          className="relative overflow-hidden group w-full text-white py-3.5 rounded-xl font-bold text-sm mt-4 shadow-lg hover:shadow-xl transition-colors active:scale-[0.98]"
-                          style={{ backgroundColor: store.primaryColor }}
-                      >
-                          Confirmar e Continuar
-                          <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
-                      </button>
-                  </form>
-                  <button onClick={() => setIsAddressModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-2"><X className="w-5 h-5"/></button>
-              </div>
-          </div>
-      )}
+      {/* Address Manager Modal */}
+      <AddressManagerModal
+        isOpen={isAddressManagerModalOpen}
+        onClose={() => {
+          setIsAddressManagerModalOpen(false);
+          // Re-load addresses to ensure UI is updated after changes in modal
+          const updatedAddresses = storageService.getAddresses();
+          setUserAddresses(updatedAddresses);
+          // If no address is selected, try to select the default or first one
+          if (!selectedAddressId && updatedAddresses.length > 0) {
+            const defaultAddr = updatedAddresses.find(addr => addr.isDefault);
+            setSelectedAddressId(defaultAddr ? defaultAddr.id : updatedAddresses[0].id);
+          } else if (selectedAddressId && !updatedAddresses.some(addr => addr.id === selectedAddressId)) {
+            // If previously selected address was deleted, select default or first
+            const defaultAddr = updatedAddresses.find(addr => addr.isDefault);
+            setSelectedAddressId(defaultAddr ? defaultAddr.id : (updatedAddresses.length > 0 ? updatedAddresses[0].id : null));
+          }
+        }}
+        onAddressSelected={(id) => {
+          setSelectedAddressId(id);
+          setIsAddressManagerModalOpen(false); // Close after selection
+        }}
+        currentSelectedAddressId={selectedAddressId}
+      />
 
     </div>
   );

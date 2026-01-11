@@ -61,12 +61,14 @@ export interface CartItem extends Product {
 }
 
 export interface Address {
+  id: string; // NOVO: ID único para cada endereço
   street: string;
   number: string;
   neighborhood: string;
   city: string;
   complement?: string;
   reference?: string;
+  isDefault?: boolean; // NOVO: Para marcar o endereço padrão
 }
 
 export interface Order {
