@@ -51,14 +51,14 @@ export const SortableGroupItem: React.FC<SortableGroupItemProps> = ({
       style={style}
       className={`flex items-center justify-between px-4 py-2 rounded-lg transition-all duration-200 group relative overflow-hidden
         ${isSelected 
-          ? 'text-white shadow-lg transform scale-[1.01]' 
+          ? 'text-gray-900 shadow-lg transform scale-[1.01]' // Alterado de 'text-white' para 'text-gray-900'
           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 shadow-md hover:shadow-lg hover:translate-x-0.5'}
         ${isDragging ? 'opacity-40' : ''}
       `}
       data-id={group.id}
       onClick={() => onSelect(group.id!)} // Select on click
       style={isSelected 
-        ? { backgroundColor: `${storePrimaryColor}10`, color: storePrimaryColor } 
+        ? { backgroundColor: `${storePrimaryColor}10` } // Removido 'color: storePrimaryColor'
         : {}
       }
     >
