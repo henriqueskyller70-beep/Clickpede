@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Plus, Minus, X, Search, MapPin, Clock, CreditCard, ShoppingBag, Home, FileText, ChevronRight, Bike, Info, History, Tag, User, Star } from 'lucide-react'; // Adicionado Info, History, Tag, User, Star
+import { ShoppingCart, Plus, Minus, X, Search, MapPin, Clock, CreditCard, ShoppingBag, Home, FileText, ChevronRight, Bike, Info, History, Tag, User, Star, Edit } from 'lucide-react'; // Adicionado Edit
 import { Product, Category, StoreProfile, CartItem, Address, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
 import { storageService } from '../services/storageService';
 import { useSession } from '../src/components/SessionContextProvider'; // Importar o hook de sessão
@@ -762,6 +762,27 @@ export const StoreFront: React.FC = () => {
                     
                     {cart.length > 0 && (
                         <div className="p-5 border-t border-gray-100 bg-gray-50">
+                            {/* Seção de Endereço */}
+                            <div className="mb-4 p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-sm font-bold text-gray-800">Endereço de Entrega</h3>
+                                    <button 
+                                        onClick={() => setIsAddressModalOpen(true)}
+                                        className="text-xs font-medium flex items-center gap-1 text-blue-600 hover:underline"
+                                    >
+                                        <Edit className="w-3 h-3" /> {userAddress ? 'Editar' : 'Adicionar'}
+                                    </button>
+                                </div>
+                                {userAddress ? (
+                                    <p className="text-sm text-gray-600">
+                                        {userAddress.street}, {userAddress.number} - {userAddress.neighborhood}, {userAddress.city}
+                                        {userAddress.complement && `, ${userAddress.complement}`}
+                                    </p>
+                                ) : (
+                                    <p className="text-sm text-gray-500 italic">Nenhum endereço adicionado. Clique em "Adicionar" para informar.</p>
+                                )}
+                            </div>
+
                             <div className="flex justify-between items-center mb-4">
                                 <span className="text-sm font-medium text-gray-500">Total do Pedido</span>
                                 <span className="text-xl font-extrabold text-green-600">R$ {cart.reduce((acc, item) => acc + calculateItemTotalPrice(item), 0).toFixed(2)}</span>
