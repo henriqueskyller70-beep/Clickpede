@@ -3,6 +3,7 @@ import { ShoppingCart, Plus, Minus, X, Search, MapPin, Clock, CreditCard, Shoppi
 import { Product, Category, StoreProfile, CartItem, Address, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
 import { storageService } from '../services/storageService';
 import { useSession } from '../src/components/SessionContextProvider'; // Importar o hook de sessão
+import { showError } from '../src/utils/toast'; // Importar showError para feedback
 
 export const StoreFront: React.FC = () => {
   const { supabase, session } = useSession(); // Obter supabase e session do contexto
@@ -317,24 +318,42 @@ export const StoreFront: React.FC = () => {
 
         let currentOptionSelections = { ...newSelections[optionId] };
         let currentQuantity = currentOptionSelections[subProductId] || 0;
+        
+        // Calculate total selected quantity for this option across all sub-products
+        const totalSelectedInOption = Object.values(currentOptionSelections).reduce((sum, qty) => sum + qty, 0);
 
         if (option.allowRepeat) {
-            currentQuantity += quantityChange;
-            if (currentQuantity < 0) currentQuantity = 0;
-            if (currentQuantity > option.maxSelection) currentQuantity = option.maxSelection;
+            // Logic for repeatable items (e.g., multiple scoops of the same flavor)
+            if (quantityChange > 0) { // Trying to add
+                // Check if adding this item would exceed the global max selection for the option
+                if (totalSelectedInOption + 1 > option.maxSelection) {
+                    showError(`Você pode selecionar no máximo ${option.maxSelection} item(s) para a opção "${option.title}".`);
+                    return prev; // Prevent adding
+                }
+                currentQuantity++;
+            } else { // Trying to subtract
+                currentQuantity--;
+            }
+            
+            if (currentQuantity < 0) currentQuantity = 0; // Don't go below zero
+
             if (currentQuantity === 0) {
                 delete currentOptionSelections[subProductId];
             } else {
                 currentOptionSelections[subProductId] = currentQuantity;
             }
         } else {
-            const totalSelected = Object.values(currentOptionSelections).reduce((sum, qty) => sum + qty, 0);
-            if (quantityChange > 0) { // Selecting
-                if (option.maxSelection === 1) { // Radio-like behavior
+            // Logic for non-repeatable items (e.g., unique flavors)
+            if (quantityChange > 0) { // Trying to select
+                if (option.maxSelection === 1) { // Radio-like behavior (only one selection allowed)
                     currentOptionSelections = { [subProductId]: 1 };
-                } else { // Checkbox-like behavior
-                    if (totalSelected < option.maxSelection) {
+                } else { // Checkbox-like behavior (multiple distinct selections up to maxSelection)
+                    // Check if adding a new distinct item would exceed the max selection
+                    if (totalSelectedInOption < option.maxSelection) {
                         currentOptionSelections[subProductId] = 1;
+                    } else {
+                        showError(`Você pode selecionar no máximo ${option.maxSelection} item(s) para a opção "${option.title}".`);
+                        return prev; // Prevent adding if max reached
                     }
                 }
             } else { // Deselecting
@@ -356,6 +375,8 @@ export const StoreFront: React.FC = () => {
             alert(`Por favor, selecione pelo menos ${option.minSelection} item(s) para a opção "${option.title}".`);
             return;
         }
+        // The maxSelection check is now handled in handleTempSubProductChange
+        // but we keep this validation for a final check before adding to cart
         if (selectedCount > option.maxSelection) {
             alert(`Você pode selecionar no máximo ${option.maxSelection} item(s) para a opção "${option.title}".`);
             return;
@@ -793,6 +814,10 @@ export const StoreFront: React.FC = () => {
                                     const currentQuantity = tempSelectedOptions[option.id]?.[subProduct.id] || 0;
                                     const totalSelectedInOption = Object.values(tempSelectedOptions[option.id] || {}).reduce((sum, qty) => sum + qty, 0);
 
+                                    // Determine if the '+' button or checkbox/radio should be disabled
+                                    const isAddDisabled = totalSelectedInOption >= option.maxSelection;
+                                    const isCheckboxRadioDisabled = !option.allowRepeat && currentQuantity === 0 && totalSelectedInOption >= option.maxSelection;
+
                                     return (
                                         <div key={subProduct.id} className="flex items-center justify-between bg-white p-3 rounded-md border border-gray-100">
                                             <div className="flex items-center flex-1 cursor-pointer" onClick={() => {
@@ -809,6 +834,7 @@ export const StoreFront: React.FC = () => {
                                                         onChange={() => handleTempSubProductChange(option.id, subProduct.id, 1)}
                                                         className="form-radio h-4 w-4 rounded focus:ring-yellow-500 shadow-sm"
                                                         style={{ color: store.primaryColor }}
+                                                        disabled={isCheckboxRadioDisabled}
                                                     />
                                                 )}
                                                 {!option.allowRepeat && option.maxSelection > 1 && (
@@ -818,7 +844,7 @@ export const StoreFront: React.FC = () => {
                                                         onChange={() => handleTempSubProductChange(option.id, subProduct.id, currentQuantity > 0 ? -1 : 1)}
                                                         className="form-checkbox h-4 w-4 rounded focus:ring-yellow-500 shadow-sm"
                                                         style={{ color: store.primaryColor }}
-                                                        disabled={currentQuantity === 0 && totalSelectedInOption >= option.maxSelection}
+                                                        disabled={isCheckboxRadioDisabled}
                                                     />
                                                 )}
                                                 <div>
@@ -849,7 +875,7 @@ export const StoreFront: React.FC = () => {
                                                             onClick={() => handleTempSubProductChange(option.id, subProduct.id, 1)} 
                                                             className="px-2 py-1 rounded-r-lg"
                                                             style={{ color: store.primaryColor, '--hover-bg-color': `${store.primaryColor}10` } as React.CSSProperties}
-                                                            disabled={currentQuantity >= option.maxSelection}
+                                                            disabled={isAddDisabled} // Desabilita se o total já atingiu o máximo
                                                         ><Plus className="w-3 h-3"/></button>
                                                     </div>
                                                 )}
