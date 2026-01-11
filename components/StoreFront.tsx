@@ -819,10 +819,14 @@ export const StoreFront: React.FC = () => {
                                     const isCheckboxRadioDisabled = !option.allowRepeat && currentQuantity === 0 && totalSelectedInOption >= option.maxSelection;
 
                                     return (
-                                        <div key={subProduct.id} className="flex items-center justify-between bg-white p-3 rounded-md border border-gray-100">
-                                            <div className="flex items-center flex-1 cursor-pointer" onClick={() => {
+                                        <div 
+                                            key={subProduct.id} 
+                                            className={`flex items-center justify-between bg-white p-3 rounded-md border border-gray-100 transition-opacity duration-200 
+                                                ${(isAddDisabled && currentQuantity === 0) || (isCheckboxRadioDisabled && currentQuantity === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        >
+                                            <div className={`flex items-center flex-1 ${((isAddDisabled && currentQuantity === 0) || (isCheckboxRadioDisabled && currentQuantity === 0)) ? '' : 'cursor-pointer'}`} onClick={() => {
                                                 // Only toggle selection for non-repeatable options when clicking the name/checkbox area
-                                                if (!option.allowRepeat) {
+                                                if (!option.allowRepeat && !isCheckboxRadioDisabled) {
                                                     handleTempSubProductChange(option.id, subProduct.id, currentQuantity > 0 ? -1 : 1);
                                                 }
                                             }}>
@@ -847,10 +851,10 @@ export const StoreFront: React.FC = () => {
                                                         disabled={isCheckboxRadioDisabled}
                                                     />
                                                 )}
-                                                <div>
-                                                    <span className="text-sm font-medium text-gray-800">{subProduct.name}</span>
+                                                <div className={`${((isAddDisabled && currentQuantity === 0) || (isCheckboxRadioDisabled && currentQuantity === 0)) ? 'text-gray-400' : ''}`}>
+                                                    <span className="text-sm font-medium">{subProduct.name}</span>
                                                     {subProduct.description && (
-                                                        <p className="text-xs text-gray-500 line-clamp-1">{subProduct.description}</p> 
+                                                        <p className="text-xs line-clamp-1">{subProduct.description}</p> 
                                                     )}
                                                 </div>
                                             </div>
