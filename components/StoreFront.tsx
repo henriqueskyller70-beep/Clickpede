@@ -749,7 +749,7 @@ export const StoreFront: React.FC = () => {
                                 style={{ backgroundColor: store.primaryColor }}
                                 disabled={!isStoreCurrentlyOpen || !currentSelectedAddress}
                             >
-                                {currentSelectedAddress ? 'Finalizar no WhatsApp' : 'Informar Endereço'}
+                                Finalizar Pedido
                                 <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
                             </button>
                         </div>
