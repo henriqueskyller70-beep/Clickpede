@@ -43,10 +43,10 @@ import { SortableProductItem } from '../src/components/SortableProductItem';
 interface DashboardProps {
     onLogout: () => void;
     onNavigate: (path: string) => void;
-    refreshTrigger: number; // Mantido, mas o Realtime será o principal para pedidos
+    // REMOVIDO: refreshTrigger não é mais necessário com o Realtime do Supabase.
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refreshTrigger }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) => { // Removido refreshTrigger das props
   const { supabase, session } = useSession();
   const userId = session?.user?.id;
 
@@ -229,6 +229,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
   useEffect(() => {
     const loadData = async () => {
       if (userId) {
+        console.log('[Dashboard] Carregando dados iniciais...');
         const fetchedProducts = await storageService.getProducts(supabase, userId);
         const fetchedOrders = await storageService.getOrders(supabase, userId);
         const fetchedSchedule = await storageService.getStoreSchedule(supabase, userId);
@@ -255,6 +256,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
 
         console.log('[Dashboard] Perfil da loja carregado. Logo URL:', profile.logoUrl, 'Cover URL:', profile.coverUrl);
       } else {
+        console.log('[Dashboard] Usuário deslogado, limpando estados.');
         setProducts([]);
         setOrders([]);
         setStoreSchedule({
@@ -280,17 +282,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
         setWeeklySalesData([]);
         setMonthlySalesData([]);
         setTopSellingProducts([]);
-        console.log('[Dashboard] Usuário deslogado, estados limpos.');
       }
     };
     loadData();
-  }, [userId, supabase, refreshTrigger]); // refreshTrigger ainda é útil para forçar recarga de outros dados se necessário
+  }, [userId, supabase]); // Removido refreshTrigger das dependências
 
   // NOVO: useEffect para Realtime do Supabase para Pedidos
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      console.log('[Realtime] userId não disponível, pulando configuração do Realtime.');
+      return;
+    }
 
-    console.log('[Dashboard] Configurando Realtime para pedidos...');
+    console.log('[Realtime] Configurando Realtime para pedidos...');
 
     const ordersChannel = supabase
       .channel('orders_changes')
@@ -303,7 +307,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
           filter: `user_id=eq.${userId}`, // Filtrar apenas pelos pedidos deste usuário
         },
         (payload) => {
-          console.log('[Realtime] Mudança no pedido:', payload);
+          console.log('[Realtime] Mudança no pedido recebida:', payload);
           const changedOrder = {
             ...payload.new,
             customerName: payload.new?.customer_name,
@@ -312,18 +316,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
 
           setOrders(prevOrders => {
             if (payload.eventType === 'INSERT') {
+              console.log('[Realtime] Evento INSERT. Novo pedido ID:', changedOrder.id);
               // Adicionar novo pedido, garantindo que não haja duplicatas
               if (!prevOrders.some(order => order.id === changedOrder.id)) {
                 showSuccess(`Novo pedido #${changedOrder.id?.substring(0, 8)} recebido!`);
                 return [changedOrder, ...prevOrders]; // Adiciona o novo pedido no topo
+              } else {
+                console.log('[Realtime] Pedido já existe no estado, ignorando INSERT duplicado:', changedOrder.id);
+                return prevOrders;
               }
             } else if (payload.eventType === 'UPDATE') {
+              console.log('[Realtime] Evento UPDATE. Pedido ID:', changedOrder.id, 'Novo Status:', changedOrder.status);
               // Atualizar pedido existente
               showSuccess(`Pedido #${changedOrder.id?.substring(0, 8)} atualizado para ${changedOrder.status}!`);
               return prevOrders.map(order =>
                 order.id === changedOrder.id ? changedOrder : order
               );
             } else if (payload.eventType === 'DELETE') {
+              console.log('[Realtime] Evento DELETE. Pedido ID:', changedOrder.id);
               // Remover pedido
               showSuccess(`Pedido #${changedOrder.id?.substring(0, 8)} foi removido.`);
               return prevOrders.filter(order => order.id !== changedOrder.id);
@@ -332,9 +342,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
           });
 
           // Atualizar dados de vendas e produtos mais vendidos após qualquer mudança nos pedidos
+          // É importante que esta parte seja reavaliada para evitar dependência circular ou re-renderizações excessivas.
+          // Por enquanto, vamos manter, mas pode ser otimizado.
           setWeeklySalesData(generateWeeklySalesData());
           setMonthlySalesData(generateMonthlySalesData());
           // Re-fetch products to ensure latest data for top selling calculation
+          // Isso pode ser custoso. Idealmente, o Realtime também atualizaria os produtos se eles mudassem.
           storageService.getProducts(supabase, userId).then(latestProducts => {
             setTopSellingProducts(getTopSellingProducts(orders, latestProducts));
           });
@@ -343,10 +356,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
       .subscribe();
 
     return () => {
-      console.log('[Dashboard] Desinscrevendo do Realtime de pedidos.');
+      console.log('[Realtime] Desinscrevendo do Realtime de pedidos.');
       supabase.removeChannel(ordersChannel);
     };
-  }, [userId, supabase, orders]); // Adicionado 'orders' para que getTopSellingProducts tenha a lista mais recente
+  }, [userId, supabase]); // Removido 'orders' das dependências para evitar re-subscrição
 
   useEffect(() => {
     let timer: NodeJS.Timeout | undefined;

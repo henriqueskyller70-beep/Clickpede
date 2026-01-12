@@ -7,10 +7,10 @@ import { showError, showSuccess } from '../src/utils/toast'; // Importar showSuc
 import { AddressManagerModal } from '../src/components/AddressManagerModal'; // Importar o novo modal
 
 interface StoreFrontProps {
-  onOrderCreated: () => void; // NOVO: Callback para notificar o Dashboard
+  // REMOVIDO: onOrderCreated não é mais necessário com o Realtime do Supabase.
 }
 
-export const StoreFront: React.FC<StoreFrontProps> = ({ onOrderCreated }) => {
+export const StoreFront: React.FC<StoreFrontProps> = () => { // Removido onOrderCreated das props
   const { supabase, session } = useSession();
   const userId = session?.user?.id;
 
@@ -245,7 +245,7 @@ export const StoreFront: React.FC<StoreFrontProps> = ({ onOrderCreated }) => {
       setCustomerName(''); // Limpa o nome do cliente
       setIsCartOpen(false); // Fecha o modal do carrinho
       showSuccess("Pedido enviado para o gerenciamento!");
-      onOrderCreated(); // NOVO: Notifica o Dashboard que um novo pedido foi criado
+      // REMOVIDO: onOrderCreated() não é mais necessário com o Realtime do Supabase.
     }
   };
 
@@ -297,7 +297,7 @@ export const StoreFront: React.FC<StoreFrontProps> = ({ onOrderCreated }) => {
         const option = selectedProductForDetails.options.find(opt => opt.id === optionId);
         if (!option) return prev;
 
-        let currentOptionSelections = { ...newSelections[optionId] };
+        let currentOptionSelections = { ...newSelections[option.id] };
         let currentQuantity = currentOptionSelections[subProductId] || 0;
         
         const totalSelectedInOption = Object.values(currentOptionSelections).reduce((sum, qty) => sum + qty, 0);
