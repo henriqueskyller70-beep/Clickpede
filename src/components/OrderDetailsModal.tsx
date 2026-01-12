@@ -44,6 +44,7 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-700';
       case 'preparing': return 'bg-blue-100 text-blue-700';
+      case 'in_transit': return 'bg-purple-100 text-purple-700'; // NOVO: Cor para 'in_transit'
       case 'delivered': return 'bg-green-100 text-green-700';
       default: return 'bg-gray-100 text-gray-700';
     }
@@ -120,6 +121,14 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             </button>
           )}
           {order.status === 'preparing' && (
+            <button
+              onClick={() => onUpdateOrderStatus(order.id!, 'in_transit')} {/* NOVO: Botão para 'in_transit' */}
+              className="bg-purple-600 text-white px-5 py-2.5 rounded-lg hover:bg-purple-700 font-bold shadow-lg transition-all transform active:scale-95 flex items-center gap-2"
+            >
+              <Bike className="w-4 h-4" /> Marcar como Em Rota
+            </button>
+          )}
+          {order.status === 'in_transit' && ( {/* NOVO: Botão para 'delivered' quando 'in_transit' */}
             <button
               onClick={() => onUpdateOrderStatus(order.id!, 'delivered')}
               className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 font-bold shadow-lg transition-all transform active:scale-95 flex items-center gap-2"

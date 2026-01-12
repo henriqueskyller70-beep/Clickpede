@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Package, ShoppingBag, Settings, Plus, 
   Trash2, Edit, LogOut, Store, Users, FileText, ChevronDown, Menu, Clock,
-  GripVertical, Search, X, Copy, Star, Infinity, User as UserIcon, TrendingUp, Table as TableIcon, Monitor // Renomear User para evitar conflito, adicionar Infinity, TrendingUp, TableIcon, Monitor
+  GripVertical, Search, X, Copy, Star, Infinity, User as UserIcon, TrendingUp, Table as TableIcon, Monitor, Bike // Adicionado Bike
 } from 'lucide-react';
 import { Product, Category, StoreProfile, Order, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
 import { storageService } from '../services/storageService';
@@ -127,6 +127,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   // NOVO: Estados para o modal de detalhes do pedido
   const [isOrderDetailsModalOpen, setIsOrderDetailsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  // NOVO: Estado para o filtro de status de pedidos
+  const [orderStatusFilter, setOrderStatusFilter] = useState<'all' | 'pending' | 'preparing' | 'in_transit' | 'delivered'>('all');
 
 
   // DND Kit Sensors
@@ -1098,6 +1101,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     }
   });
 
+  // Filtrar pedidos com base no status selecionado
+  const filteredOrders = orders.filter(order => {
+    if (orderStatusFilter === 'all') return true;
+    return order.status === orderStatusFilter;
+  });
+
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-200 font-sans">
       {/* Sidebar - Dark Theme with 3D effect */}
@@ -1713,13 +1722,53 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                          <ShoppingBag className="drop-shadow-sm" style={{ color: storeProfile.primaryColor }} />
                          Gerenciador de Pedidos
                     </h2>
+
+                    {/* NOVO: Botões de filtro de status */}
+                    <div className="flex flex-wrap gap-3 mb-6">
+                        <button
+                            onClick={() => setOrderStatusFilter('all')}
+                            className={`px-5 py-2 rounded-lg font-medium text-sm transition-colors transform active:scale-95 shadow-md
+                                ${orderStatusFilter === 'all' ? 'bg-gray-900 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                        >
+                            Todos os Pedidos
+                        </button>
+                        <button
+                            onClick={() => setOrderStatusFilter('pending')}
+                            className={`px-5 py-2 rounded-lg font-medium text-sm transition-colors transform active:scale-95 shadow-md
+                                ${orderStatusFilter === 'pending' ? 'bg-yellow-600 text-white' : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'}`}
+                        >
+                            Pendentes
+                        </button>
+                        <button
+                            onClick={() => setOrderStatusFilter('preparing')}
+                            className={`px-5 py-2 rounded-lg font-medium text-sm transition-colors transform active:scale-95 shadow-md
+                                ${orderStatusFilter === 'preparing' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
+                        >
+                            Aceitos / Preparando
+                        </button>
+                        <button
+                            onClick={() => setOrderStatusFilter('in_transit')}
+                            className={`px-5 py-2 rounded-lg font-medium text-sm transition-colors transform active:scale-95 shadow-md
+                                ${orderStatusFilter === 'in_transit' ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}
+                        >
+                            Em Rota
+                        </button>
+                        <button
+                            onClick={() => setOrderStatusFilter('delivered')}
+                            className={`px-5 py-2 rounded-lg font-medium text-sm transition-colors transform active:scale-95 shadow-md
+                                ${orderStatusFilter === 'delivered' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                        >
+                            Finalizados
+                        </button>
+                    </div>
+
                     <div className="grid grid-cols-1 gap-4">
-                        {orders.length === 0 ? (
+                        {filteredOrders.length === 0 ? (
                             <div className="text-center text-gray-500 p-8 bg-white rounded-xl shadow-xl border border-gray-100">
-                                Nenhum pedido encontrado.
+                                Nenhum pedido encontrado para esta categoria.
                             </div>
                         ) : (
-                            orders.map(order => (
+                            filteredOrders.map(order => (
                                 <div 
                                     key={order.id} 
                                     className="bg-white p-6 rounded-xl border border-gray-100 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 transform hover:scale-[1.01] hover:shadow-2xl transition-all duration-200 relative overflow-hidden cursor-pointer"
@@ -1727,18 +1776,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
                                     <div className="flex items-center gap-4">
-                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'}`}>
+                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg 
+                                            ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-600' : 
+                                              order.status === 'preparing' ? 'bg-blue-100 text-blue-600' :
+                                              order.status === 'in_transit' ? 'bg-purple-100 text-purple-600' :
+                                              'bg-green-100 text-green-600'}`}>
                                             {order.customerName[0]}
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-gray-900">{order.customerName}</h4>
-                                            <p className="text-sm text-gray-500">#{order.id} • {new Date(order.date).toLocaleTimeString()}</p>
+                                            <p className="text-sm text-gray-500">#{order.id?.substring(0, 8)} • {new Date(order.date).toLocaleTimeString()}</p>
                                         </div>
                                     </div>
                                     <div className="text-right flex items-center gap-6">
                                         <span className="font-bold text-lg text-gray-800">R$ {order.total.toFixed(2)}</span>
-                                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase shadow-md ${order.status === 'delivered' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                            {order.status === 'delivered' ? 'Entregue' : 'Pendente'}
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase shadow-md 
+                                            ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 
+                                              order.status === 'preparing' ? 'bg-blue-100 text-blue-700' :
+                                              order.status === 'in_transit' ? 'bg-purple-100 text-purple-700' :
+                                              'bg-green-100 text-green-700'}`}>
+                                            {order.status === 'pending' ? 'Pendente' : 
+                                             order.status === 'preparing' ? 'Preparando' :
+                                             order.status === 'in_transit' ? 'Em Rota' :
+                                             'Entregue'}
                                         </span>
                                     </div>
                                 </div>

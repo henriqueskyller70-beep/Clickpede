@@ -77,7 +77,7 @@ export interface Order {
   customerName: string;
   items: CartItem[];
   total: number;
-  status: 'pending' | 'preparing' | 'delivered';
+  status: 'pending' | 'preparing' | 'in_transit' | 'delivered'; // NOVO: Adicionado 'in_transit'
   date: string;
 }
 
