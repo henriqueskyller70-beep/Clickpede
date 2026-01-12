@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Package, ShoppingBag, Settings, Plus, 
   Trash2, Edit, LogOut, Store, Users, FileText, ChevronDown, Menu, Clock,
-  GripVertical, Search, X, Copy, Star, Infinity, User as UserIcon, TrendingUp, Table as TableIcon, Monitor, Bike, CheckCircle // Adicionado CheckCircle
+  GripVertical, Search, X, Copy, Star, Infinity, User as UserIcon, TrendingUp, Table as TableIcon, Monitor, Bike, CheckCircle, ArrowRight // Adicionado ArrowRight
 } from 'lucide-react';
 import { Product, Category, StoreProfile, Order, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
 import { storageService } from '../services/storageService';
@@ -1050,6 +1050,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     }
   };
 
+  // Função para determinar o próximo status
+  const getNextStatus = (currentStatus: Order['status']): Order['status'] | null => {
+    switch (currentStatus) {
+      case 'pending': return 'preparing';
+      case 'preparing': return 'in_transit';
+      case 'in_transit': return 'delivered';
+      default: return null; // Não há próximo status para 'delivered' ou 'rejected'
+    }
+  };
+
 
   const menuItems = [
       { id: 'overview', label: 'Início', icon: LayoutDashboard },
@@ -1775,68 +1785,83 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                 Nenhum pedido encontrado para esta categoria.
                             </div>
                         ) : (
-                            filteredOrders.map(order => (
-                                <div 
-                                    key={order.id} 
-                                    className="bg-white p-6 rounded-xl border border-gray-100 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 transform hover:scale-[1.01] hover:shadow-2xl transition-all duration-200 relative overflow-hidden cursor-pointer" // Adicionado cursor-pointer
-                                    onClick={() => handleOpenOrderDetails(order)} // Movido onClick para o div principal
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
-                                    <div className="flex items-center gap-4"> {/* Removido cursor-pointer daqui */}
-                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg 
-                                            ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-600' : 
-                                              order.status === 'preparing' ? 'bg-blue-100 text-blue-600' :
-                                              order.status === 'in_transit' ? 'bg-purple-100 text-purple-600' :
-                                              order.status === 'rejected' ? 'bg-red-100 text-red-600' : // NOVO: Cor para 'rejected'
-                                              'bg-green-100 text-green-600'}`}>
-                                            {order.customerName[0]}
+                            filteredOrders.map(order => {
+                                const nextStatus = getNextStatus(order.status);
+                                return (
+                                    <div 
+                                        key={order.id} 
+                                        className="bg-white p-6 rounded-xl border border-gray-100 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 transform hover:scale-[1.01] hover:shadow-2xl transition-all duration-200 relative overflow-hidden cursor-pointer"
+                                        onClick={() => handleOpenOrderDetails(order)} // Movido onClick para o div principal
+                                    >
+                                        <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
+                                        <div className="flex items-center gap-4"> {/* Removido cursor-pointer daqui */}
+                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg 
+                                                ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-600' : 
+                                                  order.status === 'preparing' ? 'bg-blue-100 text-blue-600' :
+                                                  order.status === 'in_transit' ? 'bg-purple-100 text-purple-600' :
+                                                  order.status === 'rejected' ? 'bg-red-100 text-red-600' : // NOVO: Cor para 'rejected'
+                                                  'bg-green-100 text-green-600'}`}>
+                                                {order.customerName[0]}
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-gray-900">{order.customerName}</h4>
+                                                <p className="text-sm text-gray-500">#{order.id?.substring(0, 8)} • {new Date(order.date).toLocaleTimeString()}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h4 className="font-bold text-gray-900">{order.customerName}</h4>
-                                            <p className="text-sm text-gray-500">#{order.id?.substring(0, 8)} • {new Date(order.date).toLocaleTimeString()}</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right flex items-center gap-3"> {/* Ajustado gap para o botão */}
-                                        <span className="font-bold text-lg text-gray-800">R$ {order.total.toFixed(2)}</span>
-                                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase shadow-md 
-                                            ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 
-                                             order.status === 'preparing' ? 'bg-blue-100 text-blue-700' :
-                                             order.status === 'in_transit' ? 'bg-purple-100 text-purple-700' :
-                                             order.status === 'rejected' ? 'bg-red-100 text-red-700' : // NOVO: Cor para 'rejected'
-                                             'bg-green-100 text-green-700'}`}>
-                                            {order.status === 'pending' ? 'Pendente' : 
-                                             order.status === 'preparing' ? 'Preparando' :
-                                             order.status === 'in_transit' ? 'Em Rota' :
-                                             order.status === 'rejected' ? 'Rejeitado' : // NOVO: Texto para 'rejected'
-                                             'Entregue'}
-                                        </span>
-                                        {order.status === 'pending' && (
-                                            <>
+                                        <div className="text-right flex items-center gap-3"> {/* Ajustado gap para o botão */}
+                                            <span className="font-bold text-lg text-gray-800">R$ {order.total.toFixed(2)}</span>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase shadow-md 
+                                                ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 
+                                                 order.status === 'preparing' ? 'bg-blue-100 text-blue-700' :
+                                                 order.status === 'in_transit' ? 'bg-purple-100 text-purple-700' :
+                                                 order.status === 'rejected' ? 'bg-red-100 text-red-700' : // NOVO: Cor para 'rejected'
+                                                 'bg-green-100 text-green-700'}`}>
+                                                {order.status === 'pending' ? 'Pendente' : 
+                                                 order.status === 'preparing' ? 'Preparando' :
+                                                 order.status === 'in_transit' ? 'Em Rota' :
+                                                 order.status === 'rejected' ? 'Rejeitado' : // NOVO: Texto para 'rejected'
+                                                 'Entregue'}
+                                            </span>
+                                            {order.status === 'pending' && (
+                                                <>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation(); // Evita que o clique no botão abra o modal de detalhes
+                                                            handleUpdateOrderStatus(order.id!, 'rejected');
+                                                        }}
+                                                        className="p-2 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 transition-colors transform active:scale-95"
+                                                        title="Recusar Pedido"
+                                                    >
+                                                        <X className="w-5 h-5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation(); // Evita que o clique no botão abra o modal de detalhes
+                                                            handleUpdateOrderStatus(order.id!, 'preparing');
+                                                        }}
+                                                        className="p-2 bg-green-500 text-white rounded-full shadow-md hover:bg-green-600 transition-colors transform active:scale-95"
+                                                        title="Aceitar Pedido"
+                                                    >
+                                                        <CheckCircle className="w-5 h-5" />
+                                                    </button>
+                                                </>
+                                            )}
+                                            {nextStatus && order.status !== 'pending' && ( // Botão de avançar status, não visível para 'pending'
                                                 <button
                                                     onClick={(e) => {
-                                                        e.stopPropagation(); // Evita que o clique no botão abra o modal de detalhes
-                                                        handleUpdateOrderStatus(order.id!, 'rejected');
+                                                        e.stopPropagation();
+                                                        handleUpdateOrderStatus(order.id!, nextStatus);
                                                     }}
-                                                    className="p-2 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 transition-colors transform active:scale-95"
-                                                    title="Recusar Pedido"
+                                                    className="p-2 bg-blue-500 text-white rounded-full shadow-md hover:bg-blue-600 transition-colors transform active:scale-95"
+                                                    title={`Avançar para ${nextStatus}`}
                                                 >
-                                                    <X className="w-5 h-5" />
+                                                    <ArrowRight className="w-5 h-5" />
                                                 </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation(); // Evita que o clique no botão abra o modal de detalhes
-                                                        handleUpdateOrderStatus(order.id!, 'preparing');
-                                                    }}
-                                                    className="p-2 bg-green-500 text-white rounded-full shadow-md hover:bg-green-600 transition-colors transform active:scale-95"
-                                                    title="Aceitar Pedido"
-                                                >
-                                                    <CheckCircle className="w-5 h-5" />
-                                                </button>
-                                            </>
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))
+                                );
+                            })
                         )}
                     </div>
                 </div>
