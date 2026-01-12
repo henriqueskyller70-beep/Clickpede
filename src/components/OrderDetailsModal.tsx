@@ -122,13 +122,13 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
           )}
           {order.status === 'preparing' && (
             <button
-              onClick={() => onUpdateOrderStatus(order.id!, 'in_transit')} { /* NOVO: Botão para 'in_transit' */ }
+              onClick={() => onUpdateOrderStatus(order.id!, 'in_transit')} 
               className="bg-purple-600 text-white px-5 py-2.5 rounded-lg hover:bg-purple-700 font-bold shadow-lg transition-all transform active:scale-95 flex items-center gap-2"
             >
               <Bike className="w-4 h-4" /> Marcar como Em Rota
             </button>
           )}
-          {order.status === 'in_transit' && ( { /* NOVO: Botão para 'delivered' quando 'in_transit' */ }
+          {order.status === 'in_transit' && ( 
             <button
               onClick={() => onUpdateOrderStatus(order.id!, 'delivered')}
               className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 font-bold shadow-lg transition-all transform active:scale-95 flex items-center gap-2"
