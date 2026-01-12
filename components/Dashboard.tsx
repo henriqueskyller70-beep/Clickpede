@@ -1778,10 +1778,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                             filteredOrders.map(order => (
                                 <div 
                                     key={order.id} 
-                                    className="bg-white p-6 rounded-xl border border-gray-100 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 transform hover:scale-[1.01] hover:shadow-2xl transition-all duration-200 relative overflow-hidden"
+                                    className="bg-white p-6 rounded-xl border border-gray-100 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 transform hover:scale-[1.01] hover:shadow-2xl transition-all duration-200 relative overflow-hidden cursor-pointer" // Adicionado cursor-pointer
+                                    onClick={() => handleOpenOrderDetails(order)} // Movido onClick para o div principal
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
-                                    <div className="flex items-center gap-4 cursor-pointer" onClick={() => handleOpenOrderDetails(order)}>
+                                    <div className="flex items-center gap-4"> {/* Removido cursor-pointer daqui */}
                                         <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg 
                                             ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-600' : 
                                               order.status === 'preparing' ? 'bg-blue-100 text-blue-600' :
