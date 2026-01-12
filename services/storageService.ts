@@ -485,7 +485,12 @@ export const storageService = {
       showError(`Erro ao buscar pedidos: ${error.message}`);
       return [];
     }
-    return data.map(o => ({ ...o, items: (o.items as any[] || []), date: o.order_date })) || [];
+    return data.map(o => ({ 
+      ...o, 
+      customerName: o.customer_name, // Mapear customer_name do DB para customerName na interface
+      items: (o.items as any[] || []), 
+      date: o.order_date 
+    })) || [];
   },
 
   // Esta função é para o admin visualizar pedidos, não para salvar em massa.
@@ -519,7 +524,10 @@ export const storageService = {
     const toastId = showLoading("Finalizando pedido...");
     try {
       const { data, error } = await supabase.from('orders').insert({
-        ...order,
+        customer_name: order.customerName, // Mapear customerName para customer_name no DB
+        items: order.items,
+        total: order.total,
+        status: order.status,
         user_id: userId,
         order_date: order.date, // Mapear 'date' para 'order_date' no DB
       }).select().single(); // Retorna o pedido inserido
