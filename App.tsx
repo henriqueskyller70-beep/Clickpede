@@ -21,6 +21,9 @@ const App: React.FC = () => {
   const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // NOVO: Estado para o menu mobile
 
+  // NOVO: Estado para forçar a atualização dos pedidos no Dashboard
+  const [refreshOrdersTrigger, setRefreshOrdersTrigger] = useState(0);
+
   useEffect(() => {
     const handleHashChange = () => {
       const currentHash = window.location.hash || ''; // Use string vazia para 'sem hash'
@@ -57,6 +60,11 @@ const App: React.FC = () => {
     window.location.hash = path;
   };
 
+  // NOVO: Função para disparar a atualização dos pedidos
+  const triggerOrdersRefresh = () => {
+    setRefreshOrdersTrigger(prev => prev + 1);
+  };
+
   // Lógica principal de redirecionamento baseada na sessão
   useEffect(() => {
     console.log('App.tsx - Session/Route useEffect triggered');
@@ -90,14 +98,14 @@ const App: React.FC = () => {
 
   // Lógica de Roteamento Simples
   if (route.startsWith('#/store')) {
-    return <StoreFront />;
+    return <StoreFront onOrderCreated={triggerOrdersRefresh} />; {/* Passa a função de gatilho */}
   }
 
   if (route.startsWith('#/dashboard')) {
     if (!session) {
         return null; // Redirecionado pelo useEffect
     }
-    return <Dashboard onLogout={handleLogout} onNavigate={handleNavigate} />;
+    return <Dashboard onLogout={handleLogout} onNavigate={handleNavigate} refreshTrigger={refreshOrdersTrigger} />; {/* Passa o gatilho */}
   }
 
   // A página de redefinição de senha é uma página completa, não um modal sobre a landing page

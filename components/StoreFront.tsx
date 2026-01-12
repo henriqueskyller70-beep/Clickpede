@@ -6,7 +6,11 @@ import { useSession } from '../src/components/SessionContextProvider';
 import { showError, showSuccess } from '../src/utils/toast'; // Importar showSuccess
 import { AddressManagerModal } from '../src/components/AddressManagerModal'; // Importar o novo modal
 
-export const StoreFront: React.FC = () => {
+interface StoreFrontProps {
+  onOrderCreated: () => void; // NOVO: Callback para notificar o Dashboard
+}
+
+export const StoreFront: React.FC<StoreFrontProps> = ({ onOrderCreated }) => {
   const { supabase, session } = useSession();
   const userId = session?.user?.id;
 
@@ -241,6 +245,7 @@ export const StoreFront: React.FC = () => {
       setCustomerName(''); // Limpa o nome do cliente
       setIsCartOpen(false); // Fecha o modal do carrinho
       showSuccess("Pedido enviado para o gerenciamento!");
+      onOrderCreated(); // NOVO: Notifica o Dashboard que um novo pedido foi criado
     }
   };
 

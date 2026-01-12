@@ -43,9 +43,10 @@ import { SortableProductItem } from '../src/components/SortableProductItem'; // 
 interface DashboardProps {
     onLogout: () => void;
     onNavigate: (path: string) => void; // Adicionar prop para navegação
+    refreshTrigger: number; // NOVO: Prop para disparar a atualização de pedidos
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refreshTrigger }) => {
   const { supabase, session } = useSession(); // Obter supabase e session do contexto
   const userId = session?.user?.id;
 
@@ -300,7 +301,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       }
     };
     loadData();
-  }, [userId, supabase]);
+  }, [userId, supabase, refreshTrigger]); // NOVO: Adicionado refreshTrigger como dependência
 
   // Efeito para gerenciar o contador de reabertura
   useEffect(() => {
@@ -910,13 +911,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     try {
       await storageService.saveStoreProfile(supabase, userId, storeProfile, logoFile, coverFile);
       // Recarrega o perfil para garantir que as URLs atualizadas sejam refletidas
-      const updatedProfile = await storageService.getStoreProfile(supabase, userId);
-      setStoreProfile(updatedProfile);
-      setLogoPreview(updatedProfile.logoUrl); // Atualiza a pré-visualização com a URL salva
-      setCoverPreview(updatedProfile.coverUrl); // Atualiza a pré-visualização com a URL salva
+      // const updatedProfile = await storageService.getStoreProfile(supabase, userId); // Removido para evitar loop
+      // setStoreProfile(updatedProfile); // Removido para evitar loop
+      // setLogoPreview(updatedProfile.logoUrl); // Removido para evitar loop
+      // setCoverPreview(updatedProfile.coverUrl); // Removido para evitar loop
       setLogoFile(null); // Limpa o arquivo selecionado após o upload
       setCoverFile(null); // Limpa o arquivo selecionado após o upload
-      console.log('[Dashboard] Perfil da loja salvo e recarregado. Logo URL:', updatedProfile.logoUrl, 'Cover URL:', updatedProfile.coverUrl);
+      // console.log('[Dashboard] Perfil da loja salvo e recarregado. Logo URL:', updatedProfile.logoUrl, 'Cover URL:', updatedProfile.coverUrl); // Removido para evitar loop
     } catch (error) {
       // Erros já são tratados e exibidos via toast em storageService.saveStoreProfile
       console.error("Erro ao salvar perfil da loja no Dashboard:", error);
