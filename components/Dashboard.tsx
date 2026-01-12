@@ -129,7 +129,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   // NOVO: Estado para o filtro de status de pedidos
-  const [orderStatusFilter, setOrderStatusFilter] = useState<'all' | 'pending' | 'preparing' | 'in_transit' | 'delivered'>('all');
+  const [orderStatusFilter, setOrderStatusFilter] = useState<'all' | 'pending' | 'preparing' | 'in_transit' | 'delivered' | 'rejected'>('all');
 
 
   // DND Kit Sensors
@@ -699,7 +699,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   const handleAddSubProductConfirm = React.useCallback(async (newSubProductData: Omit<SubProduct, 'id' | 'isActive'>) => {
     if (currentProductAndOptionForSubProduct && userId) {
-        const { productId, optionId } = currentProductAndAndOptionForSubProduct;
+        const { productId, optionId } = currentProductAndOptionForSubProduct;
         const newSubProduct: SubProduct = {
             id: Date.now().toString(), // IDs para opções e sub-produtos são internos ao JSONB, não UUIDs do DB
             name: newSubProductData.name,
@@ -1760,6 +1760,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                         >
                             Finalizados
                         </button>
+                        <button
+                            onClick={() => setOrderStatusFilter('rejected')}
+                            className={`px-5 py-2 rounded-lg font-medium text-sm transition-colors transform active:scale-95 shadow-md
+                                ${orderStatusFilter === 'rejected' ? 'bg-red-600 text-white' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
+                        >
+                            Rejeitados
+                        </button>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4">
@@ -1779,6 +1786,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                             ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-600' : 
                                               order.status === 'preparing' ? 'bg-blue-100 text-blue-600' :
                                               order.status === 'in_transit' ? 'bg-purple-100 text-purple-600' :
+                                              order.status === 'rejected' ? 'bg-red-100 text-red-600' : // NOVO: Cor para 'rejected'
                                               'bg-green-100 text-green-600'}`}>
                                             {order.customerName[0]}
                                         </div>
@@ -1793,23 +1801,37 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                             ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 
                                              order.status === 'preparing' ? 'bg-blue-100 text-blue-700' :
                                              order.status === 'in_transit' ? 'bg-purple-100 text-purple-700' :
+                                             order.status === 'rejected' ? 'bg-red-100 text-red-700' : // NOVO: Cor para 'rejected'
                                              'bg-green-100 text-green-700'}`}>
                                             {order.status === 'pending' ? 'Pendente' : 
                                              order.status === 'preparing' ? 'Preparando' :
                                              order.status === 'in_transit' ? 'Em Rota' :
+                                             order.status === 'rejected' ? 'Rejeitado' : // NOVO: Texto para 'rejected'
                                              'Entregue'}
                                         </span>
                                         {order.status === 'pending' && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation(); // Evita que o clique no botão abra o modal de detalhes
-                                                    handleUpdateOrderStatus(order.id!, 'preparing');
-                                                }}
-                                                className="p-2 bg-green-500 text-white rounded-full shadow-md hover:bg-green-600 transition-colors transform active:scale-95"
-                                                title="Aceitar Pedido"
-                                            >
-                                                <CheckCircle className="w-5 h-5" />
-                                            </button>
+                                            <>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // Evita que o clique no botão abra o modal de detalhes
+                                                        handleUpdateOrderStatus(order.id!, 'preparing');
+                                                    }}
+                                                    className="p-2 bg-green-500 text-white rounded-full shadow-md hover:bg-green-600 transition-colors transform active:scale-95"
+                                                    title="Aceitar Pedido"
+                                                >
+                                                    <CheckCircle className="w-5 h-5" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // Evita que o clique no botão abra o modal de detalhes
+                                                        handleUpdateOrderStatus(order.id!, 'rejected');
+                                                    }}
+                                                    className="p-2 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 transition-colors transform active:scale-95"
+                                                    title="Recusar Pedido"
+                                                >
+                                                    <X className="w-5 h-5" />
+                                                </button>
+                                            </>
                                         )}
                                     </div>
                                 </div>
