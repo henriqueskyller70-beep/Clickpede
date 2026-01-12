@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Package, ShoppingBag, Settings, Plus, 
   Trash2, Edit, LogOut, Store, Users, FileText, ChevronDown, Menu, Clock,
-  GripVertical, Search, X, Copy, Star, Infinity, User as UserIcon, TrendingUp, Table as TableIcon, Monitor, Bike // Adicionado Bike
+  GripVertical, Search, X, Copy, Star, Infinity, User as UserIcon, TrendingUp, Table as TableIcon, Monitor, Bike, CheckCircle // Adicionado CheckCircle
 } from 'lucide-react';
 import { Product, Category, StoreProfile, Order, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
 import { storageService } from '../services/storageService';
@@ -699,7 +699,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   const handleAddSubProductConfirm = React.useCallback(async (newSubProductData: Omit<SubProduct, 'id' | 'isActive'>) => {
     if (currentProductAndOptionForSubProduct && userId) {
-        const { productId, optionId } = currentProductAndOptionForSubProduct;
+        const { productId, optionId } = currentProductAndAndOptionForSubProduct;
         const newSubProduct: SubProduct = {
             id: Date.now().toString(), // IDs para opções e sub-produtos são internos ao JSONB, não UUIDs do DB
             name: newSubProductData.name,
@@ -1771,11 +1771,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                             filteredOrders.map(order => (
                                 <div 
                                     key={order.id} 
-                                    className="bg-white p-6 rounded-xl border border-gray-100 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 transform hover:scale-[1.01] hover:shadow-2xl transition-all duration-200 relative overflow-hidden cursor-pointer"
-                                    onClick={() => handleOpenOrderDetails(order)} // Torna o pedido clicável
+                                    className="bg-white p-6 rounded-xl border border-gray-100 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 transform hover:scale-[1.01] hover:shadow-2xl transition-all duration-200 relative overflow-hidden"
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-4 cursor-pointer" onClick={() => handleOpenOrderDetails(order)}>
                                         <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg 
                                             ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-600' : 
                                               order.status === 'preparing' ? 'bg-blue-100 text-blue-600' :
@@ -1788,18 +1787,30 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                             <p className="text-sm text-gray-500">#{order.id?.substring(0, 8)} • {new Date(order.date).toLocaleTimeString()}</p>
                                         </div>
                                     </div>
-                                    <div className="text-right flex items-center gap-6">
+                                    <div className="text-right flex items-center gap-3"> {/* Ajustado gap para o botão */}
                                         <span className="font-bold text-lg text-gray-800">R$ {order.total.toFixed(2)}</span>
                                         <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase shadow-md 
                                             ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 
-                                              order.status === 'preparing' ? 'bg-blue-100 text-blue-700' :
-                                              order.status === 'in_transit' ? 'bg-purple-100 text-purple-700' :
-                                              'bg-green-100 text-green-700'}`}>
+                                             order.status === 'preparing' ? 'bg-blue-100 text-blue-700' :
+                                             order.status === 'in_transit' ? 'bg-purple-100 text-purple-700' :
+                                             'bg-green-100 text-green-700'}`}>
                                             {order.status === 'pending' ? 'Pendente' : 
                                              order.status === 'preparing' ? 'Preparando' :
                                              order.status === 'in_transit' ? 'Em Rota' :
                                              'Entregue'}
                                         </span>
+                                        {order.status === 'pending' && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation(); // Evita que o clique no botão abra o modal de detalhes
+                                                    handleUpdateOrderStatus(order.id!, 'preparing');
+                                                }}
+                                                className="p-2 bg-green-500 text-white rounded-full shadow-md hover:bg-green-600 transition-colors transform active:scale-95"
+                                                title="Aceitar Pedido"
+                                            >
+                                                <CheckCircle className="w-5 h-5" />
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))
