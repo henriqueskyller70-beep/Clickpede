@@ -2,23 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Package, ShoppingBag, Settings, Plus, 
   Trash2, Edit, LogOut, Store, Users, FileText, ChevronDown, Menu, Clock,
-  GripVertical, Search, X, Copy, Star, Infinity, User as UserIcon, TrendingUp, Table as TableIcon, Monitor, Bike, CheckCircle, ArrowRight // Adicionado ArrowRight
+  GripVertical, Search, X, Copy, Star, Infinity, User as UserIcon, TrendingUp, Table as TableIcon, Monitor, Bike, CheckCircle, ArrowRight 
 } from 'lucide-react';
 import { Product, Category, StoreProfile, Order, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
 import { storageService } from '../services/storageService';
-import { useSession } from '../src/components/SessionContextProvider'; // Importar o hook de sessão
-import { showSuccess, showError } from '../src/utils/toast'; // Importar utilitários de toast
-import { ProfileSettingsPage } from '../src/components/ProfileSettingsPage'; // Importar ProfileSettingsPage
-import { debounce } from '../src/utils/debounce'; // Import the debounce utility
-import { Modal } from '../src/components/ui/Modal'; // Importar o novo componente Modal
-import { AddSubProductModal } from '../src/components/AddSubProductModal'; // Importar o novo modal de sub-produto
-import { CopyOptionModal } from '../src/components/CopyOptionModal'; // Importar o novo modal de cópia
-import { SalesCharts } from '../src/components/SalesCharts'; // NOVO: Importar SalesCharts
-import { RecentOrders } from '../src/components/RecentOrders'; // NOVO: Importar RecentOrders
-import { AppLogo } from '../src/components/AppLogo'; // Importar o novo componente AppLogo
-import { TableManagerPage } from '../src/components/TableManagerPage'; // NOVO: Importar TableManagerPage
-import { CounterManagerPage } from '../src/components/CounterManagerPage'; // NOVO: Importar CounterManagerPage
-import { OrderDetailsModal } from '../src/components/OrderDetailsModal'; // NOVO: Importar OrderDetailsModal
+import { useSession } from '../src/components/SessionContextProvider';
+import { showSuccess, showError } from '../src/utils/toast';
+import { ProfileSettingsPage } from '../src/components/ProfileSettingsPage';
+import { debounce } from '../src/utils/debounce';
+import { Modal } from '../src/components/ui/Modal';
+import { AddSubProductModal } from '../src/components/AddSubProductModal';
+import { CopyOptionModal } from '../src/components/CopyOptionModal';
+import { SalesCharts } from '../src/components/SalesCharts';
+import { RecentOrders } from '../src/components/RecentOrders';
+import { AppLogo } from '../src/components/AppLogo';
+import { TableManagerPage } from '../src/components/TableManagerPage';
+import { CounterManagerPage } from '../src/components/CounterManagerPage';
+import { OrderDetailsModal } from '../src/components/OrderDetailsModal';
 
 // DND Kit Imports
 import {
@@ -29,7 +29,7 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-  DragOverlay, // Importar DragOverlay
+  DragOverlay,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -37,33 +37,32 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from '@dnd-kit/sortable';
-import { SortableGroupItem } from '../src/components/SortableGroupItem'; // Import the new SortableGroupItem
-import { SortableProductItem } from '../src/components/SortableProductItem'; // Import the new SortableProductItem
+import { SortableGroupItem } from '../src/components/SortableGroupItem';
+import { SortableProductItem } from '../src/components/SortableProductItem';
 
 interface DashboardProps {
     onLogout: () => void;
-    onNavigate: (path: string) => void; // Adicionar prop para navegação
-    refreshTrigger: number; // NOVO: Prop para disparar a atualização de pedidos
+    onNavigate: (path: string) => void;
+    refreshTrigger: number; // Mantido, mas o Realtime será o principal para pedidos
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refreshTrigger }) => {
-  const { supabase, session } = useSession(); // Obter supabase e session do contexto
+  const { supabase, session } = useSession();
   const userId = session?.user?.id;
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders-parent' | 'order-manager' | 'table-manager' | 'counter-manager' | 'store-settings' | 'schedule' | 'clients' | 'staff' | 'reports' | 'profile-settings'>('overview'); // Default to overview tab
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders-parent' | 'order-manager' | 'table-manager' | 'counter-manager' | 'store-settings' | 'schedule' | 'clients' | 'staff' | 'reports' | 'profile-settings'>('overview');
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [storeProfile, setStoreProfile] = useState<StoreProfile>({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '' }); // Estado inicial vazio
-  const [isStoreTemporariamenteClosed, setIsStoreTemporariamenteClosed] = useState(false); // Novo estado para fechamento temporário (seja por tempo ou indefinido)
-  const [reopenCountdown, setReopenCountdown] = useState<string | null>(null); // Estado para o contador de reabertura
-  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false); // Renomeado de showTemporaryCloseOptions
+  const [storeProfile, setStoreProfile] = useState<StoreProfile>({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '' });
+  const [isStoreTemporariamenteClosed, setIsStoreTemporariamenteClosed] = useState(false);
+  const [reopenCountdown, setReopenCountdown] = useState<string | null>(null);
+  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isStoreSubmenuOpen, setIsStoreSubmenuOpen] = useState(false);
-  const [isOrdersSubmenuOpen, setIsOrdersSubmenuOpen] = useState(false); // NOVO: Estado para o submenu de Pedidos
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false); // Novo estado para o dropdown do perfil
-  const [userProfile, setUserProfile] = useState<{ first_name: string; last_name: string; avatar_url: string | null } | null>(null); // Estado para o perfil do usuário
+  const [isOrdersSubmenuOpen, setIsOrdersSubmenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<{ first_name: string; last_name: string; avatar_url: string | null } | null>(null);
   
-  // Estado para o horário de funcionamento
   const [storeSchedule, setStoreSchedule] = useState<StoreSchedule>({
     isAlwaysOpen: false,
     dailySchedules: [
@@ -75,61 +74,51 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
       { day: 'Sexta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
       { day: 'Sábado', isOpen: false, openTime: '00:00', closeTime: '00:00' },
     ],
-    reopenAt: null, // Adicionado valor padrão
-    isTemporariamenteClosedIndefinidamente: false, // Adicionado valor padrão
-  }); // Estado inicial padrão
+    reopenAt: null,
+    isTemporariamenteClosedIndefinidamente: false,
+  });
   
-  // Product/Group Management States
   const [groups, setGroups] = useState<Group[]>([]);
-  const [selectedGroupId, setSelectedGroupId] = useState<string | 'all'>('all'); // 'all' para todos os produtos
+  const [selectedGroupId, setSelectedGroupId] = useState<string | 'all'>('all');
   const [groupSearchTerm, setSearchTerm] = useState('');
   const [productSearchTerm, setProductSearchTerm] = useState('');
-  const [showOptionsForProduct, setShowOptionsForProduct] = useState<string | null>(null); // ID do produto para mostrar opções
+  const [showOptionsForProduct, setShowOptionsForProduct] = useState<string | null>(null);
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Partial<Product>>({});
   const [isAddingGroup, setIsAddingGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
-  const [editingGroupName, setNewGroupNameEditing] = useState(''); // Renomeado para evitar conflito
-  const [localImagePreview, setLocalImagePreview] = useState<string | null>(null); // Para pré-visualização de imagem local
+  const [editingGroupName, setNewGroupNameEditing] = useState('');
+  const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
 
-  // Estados para o novo modal de adicionar sub-produto
   const [isAddSubProductModalOpen, setIsAddSubProductModalOpen] = useState(false);
   const [currentProductAndOptionForSubProduct, setCurrentProductAndOptionForSubProduct] = useState<{ productId: string; optionId: string } | null>(null);
 
-  // Estados para upload de imagens da loja
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
 
-  // Estados para o modal de confirmação de toggle de sub-produtos
   const [isToggleConfirmationModalOpen, setIsToggleConfirmationModalOpen] = useState(false);
   const [pendingToggleAction, setPendingToggleAction] = useState<{ productId: string; optionId: string; searchTerm: string; targetActiveState: boolean } | null>(null);
 
-  // NOVO: Estado para a opção a ser rolada
   const [optionToScrollToId, setOptionToScrollToId] = useState<string | null>(null);
 
-  // NOVO: Estados para o modal de cópia de opção
   const [isCopyOptionModalOpen, setIsCopyOptionModalOpen] = useState(false);
   const [optionToCopy, setOptionToCopy] = useState<{ productId: string; optionId: string; optionTitle: string } | null>(null);
 
-  // NOVO: Estado para o grupo ativo sendo arrastado (para DragOverlay)
   const [activeGroup, setActiveGroup] = useState<Group | null>(null);
 
-  // NOVO: Estados para dados de gráficos e produtos mais vendidos
   const [weeklySalesData, setWeeklySalesData] = useState<{ name: string; sales: number }[]>([]);
   const [monthlySalesData, setMonthlySalesData] = useState<{ name: string; sales: number }[]>([]);
   const [topSellingProducts, setTopSellingProducts] = useState<
     { name: string; totalQuantity: number; totalRevenue: number }[]
   >([]);
 
-  // NOVO: Estados para o modal de detalhes do pedido
   const [isOrderDetailsModalOpen, setIsOrderDetailsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  // NOVO: Estado para o filtro de status de pedidos
   const [orderStatusFilter, setOrderStatusFilter] = useState<'all' | 'pending' | 'preparing' | 'in_transit' | 'delivered' | 'rejected'>('all');
 
 
@@ -147,11 +136,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
       if (currentUserId) {
         const savedProducts = await storageService.saveProducts(supabase, currentUserId, productsToSave);
         if (savedProducts) {
-          setProducts(savedProducts); // Update state with the fresh list from DB
+          setProducts(savedProducts);
         }
       }
-    }, 1000), // 1 second debounce delay
-    [supabase] // Dependency array for useCallback
+    }, 1000),
+    [supabase]
   );
 
   // Memoize the debounced saveGroups function
@@ -160,16 +149,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
       if (currentUserId) {
         const savedGroups = await storageService.saveGroups(supabase, currentUserId, groupsToSave);
         if (savedGroups) {
-          setGroups(savedGroups as Group[]); // Update state with the fresh list from DB
+          setGroups(savedGroups as Group[]);
         }
       }
-    }, 1000), // 1 second debounce delay
-    [supabase] // Dependency array for useCallback
+    }, 1000),
+    [supabase]
   );
 
-  // Função auxiliar para calcular o preço total de um item no carrinho, incluindo opções
   const calculateItemTotalPrice = (item: Order['items'][0], allProducts: Product[]) => {
-    let total = item.price; // Base price of the product
+    let total = item.price;
     if (item.selectedOptions) {
       item.selectedOptions.forEach(selOpt => {
         const originalProduct = allProducts.find(p => p.id === item.id);
@@ -183,7 +171,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     return total;
   };
 
-  // Gerar dados fictícios para gráficos
   const generateWeeklySalesData = () => {
     const data = [];
     const today = new Date();
@@ -193,7 +180,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
       const dayName = d.toLocaleDateString('pt-BR', { weekday: 'short' });
       data.push({
         name: dayName,
-        sales: Math.floor(Math.random() * 500) + 100, // Sales between 100 and 600
+        sales: Math.floor(Math.random() * 500) + 100,
       });
     }
     return data;
@@ -208,7 +195,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
       const monthName = d.toLocaleDateString('pt-BR', { month: 'short' });
       data.push({
         name: monthName,
-        sales: Math.floor(Math.random() * 5000) + 1000, // Sales between 1000 and 6000
+        sales: Math.floor(Math.random() * 5000) + 1000,
       });
     }
     return data;
@@ -219,7 +206,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
 
     orders.forEach(order => {
       order.items.forEach(item => {
-        const productId = item.id!; // Assuming item.id is the product ID
+        const productId = item.id!;
         if (!productSales[productId]) {
           productSales[productId] = {
             name: item.name,
@@ -233,8 +220,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     });
 
     return Object.values(productSales)
-      .sort((a, b) => b.totalQuantity - a.totalQuantity) // Sort by quantity sold
-      .slice(0, 5); // Get top 5
+      .sort((a, b) => b.totalQuantity - a.totalQuantity)
+      .slice(0, 5);
   };
 
 
@@ -250,28 +237,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
         setOrders(fetchedOrders);
         setStoreSchedule(fetchedSchedule);
         
-        // Define o estado de fechamento temporário com base em reopenAt ou isTemporariamenteClosedIndefinidamente
         const isClosedByTimer = !!fetchedSchedule.reopenAt && new Date(fetchedSchedule.reopenAt) > new Date();
         setIsStoreTemporariamenteClosed(isClosedByTimer || !!fetchedSchedule.isTemporariamenteClosedIndefinidamente);
 
         const profile = await storageService.getStoreProfile(supabase, userId);
         setStoreProfile(profile);
-        setLogoPreview(profile.logoUrl); // Define a pré-visualização inicial com a URL existente
-        setCoverPreview(profile.coverUrl); // Define a pré-visualização inicial com a URL existente
+        setLogoPreview(profile.logoUrl);
+        setCoverPreview(profile.coverUrl);
         setGroups(await storageService.getGroups(supabase, userId));
         
-        // Carregar perfil do usuário
         const userProf = await storageService.getProfile(supabase, userId);
         setUserProfile(userProf);
 
-        // Gerar dados para gráficos e produtos mais vendidos
         setWeeklySalesData(generateWeeklySalesData());
         setMonthlySalesData(generateMonthlySalesData());
         setTopSellingProducts(getTopSellingProducts(fetchedOrders, fetchedProducts));
 
         console.log('[Dashboard] Perfil da loja carregado. Logo URL:', profile.logoUrl, 'Cover URL:', profile.coverUrl);
       } else {
-        // Limpar estados se não houver userId (ex: logout)
         setProducts([]);
         setOrders([]);
         setStoreSchedule({
@@ -301,11 +284,72 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
       }
     };
     loadData();
-  }, [userId, supabase, refreshTrigger]); // NOVO: Adicionado refreshTrigger como dependência
+  }, [userId, supabase, refreshTrigger]); // refreshTrigger ainda é útil para forçar recarga de outros dados se necessário
 
-  // Efeito para gerenciar o contador de reabertura
+  // NOVO: useEffect para Realtime do Supabase para Pedidos
   useEffect(() => {
-    let timer: NodeJS.Timeout | undefined; // Removida a anotação de tipo NodeJS.Timeout
+    if (!userId) return;
+
+    console.log('[Dashboard] Configurando Realtime para pedidos...');
+
+    const ordersChannel = supabase
+      .channel('orders_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Escutar INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'orders',
+          filter: `user_id=eq.${userId}`, // Filtrar apenas pelos pedidos deste usuário
+        },
+        (payload) => {
+          console.log('[Realtime] Mudança no pedido:', payload);
+          const changedOrder = {
+            ...payload.new,
+            customerName: payload.new?.customer_name,
+            date: payload.new?.order_date,
+          } as Order;
+
+          setOrders(prevOrders => {
+            if (payload.eventType === 'INSERT') {
+              // Adicionar novo pedido, garantindo que não haja duplicatas
+              if (!prevOrders.some(order => order.id === changedOrder.id)) {
+                showSuccess(`Novo pedido #${changedOrder.id?.substring(0, 8)} recebido!`);
+                return [changedOrder, ...prevOrders]; // Adiciona o novo pedido no topo
+              }
+            } else if (payload.eventType === 'UPDATE') {
+              // Atualizar pedido existente
+              showSuccess(`Pedido #${changedOrder.id?.substring(0, 8)} atualizado para ${changedOrder.status}!`);
+              return prevOrders.map(order =>
+                order.id === changedOrder.id ? changedOrder : order
+              );
+            } else if (payload.eventType === 'DELETE') {
+              // Remover pedido
+              showSuccess(`Pedido #${changedOrder.id?.substring(0, 8)} foi removido.`);
+              return prevOrders.filter(order => order.id !== changedOrder.id);
+            }
+            return prevOrders;
+          });
+
+          // Atualizar dados de vendas e produtos mais vendidos após qualquer mudança nos pedidos
+          setWeeklySalesData(generateWeeklySalesData());
+          setMonthlySalesData(generateMonthlySalesData());
+          // Re-fetch products to ensure latest data for top selling calculation
+          storageService.getProducts(supabase, userId).then(latestProducts => {
+            setTopSellingProducts(getTopSellingProducts(orders, latestProducts));
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('[Dashboard] Desinscrevendo do Realtime de pedidos.');
+      supabase.removeChannel(ordersChannel);
+    };
+  }, [userId, supabase, orders]); // Adicionado 'orders' para que getTopSellingProducts tenha a lista mais recente
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
     if (isStoreTemporariamenteClosed && storeSchedule.reopenAt) {
       timer = setInterval(() => {
         const now = new Date();
@@ -315,7 +359,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
         if (diff <= 0) {
           setIsStoreTemporariamenteClosed(false);
           setReopenCountdown(null);
-          // Limpa o reopenAt e isTemporariamenteClosedIndefinidamente no banco de dados quando o tempo expira
           if (userId) {
             storageService.saveStoreSchedule(supabase, userId, { ...storeSchedule, reopenAt: null, isTemporariamenteClosedIndefinidamente: false });
           }
@@ -328,7 +371,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
         }
       }, 1000);
     } else if (isStoreTemporariamenteClosed && storeSchedule.isTemporariamenteClosedIndefinidamente) {
-        setReopenCountdown("Indefinidamente"); // Exibe "Indefinidamente" se fechado sem tempo
+        setReopenCountdown("Indefinidamente");
     } else {
       setReopenCountdown(null);
     }
@@ -336,10 +379,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [isStoreTemporariamenteClosed, storeSchedule, userId, supabase]); // Array de dependências simplificado
+  }, [isStoreTemporariamenteClosed, storeSchedule, userId, supabase]);
 
 
-  // Reset local image preview when opening/closing product form
   useEffect(() => {
     if (isAddingProduct) {
       setLocalImagePreview(currentProduct.image_url || null);
@@ -348,28 +390,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     }
   }, [isAddingProduct, currentProduct.image_url]);
 
-  // NOVO: Efeito para rolar até a nova opção criada
   useEffect(() => {
     if (optionToScrollToId) {
       const element = document.getElementById(`option-${optionToScrollToId}`);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        setOptionToScrollToId(null); // Limpa o estado após rolar
+        setOptionToScrollToId(null);
       }
     }
   }, [optionToScrollToId]);
 
-  // Group Management
   const handleAddGroup = async () => {
     if (newGroupName.trim() && userId) {
-      // Assign a temporary order_index for local state, it will be updated on save
       const newGroup: Group = { name: newGroupName.trim(), order_index: groups.length }; 
-      const updatedGroups = [...groups, newGroup]; // Adiciona o grupo sem ID para a lista local temporariamente
+      const updatedGroups = [...groups, newGroup];
 
-      // Chama saveGroups, que fará o upsert e retornará os IDs reais do DB
       const savedGroups = await storageService.saveGroups(supabase, userId, updatedGroups);
       if (savedGroups) {
-        setGroups(savedGroups as Group[]); // Atualiza o estado com os IDs gerados pelo DB
+        setGroups(savedGroups as Group[]);
       }
       setNewGroupName('');
       setIsAddingGroup(false);
@@ -389,12 +427,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
       const updatedGroups = groups.map(g => 
         g.id === editingGroupId ? { ...g, name: editingGroupName.trim() } : g
       );
-      setGroups(updatedGroups); // Atualiza a UI imediatamente
+      setGroups(updatedGroups);
       
-      // Chama saveGroups, que fará o upsert
       const savedGroups = await storageService.saveGroups(supabase, userId, updatedGroups);
       if (savedGroups) {
-        setGroups(savedGroups as Group[]); // Atualiza o estado com os IDs do DB
+        setGroups(savedGroups as Group[]);
       }
       setEditingGroupId(null);
       setNewGroupNameEditing('');
@@ -404,16 +441,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
   const handleDeleteGroup = async (groupId: string) => {
     if (window.confirm("Tem certeza que deseja excluir este grupo? Todos os produtos associados a ele ficarão sem grupo.") && userId) {
       const updatedGroups = groups.filter(g => g.id !== groupId);
-      // Re-index the remaining groups
       const reindexedGroups = updatedGroups.map((g, index) => ({ ...g, order_index: index }));
-      setGroups(reindexedGroups); // Atualiza a UI imediatamente
+      setGroups(reindexedGroups);
       
-      // Chama saveGroups, que fará a exclusão e atualização dos order_index
       const savedGroups = await storageService.saveGroups(supabase, userId, reindexedGroups);
       if (savedGroups) {
-        setGroups(savedGroups as Group[]); // Atualiza o estado
+        setGroups(savedGroups as Group[]);
       }
-      // Optionally, update products that were in this group
       const updatedProducts = products.map(p => p.group_id === groupId ? { ...p, group_id: '' } : p);
       setProducts(updatedProducts);
       await storageService.saveProducts(supabase, userId, updatedProducts);
@@ -423,7 +457,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     }
   };
 
-  // DND Kit - handleDragEnd function for Groups
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -431,25 +464,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
       const oldIndex = groups.findIndex((item) => item.id === active.id);
       const newIndex = groups.findIndex((item) => item.id === over?.id);
       
-      if (oldIndex === -1 || newIndex === -1) return; // Should not happen, but for safety
+      if (oldIndex === -1 || newIndex === -1) return;
 
       const newOrderedGroups = arrayMove(groups, oldIndex, newIndex);
       
-      // Update order_index for all groups in the new order
       const reindexedGroups = newOrderedGroups.map((group, index) => ({
         ...group,
         order_index: index,
       }));
 
-      setGroups(reindexedGroups); // Update UI immediately
+      setGroups(reindexedGroups);
 
-      // Save the new order to the database, awaiting the promise
       await storageService.saveGroups(supabase, userId, reindexedGroups);
     }
-    setActiveGroup(null); // Limpar o grupo ativo após o arrasto
+    setActiveGroup(null);
   };
 
-  // DND Kit - handleDragStart function for Groups
   const handleDragStart = (event: any) => {
     const group = groups.find(g => g.id === event.active.id);
     if (group) {
@@ -457,12 +487,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     }
   };
 
-  // DND Kit - handleDragCancel function for Groups
   const handleDragCancel = () => {
     setActiveGroup(null);
   };
 
-  // DND Kit - handleDragEnd function for Products
   const handleProductDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -474,33 +502,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
 
       const newOrderedFilteredProducts = arrayMove(filteredProducts, oldIndex, newIndex);
 
-      // Create a map of the new order_index for the filtered products
       const reindexedFilteredProductsMap = new Map<string, number>();
       newOrderedFilteredProducts.forEach((product, index) => {
         reindexedFilteredProductsMap.set(product.id!, index);
       });
 
-      // Update the main products state based on the reordered filtered products
       const updatedAllProducts = products
         .map(p => {
           if (reindexedFilteredProductsMap.has(p.id!)) {
-            // If this product was part of the filtered and reordered list, update its order_index
             return { ...p, order_index: reindexedFilteredProductsMap.get(p.id!)! };
           }
-          return p; // Otherwise, keep its existing order_index
+          return p;
         })
-        .sort((a, b) => a.order_index - b.order_index); // Sort the entire list by the new order_index
+        .sort((a, b) => a.order_index - b.order_index);
 
-      setProducts(updatedAllProducts); // Update UI immediately with the correctly reindexed full list
+      setProducts(updatedAllProducts);
 
-      // Now, save the entire updated list to the database.
-      // The storageService.saveProducts function already handles upserting and deleting.
-      // It will correctly update the order_index for all products.
       await storageService.saveProducts(supabase, userId, updatedAllProducts);
     }
   };
 
-  // DND Kit - handleDragEnd function for Options (nested within a product)
   const handleOptionDragEnd = async (productId: string, event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -511,21 +532,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
             const oldIndex = product.options.findIndex(option => option.id === active.id);
             const newIndex = product.options.findIndex(option => option.id === over?.id);
 
-            if (oldIndex === -1 || newIndex === -1) return product; // Safety check
+            if (oldIndex === -1 || newIndex === -1) return product;
 
             const newOrderedOptions = arrayMove(product.options, oldIndex, newIndex);
             return { ...product, options: newOrderedOptions };
           }
           return product;
         });
-        // Debounced save to DB
         debouncedSaveProducts(updatedProducts, userId);
         return updatedProducts;
       });
     }
   };
 
-  // DND Kit - handleDragEnd function for SubProducts (nested within an option)
   const handleSubProductDragEnd = async (productId: string, optionId: string, event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -540,7 +559,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                   const oldIndex = option.subProducts.findIndex(subProduct => subProduct.id === active.id);
                   const newIndex = option.subProducts.findIndex(subProduct => subProduct.id === over?.id);
 
-                  if (oldIndex === -1 || newIndex === -1) return option; // Safety check
+                  if (oldIndex === -1 || newIndex === -1) return option;
 
                   const newOrderedSubProducts = arrayMove(option.subProducts, oldIndex, newIndex);
                   return { ...option, subProducts: newOrderedSubProducts };
@@ -551,14 +570,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
           }
           return product;
         });
-        // Debounced save to DB
         debouncedSaveProducts(updatedProducts, userId);
         return updatedProducts;
       });
     }
   };
 
-  // Product Management
   const handleSaveProduct = async () => {
     if (!currentProduct.name || !currentProduct.price || !currentProduct.group_id) {
         alert("Por favor, preencha o nome, preço e selecione um grupo para o produto.");
@@ -567,37 +584,34 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     if (!userId) return;
 
     let productsToUpdateState: Product[];
-    const imageUrlToSave = localImagePreview || currentProduct.image_url || ''; // Priorize local preview
+    const imageUrlToSave = localImagePreview || currentProduct.image_url || '';
 
     if (currentProduct.id) {
-      // Edit existing product
       productsToUpdateState = products.map(p => p.id === currentProduct.id ? { ...p, ...currentProduct, image_url: imageUrlToSave } as Product : p);
     } else {
-      // Create new product - id will be undefined, Supabase will generate it
       const productToCreate: Product = {
         name: currentProduct.name,
-        description: currentProduct.description || '', // Ensure description is a string
+        description: currentProduct.description || '',
         price: currentProduct.price,
         category: currentProduct.category || Category.OTHER,
         image_url: imageUrlToSave,
         stock: currentProduct.stock || 0,
         group_id: currentProduct.group_id,
         options: currentProduct.options || [],
-        order_index: products.length, // Assign a default order_index for new products
-        id: undefined, // Explicitamente definido como undefined para que o Supabase gere o UUID
-        isFeatured: currentProduct.isFeatured || false, // NOVO: Incluir isFeatured
+        order_index: products.length,
+        id: undefined,
+        isFeatured: currentProduct.isFeatured || false,
       };
       productsToUpdateState = [...products, productToCreate];
     }
     
-    // Chama saveProducts e atualiza o estado com os dados retornados (que incluem IDs gerados pelo DB)
     const savedProducts = await storageService.saveProducts(supabase, userId, productsToUpdateState);
     if (savedProducts) {
-      setProducts(savedProducts as Product[]); // Atualiza o estado com os produtos incluindo IDs gerados pelo DB
+      setProducts(savedProducts as Product[]);
     }
     setIsAddingProduct(false);
     setCurrentProduct({});
-    setLocalImagePreview(null); // Limpa a pré-visualização local
+    setLocalImagePreview(null);
   };
 
   const handleDeleteProduct = async (id: string) => {
@@ -613,8 +627,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
       const reader = new FileReader();
       reader.onloadend = () => {
         setLocalImagePreview(reader.result as string);
-        // Note: This does not save the image to storage, only previews it.
-        // For persistence, a public URL is needed.
       };
       reader.readAsDataURL(file);
     } else {
@@ -622,19 +634,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     }
   };
 
-  // NOVO: Função para alternar o status de destaque de um produto
   const handleToggleProductFeatured = async (productId: string, isFeatured: boolean) => {
     if (!userId) return;
 
     const updatedProducts = products.map(p => 
       p.id === productId ? { ...p, isFeatured: isFeatured } : p
     );
-    setProducts(updatedProducts); // Atualiza a UI imediatamente
-    await storageService.saveProducts(supabase, userId, updatedProducts); // Salva no DB
+    setProducts(updatedProducts);
+    await storageService.saveProducts(supabase, userId, updatedProducts);
     showSuccess(`Produto ${isFeatured ? 'adicionado aos destaques' : 'removido dos destaques'}!`);
   };
 
-  // Option/SubProduct Management
   const handleOptionChange = async (productId: string, optionId: string, field: keyof Option, value: any) => {
     if (!userId) return;
     const updatedProducts = products.map(p => 
@@ -647,8 +657,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
               } 
             : p
     );
-    setProducts(updatedProducts); // Update UI immediately
-    debouncedSaveProducts(updatedProducts, userId); // Debounced save to DB
+    setProducts(updatedProducts);
+    debouncedSaveProducts(updatedProducts, userId);
   };
 
   const handleSubProductChange = async (productId: string, optionId: string, subProductId: string, field: keyof SubProduct, value: any) => {
@@ -670,17 +680,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
               } 
             : p
     );
-    setProducts(updatedProducts); // Update UI immediately
-    debouncedSaveProducts(updatedProducts, userId); // Debounced save to DB
+    setProducts(updatedProducts);
+    debouncedSaveProducts(updatedProducts, userId);
   };
 
   const handleAddOption = async (productId: string) => {
     if (!userId) return;
     const newOption: Option = {
-      id: Date.now().toString(), // IDs para opções e sub-produtos são internos ao JSONB, não UUIDs do DB
-      title: 'Escolha seus Sabores', // Default title for flavors
-      minSelection: 1, // Default to 1 selection
-      maxSelection: 1, // Default to 1 selection
+      id: Date.now().toString(),
+      title: 'Escolha seus Sabores',
+      minSelection: 1,
+      maxSelection: 1,
       allowRepeat: false,
       subProducts: [],
       isActive: true,
@@ -690,7 +700,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     );
     setProducts(updatedProducts);
     await storageService.saveProducts(supabase, userId, updatedProducts);
-    setOptionToScrollToId(newOption.id); // Define o ID da nova opção para rolagem
+    setOptionToScrollToId(newOption.id);
   };
 
   const handleAddSubProductClick = (productId: string, optionId: string) => {
@@ -702,9 +712,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     if (currentProductAndOptionForSubProduct && userId) {
         const { productId, optionId } = currentProductAndOptionForSubProduct;
         const newSubProduct: SubProduct = {
-            id: Date.now().toString(), // IDs para opções e sub-produtos são internos ao JSONB, não UUIDs do DB
+            id: Date.now().toString(),
             name: newSubProductData.name,
-            description: newSubProductData.description, // Incluir descrição
+            description: newSubProductData.description,
             price: newSubProductData.price,
             isActive: true,
         };
@@ -722,7 +732,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     }
   }, [currentProductAndOptionForSubProduct, userId, products, supabase]);
 
-  // NOVO: Função auxiliar para aplicar o toggle e salvar
   const updateProductOptionsAndSave = (
     productId: string,
     optionId: string,
@@ -745,7 +754,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                     }
                     return sp;
                   });
-                } else { // Aplicar a todos os sub-produtos e à própria opção
+                } else {
                   newOptionState.isActive = targetActiveState;
                   newOptionState.subProducts = opt.subProducts.map(sp => ({
                     ...sp,
@@ -760,7 +769,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
         }
         return p;
       });
-      // Chamar debouncedSaveProducts com o array de produtos totalmente atualizado
       if (userId) {
         debouncedSaveProducts(updatedProducts, userId);
       }
@@ -768,7 +776,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     });
   };
 
-  // Função atualizada para toggle de opção ou sub-produtos filtrados
   const handleToggleOptionOrFilteredSubProductsActive = (
     productId: string, 
     optionId: string, 
@@ -778,23 +785,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
   ) => {
     if (!userId) return;
 
-    // Determine the target active state based on context
     let targetActiveState: boolean;
     if (searchTerm) {
-      // Se estiver buscando, o toggle deve ativar se algum item filtrado estiver inativo, caso contrário, desativar.
       targetActiveState = !filteredSubProducts.every(sp => sp.isActive);
     } else {
-      // Se não há termo de busca, o toggle deve simplesmente inverter o estado ativo atual da opção.
       targetActiveState = !currentOption.isActive;
     }
 
     if (searchTerm) {
-      // Se há um termo de busca, abrir o modal de confirmação
       setPendingToggleAction({ productId, optionId, searchTerm, targetActiveState });
       setIsToggleConfirmationModalOpen(true);
     } else {
-      // Se não há termo de busca, aplicar diretamente a todos os sub-produtos e à opção
-      updateProductOptionsAndSave(productId, optionId, targetActiveState, '', false); // Sem termo de busca, aplicar a todos
+      updateProductOptionsAndSave(productId, optionId, targetActiveState, '', false);
       showSuccess(`Todos os sabores foram ${targetActiveState ? 'ativados' : 'desativados'}!`);
     }
   };
@@ -803,7 +805,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     if (!pendingToggleAction || !userId) return;
     const { productId, optionId, searchTerm, targetActiveState } = pendingToggleAction;
 
-    updateProductOptionsAndSave(productId, optionId, targetActiveState, searchTerm, false); // Aplicar a todos
+    updateProductOptionsAndSave(productId, optionId, targetActiveState, searchTerm, false);
     setIsToggleConfirmationModalOpen(false);
     setPendingToggleAction(null);
     showSuccess(`Todos os itens da opção foram ${targetActiveState ? 'ativados' : 'desativados'}!`);
@@ -813,7 +815,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     if (!pendingToggleAction || !userId) return;
     const { productId, optionId, searchTerm, targetActiveState } = pendingToggleAction;
 
-    updateProductOptionsAndSave(productId, optionId, targetActiveState, searchTerm, true); // Aplicar apenas aos filtrados
+    updateProductOptionsAndSave(productId, optionId, targetActiveState, searchTerm, true);
     setIsToggleConfirmationModalOpen(false);
     setPendingToggleAction(null);
     showSuccess(`Somente os nomes filtrados foram ${targetActiveState ? 'ativados' : 'desativados'}!`);
@@ -875,7 +877,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     if (!userId) return;
     console.log('[Dashboard] Salvando agendamento da loja:', storeSchedule);
     await storageService.saveStoreSchedule(supabase, userId, storeSchedule);
-    // Feedback agora é tratado dentro de storageService.saveStoreSchedule
   };
 
   const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -885,7 +886,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
       setLogoPreview(URL.createObjectURL(file));
       console.log('[Dashboard] Nova logo selecionada para pré-visualização local.');
     } else {
-      setLogoPreview(storeProfile.logoUrl); // Reverte para a URL existente se nenhum arquivo for selecionado
+      setLogoPreview(storeProfile.logoUrl);
       console.log('[Dashboard] Nenhuma logo selecionada, revertendo para URL existente:', storeProfile.logoUrl);
     }
   };
@@ -897,7 +898,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
       setCoverPreview(URL.createObjectURL(file));
       console.log('[Dashboard] Nova capa selecionada para pré-visualização local.');
     } else {
-      setCoverPreview(storeProfile.coverUrl); // Reverte para a URL existente se nenhum arquivo for selecionado
+      setCoverPreview(storeProfile.coverUrl);
       console.log('[Dashboard] Nenhuma capa selecionada, revertendo para URL existente:', storeProfile.coverUrl);
     }
   };
@@ -910,16 +911,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     setIsUploadingImages(true);
     try {
       await storageService.saveStoreProfile(supabase, userId, storeProfile, logoFile, coverFile);
-      // Recarrega o perfil para garantir que as URLs atualizadas sejam refletidas
-      // const updatedProfile = await storageService.getStoreProfile(supabase, userId); // Removido para evitar loop
-      // setStoreProfile(updatedProfile); // Removido para evitar loop
-      // setLogoPreview(updatedProfile.logoUrl); // Removido para evitar loop
-      // setCoverPreview(updatedProfile.coverUrl); // Removido para evitar loop
-      setLogoFile(null); // Limpa o arquivo selecionado após o upload
-      setCoverFile(null); // Limpa o arquivo selecionado após o upload
-      // console.log('[Dashboard] Perfil da loja salvo e recarregado. Logo URL:', updatedProfile.logoUrl, 'Cover URL:', updatedProfile.coverUrl); // Removido para evitar loop
+      const updatedProfile = await storageService.getStoreProfile(supabase, userId);
+      setStoreProfile(updatedProfile);
+      setLogoPreview(updatedProfile.logoUrl);
+      setCoverPreview(updatedProfile.coverUrl);
+      setLogoFile(null);
+      setCoverFile(null);
+      console.log('[Dashboard] Perfil da loja salvo e recarregado. Logo URL:', updatedProfile.logoUrl, 'Cover URL:', updatedProfile.coverUrl);
     } catch (error) {
-      // Erros já são tratados e exibidos via toast em storageService.saveStoreProfile
       console.error("Erro ao salvar perfil da loja no Dashboard:", error);
     } finally {
       setIsUploadingImages(false);
@@ -937,15 +936,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     if (!userId) return;
 
     if (isStoreTemporariamenteClosed) {
-      // Se a loja já está fechada temporariamente (seja por tempo ou indefinidamente), reabrir
       setIsStoreTemporariamenteClosed(false);
       setStoreSchedule(prev => ({ ...prev, reopenAt: null, isTemporariamenteClosedIndefinidamente: false }));
       storageService.saveStoreSchedule(supabase, userId, { ...storeSchedule, reopenAt: null, isTemporariamenteClosedIndefinidamente: false });
       showSuccess("A loja foi reaberta!");
-      setIsCloseModalOpen(false); // Fechar o modal ao reabrir
+      setIsCloseModalOpen(false);
     } else {
-      // Se a loja está aberta, mostrar opções para fechar temporariamente
-      setIsCloseModalOpen(true); // Abrir o modal
+      setIsCloseModalOpen(true);
     }
   };
 
@@ -956,10 +953,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     let isIndefinite = false;
     let successMessage = "";
 
-    if (durationMinutes === -1) { // Tempo indeterminado
+    if (durationMinutes === -1) {
       isIndefinite = true;
       successMessage = "Loja fechada por tempo indeterminado!";
-    } else { // Tempo determinado
+    } else {
       const now = new Date();
       const reopenTime = new Date(now.getTime() + durationMinutes * 60 * 1000);
       reopenAtISO = reopenTime.toISOString();
@@ -972,7 +969,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
         isTemporariamenteClosedIndefinidamente: isIndefinite 
     }));
     setIsStoreTemporariamenteClosed(true);
-    setIsCloseModalOpen(false); // Fechar o modal após a seleção
+    setIsCloseModalOpen(false);
 
     await storageService.saveStoreSchedule(supabase, userId, { 
         ...storeSchedule, 
@@ -982,7 +979,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     showSuccess(successMessage);
   };
 
-  // NOVO: Funções para o modal de cópia de opção
   const handleOpenCopyOptionModal = (productId: string, optionId: string) => {
     const product = products.find(p => p.id === productId);
     const option = product?.options.find(o => o.id === optionId);
@@ -1010,12 +1006,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
 
     const updatedProducts = products.map(p => {
       if (targetProductIds.includes(p.id!)) {
-        // Create a deep copy of the source option and assign new unique IDs
         const copiedOption: Option = JSON.parse(JSON.stringify(sourceOption));
-        copiedOption.id = Date.now().toString() + Math.random().toString(36).substring(2, 9); // New unique ID for option
+        copiedOption.id = Date.now().toString() + Math.random().toString(36).substring(2, 9);
         copiedOption.subProducts = copiedOption.subProducts.map(sp => ({
           ...sp,
-          id: Date.now().toString() + Math.random().toString(36).substring(2, 9), // New unique ID for sub-product
+          id: Date.now().toString() + Math.random().toString(36).substring(2, 9),
         }));
         return { ...p, options: [...p.options, copiedOption] };
       }
@@ -1028,36 +1023,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
     handleCloseCopyOptionModal();
   };
 
-  // NOVO: Função para abrir o modal de detalhes do pedido
   const handleOpenOrderDetails = (order: Order) => {
     setSelectedOrder(order);
     setIsOrderDetailsModalOpen(true);
   };
 
-  // NOVO: Função para fechar o modal de detalhes do pedido
   const handleCloseOrderDetails = () => {
     setSelectedOrder(null);
     setIsOrderDetailsModalOpen(false);
   };
 
-  // NOVO: Função para atualizar o status do pedido
   const handleUpdateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
     if (!userId) return;
     const updatedOrder = await storageService.updateOrderStatus(supabase, userId, orderId, newStatus);
     if (updatedOrder) {
-      setOrders(prevOrders => prevOrders.map(o => o.id === orderId ? updatedOrder : o));
-      setSelectedOrder(updatedOrder); // Atualiza o pedido no modal também
+      // O Realtime já vai atualizar o estado 'orders', então não precisamos fazer setOrders aqui.
+      // Apenas atualizamos o 'selectedOrder' se o modal estiver aberto para refletir a mudança.
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder(updatedOrder);
+      }
       showSuccess(`Status do pedido #${orderId.substring(0, 8)} atualizado para ${newStatus}!`);
     }
   };
 
-  // Função para determinar o próximo status
   const getNextStatus = (currentStatus: Order['status']): Order['status'] | null => {
     switch (currentStatus) {
       case 'pending': return 'preparing';
       case 'preparing': return 'in_transit';
       case 'in_transit': return 'delivered';
-      default: return null; // Não há próximo status para 'delivered' ou 'rejected'
+      default: return null;
     }
   };
 
@@ -1076,14 +1070,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
           ]
       },
       { 
-          id: 'orders-parent', // ID do item pai
+          id: 'orders-parent',
           label: 'Pedidos', 
           icon: ShoppingBag, 
           hasSubmenu: true,
           children: [
-              { id: 'order-manager', label: 'Gerenciador de Pedidos', icon: ShoppingBag }, // Novo item de submenu
-              { id: 'table-manager', label: 'Gerenciador de Mesas', icon: TableIcon }, // Item de submenu para Gerenciador de Mesas
-              { id: 'counter-manager', label: 'Gerenciador de Balcões', icon: Monitor }, // NOVO: Item de submenu para Gerenciador de Balcões
+              { id: 'order-manager', label: 'Gerenciador de Pedidos', icon: ShoppingBag },
+              { id: 'table-manager', label: 'Gerenciador de Mesas', icon: TableIcon },
+              { id: 'counter-manager', label: 'Gerenciador de Balcões', icon: Monitor },
           ]
       },
       { id: 'clients', label: 'Clientes', icon: Users },
@@ -1098,21 +1092,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
   const filteredProducts = products.filter(product => {
     const matchesSearchTerm = product.name.toLowerCase().includes(productSearchTerm.toLowerCase());
 
-    // If no groups exist, no products should be displayed
-    if (groups.length === 0 && selectedGroupId !== 'all') { // Only if a specific group is selected and no groups exist
+    if (groups.length === 0 && selectedGroupId !== 'all') {
         return false; 
     }
 
     if (selectedGroupId === 'all') {
-      // When 'Todos' is selected, show products that belong to *any* existing group
-      return matchesSearchTerm && (groups.some(group => group.id === product.group_id) || product.group_id === ''); // Also show products without a group
+      return matchesSearchTerm && (groups.some(group => group.id === product.group_id) || product.group_id === '');
     } else {
-      // When a specific group is selected, show products belonging to that group
       return matchesSearchTerm && product.group_id === selectedGroupId;
     }
   });
 
-  // Filtrar pedidos com base no status selecionado
   const filteredOrders = orders.filter(order => {
     if (orderStatusFilter === 'all') return true;
     return order.status === orderStatusFilter;
@@ -1120,14 +1110,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-200 font-sans">
-      {/* Sidebar - Dark Theme with 3D effect */}
       <aside 
         className={`text-gray-300 flex flex-col shadow-2xl z-20 transition-all duration-300 ${isSidebarCollapsed ? 'w-20' : 'w-64'} border-r border-gray-800`}
         style={{ background: `linear-gradient(to bottom, ${storeProfile.secondaryColor}e0, ${storeProfile.secondaryColor})` }}
       >
         <div className="p-5 border-b border-gray-700 flex items-center justify-between">
            <div className={`flex items-center gap-2 ${isSidebarCollapsed ? 'hidden' : 'flex'}`}>
-               {/* Usando o componente AppLogo aqui */}
                <AppLogo 
                    isCollapsed={isSidebarCollapsed} 
                    textColor="text-white" 
@@ -1149,20 +1137,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                         onClick={() => {
                             if (item.id === 'store') {
                                 setIsStoreSubmenuOpen(prev => !prev);
-                                setIsOrdersSubmenuOpen(false); // Fechar submenu de pedidos
+                                setIsOrdersSubmenuOpen(false);
                                 if (!isStoreSubmenuOpen) {
                                     setActiveTab('store-settings');
                                 }
-                            } else if (item.id === 'orders-parent') { // Lógica para o item 'Pedidos'
+                            } else if (item.id === 'orders-parent') {
                                 setIsOrdersSubmenuOpen(prev => !prev);
-                                setIsStoreSubmenuOpen(false); // Fechar submenu da loja
+                                setIsStoreSubmenuOpen(false);
                                 if (!isOrdersSubmenuOpen) {
-                                    setActiveTab('order-manager'); // Define a aba padrão para 'Gerenciador de Pedidos'
+                                    setActiveTab('order-manager');
                                 }
                             } else {
                                 setActiveTab(item.id as any);
-                                setIsStoreSubmenuOpen(false); // Garante que o submenu da loja esteja fechado
-                                setIsOrdersSubmenuOpen(false); // Garante que o submenu de pedidos esteja fechado
+                                setIsStoreSubmenuOpen(false);
+                                setIsOrdersSubmenuOpen(false);
                             }
                         }}
                         className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'justify-between px-6'} py-3.5 transition-all duration-200 group relative overflow-hidden
@@ -1185,7 +1173,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                             <ChevronDown className={`w-3 h-3 text-gray-500 transition-transform 
                                 ${ (item.id === 'store' && isStoreSubmenuOpen) || (item.id === 'orders-parent' && isOrdersSubmenuOpen) ? 'rotate-180' : ''}`} />
                         )}
-                        {/* 3D effect on hover */}
                         <span className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
                     </button>
 
@@ -1252,10 +1239,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         
-        {/* Top Header */}
         <header className="h-16 bg-white shadow-xl flex items-center justify-between px-8 z-10 border-b border-gray-200">
             <div className="flex items-center gap-2">
                 <div className="h-8 w-1 bg-black rounded-full shadow-md"></div>
@@ -1290,7 +1275,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                     <Store className="w-4 h-4" />
                 </a>
 
-                {/* Profile Dropdown */}
                 <div className="relative">
                     <button 
                         onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
@@ -1316,7 +1300,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                             <button 
                                 onClick={() => { 
                                     setActiveTab('profile-settings'); 
-                                    onNavigate('#/dashboard/profile-settings'); // Navegar via prop
+                                    onNavigate('#/dashboard/profile-settings');
                                     setIsProfileDropdownOpen(false); 
                                 }} 
                                 className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -1354,14 +1338,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
             </div>
         </header>
 
-        {/* Content Scrollable */}
         <main className="flex-1 overflow-y-auto p-8 bg-gradient-to-br from-gray-100 to-gray-200">
             
-            {/* OVERVIEW TAB */}
             {activeTab === 'overview' && (
                 <div className="space-y-8 animate-in fade-in duration-500">
-                    {/* REMOVIDO: Painel de boas-vindas */}
-                    {/* Stats grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                         <div className="bg-white p-6 rounded-xl shadow-xl border border-gray-100 transform hover:scale-[1.02] hover:shadow-2xl transition-all duration-200 relative overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
@@ -1389,7 +1369,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                         </div>
                     </div>
 
-                    {/* NOVO: Seção de Gráficos de Vendas */}
                     <div className="mt-8">
                         <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                             <TrendingUp className="drop-shadow-sm" style={{ color: storeProfile.primaryColor }} />
@@ -1402,16 +1381,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                         />
                     </div>
 
-                    {/* NOVO: Seção de Pedidos Recentes e Produtos Mais Vendidos */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-                        {/* Pedidos Recentes */}
                         <RecentOrders 
                             orders={orders} 
                             storePrimaryColor={storeProfile.primaryColor} 
-                            onViewAllOrders={() => setActiveTab('order-manager')} // Navega para o gerenciador de pedidos
+                            onViewAllOrders={() => setActiveTab('order-manager')}
                         />
 
-                        {/* Produtos Mais Vendidos */}
                         <div className="bg-white p-6 rounded-xl shadow-xl border border-gray-100 relative overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
                             <h3 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100">Produtos Mais Vendidos</h3>
@@ -1438,10 +1414,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                 </div>
             )}
 
-            {/* PRODUCTS TAB */}
             {activeTab === 'products' && (
                 <div className="flex gap-6 h-full">
-                    {/* Left Sidebar - Groups */}
                     <div className="w-64 bg-white rounded-2xl shadow-xl border border-gray-100 p-6 flex flex-col flex-shrink-0 relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
                         <div className="relative mb-4">
@@ -1499,9 +1473,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                             <DndContext 
                                 sensors={sensors} 
                                 collisionDetection={closestCenter} 
-                                onDragStart={handleDragStart} // Adicionado onDragStart
+                                onDragStart={handleDragStart}
                                 onDragEnd={handleDragEnd}
-                                onDragCancel={handleDragCancel} // Adicionado onDragCancel
+                                onDragCancel={handleDragCancel}
                             >
                                 <SortableContext 
                                     items={filteredGroups.map(g => g.id!)} 
@@ -1535,14 +1509,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                         </div>
                     </div>
 
-                    {/* Right Main Content - Products, Options, Sub-products */}
                     <div className="flex-1 space-y-6">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
                                 <Package className="drop-shadow-sm" style={{ color: storeProfile.primaryColor }} />
                                 Gerenciar Produtos, Grupos e Sub-produtos
                             </h2>
-                            {/* Botão NOVO PRODUTO aparece apenas se houver grupos cadastrados */}
                             {groups.length > 0 && (
                                 <button 
                                     onClick={() => { setIsAddingProduct(true); setCurrentProduct({}); }}
@@ -1715,8 +1687,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                                             onAddSubProductConfirm={handleAddSubProductConfirm}
                                             onOptionDragEnd={handleOptionDragEnd}
                                             onSubProductDragEnd={handleSubProductDragEnd}
-                                            onOpenCopyOptionModal={handleOpenCopyOptionModal} // Passar a nova função
-                                            onToggleProductFeatured={handleToggleProductFeatured} // NOVO: Passar a função
+                                            onOpenCopyOptionModal={handleOpenCopyOptionModal}
+                                            onToggleProductFeatured={handleToggleProductFeatured}
                                         />
                                     ))}
                                 </SortableContext>
@@ -1726,7 +1698,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                 </div>
             )}
 
-            {/* ORDER MANAGER TAB */}
             {activeTab === 'order-manager' && (
                 <div className="space-y-6">
                     <h2 className="2xl font-bold text-gray-800 flex items-center gap-2">
@@ -1734,7 +1705,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                          Gerenciador de Pedidos
                     </h2>
 
-                    {/* NOVO: Botões de filtro de status */}
                     <div className="flex flex-wrap gap-3 mb-6">
                         <button
                             onClick={() => setOrderStatusFilter('all')}
@@ -1792,15 +1762,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                                     <div 
                                         key={order.id} 
                                         className="bg-white p-6 rounded-xl border border-gray-100 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 transform hover:scale-[1.01] hover:shadow-2xl transition-all duration-200 relative overflow-hidden cursor-pointer"
-                                        onClick={() => handleOpenOrderDetails(order)} // Movido onClick para o div principal
+                                        onClick={() => handleOpenOrderDetails(order)}
                                     >
                                         <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
-                                        <div className="flex items-center gap-4"> {/* Removido cursor-pointer daqui */}
+                                        <div className="flex items-center gap-4">
                                             <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg 
                                                 ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-600' : 
                                                   order.status === 'preparing' ? 'bg-blue-100 text-blue-600' :
                                                   order.status === 'in_transit' ? 'bg-purple-100 text-purple-600' :
-                                                  order.status === 'rejected' ? 'bg-red-100 text-red-600' : // NOVO: Cor para 'rejected'
+                                                  order.status === 'rejected' ? 'bg-red-100 text-red-600' :
                                                   'bg-green-100 text-green-600'}`}>
                                                 {order.customerName[0]}
                                             </div>
@@ -1809,25 +1779,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                                                 <p className="text-sm text-gray-500">#{order.id?.substring(0, 8)} • {new Date(order.date).toLocaleTimeString()}</p>
                                             </div>
                                         </div>
-                                        <div className="text-right flex items-center gap-3"> {/* Ajustado gap para o botão */}
+                                        <div className="text-right flex items-center gap-3">
                                             <span className="font-bold text-lg text-gray-800">R$ {order.total.toFixed(2)}</span>
                                             <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase shadow-md 
                                                 ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 
                                                  order.status === 'preparing' ? 'bg-blue-100 text-blue-700' :
                                                  order.status === 'in_transit' ? 'bg-purple-100 text-purple-700' :
-                                                 order.status === 'rejected' ? 'bg-red-100 text-red-700' : // NOVO: Cor para 'rejected'
+                                                 order.status === 'rejected' ? 'bg-red-100 text-red-700' :
                                                  'bg-green-100 text-green-700'}`}>
                                                 {order.status === 'pending' ? 'Pendente' : 
                                                  order.status === 'preparing' ? 'Preparando' :
                                                  order.status === 'in_transit' ? 'Em Rota' :
-                                                 order.status === 'rejected' ? 'Rejeitado' : // NOVO: Texto para 'rejected'
+                                                 order.status === 'rejected' ? 'Rejeitado' :
                                                  'Entregue'}
                                             </span>
                                             {order.status === 'pending' && (
                                                 <>
                                                     <button
                                                         onClick={(e) => {
-                                                            e.stopPropagation(); // Evita que o clique no botão abra o modal de detalhes
+                                                            e.stopPropagation();
                                                             handleUpdateOrderStatus(order.id!, 'rejected');
                                                         }}
                                                         className="p-2 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 transition-colors transform active:scale-95"
@@ -1837,7 +1807,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                                                     </button>
                                                     <button
                                                         onClick={(e) => {
-                                                            e.stopPropagation(); // Evita que o clique no botão abra o modal de detalhes
+                                                            e.stopPropagation();
                                                             handleUpdateOrderStatus(order.id!, 'preparing');
                                                         }}
                                                         className="p-2 bg-green-500 text-white rounded-full shadow-md hover:bg-green-600 transition-colors transform active:scale-95"
@@ -1847,7 +1817,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                                                     </button>
                                                 </>
                                             )}
-                                            {nextStatus && order.status !== 'pending' && ( // Botão de avançar status, não visível para 'pending'
+                                            {nextStatus && order.status !== 'pending' && (
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -1868,17 +1838,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                 </div>
             )}
 
-            {/* TABLE MANAGER TAB */}
             {activeTab === 'table-manager' && (
                 <TableManagerPage storeProfile={storeProfile} />
             )}
 
-            {/* COUNTER MANAGER TAB */}
             {activeTab === 'counter-manager' && (
                 <CounterManagerPage storeProfile={storeProfile} />
             )}
             
-            {/* STORE SETTINGS TAB */}
             {activeTab === 'store-settings' && (
                 <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-2xl border border-gray-100 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
@@ -1926,7 +1893,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                           </div>
                       </div>
                       
-                      {/* Upload de Logo */}
                       <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">Logo da Loja</label>
                           <div className="mt-1 flex items-center space-x-4">
@@ -1953,7 +1919,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                           <p className="text-xs text-gray-500 mt-2">Faça upload da imagem do logo da sua loja. Será exibido na vitrine e no painel.</p>
                       </div>
 
-                      {/* Upload de Capa (Banner) */}
                       <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">Capa da Loja (Banner)</label>
                           <div className="mt-1 flex items-center space-x-4">
@@ -1968,7 +1933,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                                       <UploadCloud className="w-8 h-8 text-gray-400" />
                                   )}
                               </div>
-                              <div className="flex-1 space-y-2 hidden"> {/* Hidden as it's a full-width preview */}</div>
+                              <div className="flex-1 space-y-2 hidden"></div>
                           </div>
                           <input 
                               type="file" 
@@ -2018,14 +1983,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                 </div>
             )}
 
-            {/* SCHEDULE TAB */}
             {activeTab === 'schedule' && (
                 <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-2xl border border-gray-100 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
                     <h2 className="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b border-gray-100">Horário de Funcionamento</h2>
                     <p className="text-gray-600 mb-6">Defina os horários de abertura e fechamento da sua loja para cada dia da semana.</p>
                     
-                    {/* Sempre Aberto Option */}
                     <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-3 shadow-inner">
                         <input 
                             type="checkbox" 
@@ -2090,12 +2053,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                 </div>
             )}
 
-            {/* PROFILE SETTINGS TAB */}
             {activeTab === 'profile-settings' && (
                 <ProfileSettingsPage onProfileUpdate={handleProfileUpdate} />
             )}
 
-            {/* REPORTS TAB - Conteúdo de exemplo */}
             {activeTab === 'reports' && (
                 <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-2xl border border-gray-100 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
@@ -2107,7 +2068,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                 </div>
             )}
 
-            {/* CLIENTS TAB - Conteúdo de exemplo */}
             {activeTab === 'clients' && (
                 <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-2xl border border-gray-100 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
@@ -2119,7 +2079,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
                 </div>
             )}
 
-            {/* STAFF TAB - Conteúdo de exemplo */}
             {activeTab === 'staff' && (
                 <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-2xl border border-gray-100 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
@@ -2133,7 +2092,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
         </main>
       </div>
 
-      {/* Modal para Fechar Loja Temporariamente */}
       <Modal
         open={isCloseModalOpen}
         onClose={() => setIsCloseModalOpen(false)}
@@ -2177,7 +2135,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
         </div>
       </Modal>
 
-      {/* Novo Modal para Confirmação de Ativação/Desativação de Sabores */}
       <Modal
         open={isToggleConfirmationModalOpen}
         onClose={() => {
@@ -2210,7 +2167,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
         </div>
       </Modal>
 
-      {/* Modal para Adicionar Sub-produto */}
       {currentProductAndOptionForSubProduct && (
         <AddSubProductModal
           isOpen={isAddSubProductModalOpen}
@@ -2220,13 +2176,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
         />
       )}
 
-      {/* NOVO: Modal para Copiar Opção */}
       {optionToCopy && (
         <CopyOptionModal
           isOpen={isCopyOptionModalOpen}
           onClose={handleCloseCopyOptionModal}
           onCopy={handleCopyOption}
-          // Filtrando produtos sem ID
           allProducts={products.filter(p => p.id !== undefined)} 
           sourceProductId={optionToCopy.productId}
           sourceOptionId={optionToCopy.optionId}
@@ -2235,14 +2189,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate, refr
         />
       )}
 
-      {/* NOVO: Modal de Detalhes do Pedido */}
       {selectedOrder && (
         <OrderDetailsModal
           isOpen={isOrderDetailsModalOpen}
           onClose={handleCloseOrderDetails}
           order={selectedOrder}
           storePrimaryColor={storeProfile.primaryColor}
-          allProducts={products} // Passa todos os produtos para o modal resolver os detalhes
+          allProducts={products}
           onUpdateOrderStatus={handleUpdateOrderStatus}
         />
       )}
