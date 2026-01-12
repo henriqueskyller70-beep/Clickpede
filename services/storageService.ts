@@ -577,6 +577,29 @@ export const storageService = {
     }
   },
 
+  // NOVO: Função para deletar todos os pedidos de um usuário
+  deleteAllOrders: async (supabase: SupabaseClient, userId: string): Promise<boolean> => {
+    const toastId = showLoading("Limpando histórico de pedidos...");
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .delete()
+        .eq('user_id', userId);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+      showSuccess("Histórico de pedidos limpo com sucesso!");
+      return true;
+    } catch (err: any) {
+      console.error("[StorageService] Erro ao deletar todos os pedidos:", err);
+      showError(err.message || "Erro desconhecido ao limpar histórico de pedidos.");
+      return false;
+    } finally {
+      dismissToast(toastId);
+    }
+  },
+
   // --- Horário de Funcionamento da Loja ---
   getStoreSchedule: async (supabase: SupabaseClient, userId: string): Promise<StoreSchedule> => {
     const { data, error } = await supabase.from('store_schedules').select('*').eq('user_id', userId).single();
