@@ -1814,22 +1814,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation(); // Evita que o clique no botão abra o modal de detalhes
-                                                        handleUpdateOrderStatus(order.id!, 'preparing');
-                                                    }}
-                                                    className="p-2 bg-green-500 text-white rounded-full shadow-md hover:bg-green-600 transition-colors transform active:scale-95"
-                                                    title="Aceitar Pedido"
-                                                >
-                                                    <CheckCircle className="w-5 h-5" />
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation(); // Evita que o clique no botão abra o modal de detalhes
                                                         handleUpdateOrderStatus(order.id!, 'rejected');
                                                     }}
                                                     className="p-2 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 transition-colors transform active:scale-95"
                                                     title="Recusar Pedido"
                                                 >
                                                     <X className="w-5 h-5" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // Evita que o clique no botão abra o modal de detalhes
+                                                        handleUpdateOrderStatus(order.id!, 'preparing');
+                                                    }}
+                                                    className="p-2 bg-green-500 text-white rounded-full shadow-md hover:bg-green-600 transition-colors transform active:scale-95"
+                                                    title="Aceitar Pedido"
+                                                >
+                                                    <CheckCircle className="w-5 h-5" />
                                                 </button>
                                             </>
                                         )}
