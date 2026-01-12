@@ -18,6 +18,7 @@ import { RecentOrders } from '../src/components/RecentOrders'; // NOVO: Importar
 import { AppLogo } from '../src/components/AppLogo'; // Importar o novo componente AppLogo
 import { TableManagerPage } from '../src/components/TableManagerPage'; // NOVO: Importar TableManagerPage
 import { CounterManagerPage } from '../src/components/CounterManagerPage'; // NOVO: Importar CounterManagerPage
+import { OrderDetailsModal } from '../src/components/OrderDetailsModal'; // NOVO: Importar OrderDetailsModal
 
 // DND Kit Imports
 import {
@@ -122,6 +123,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const [topSellingProducts, setTopSellingProducts] = useState<
     { name: string; totalQuantity: number; totalRevenue: number }[]
   >([]);
+
+  // NOVO: Estados para o modal de detalhes do pedido
+  const [isOrderDetailsModalOpen, setIsOrderDetailsModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
 
   // DND Kit Sensors
@@ -1019,6 +1024,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     handleCloseCopyOptionModal();
   };
 
+  // NOVO: Função para abrir o modal de detalhes do pedido
+  const handleOpenOrderDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setIsOrderDetailsModalOpen(true);
+  };
+
+  // NOVO: Função para fechar o modal de detalhes do pedido
+  const handleCloseOrderDetails = () => {
+    setSelectedOrder(null);
+    setIsOrderDetailsModalOpen(false);
+  };
+
+  // NOVO: Função para atualizar o status do pedido
+  const handleUpdateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
+    if (!userId) return;
+    const updatedOrder = await storageService.updateOrderStatus(supabase, userId, orderId, newStatus);
+    if (updatedOrder) {
+      setOrders(prevOrders => prevOrders.map(o => o.id === orderId ? updatedOrder : o));
+      setSelectedOrder(updatedOrder); // Atualiza o pedido no modal também
+      showSuccess(`Status do pedido #${orderId.substring(0, 8)} atualizado para ${newStatus}!`);
+    }
+  };
+
 
   const menuItems = [
       { id: 'overview', label: 'Início', icon: LayoutDashboard },
@@ -1692,7 +1720,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                             </div>
                         ) : (
                             orders.map(order => (
-                                <div key={order.id} className="bg-white p-6 rounded-xl border border-gray-100 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 transform hover:scale-[1.01] hover:shadow-2xl transition-all duration-200 relative overflow-hidden">
+                                <div 
+                                    key={order.id} 
+                                    className="bg-white p-6 rounded-xl border border-gray-100 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 transform hover:scale-[1.01] hover:shadow-2xl transition-all duration-200 relative overflow-hidden cursor-pointer"
+                                    onClick={() => handleOpenOrderDetails(order)} // Torna o pedido clicável
+                                >
                                     <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
                                     <div className="flex items-center gap-4">
                                         <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'}`}>
@@ -2080,6 +2112,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
           sourceOptionId={optionToCopy.optionId}
           sourceOptionTitle={optionToCopy.optionTitle}
           storeProfile={storeProfile}
+        />
+      )}
+
+      {/* NOVO: Modal de Detalhes do Pedido */}
+      {selectedOrder && (
+        <OrderDetailsModal
+          isOpen={isOrderDetailsModalOpen}
+          onClose={handleCloseOrderDetails}
+          order={selectedOrder}
+          storePrimaryColor={storeProfile.primaryColor}
+          allProducts={products} // Passa todos os produtos para o modal resolver os detalhes
+          onUpdateOrderStatus={handleUpdateOrderStatus}
         />
       )}
     </div>

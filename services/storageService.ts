@@ -546,6 +546,37 @@ export const storageService = {
     }
   },
 
+  // NOVO: Função para atualizar o status de um pedido
+  updateOrderStatus: async (supabase: SupabaseClient, userId: string, orderId: string, newStatus: Order['status']): Promise<Order | null> => {
+    const toastId = showLoading(`Atualizando status do pedido #${orderId.substring(0, 8)}...`);
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId)
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+      showSuccess("Status do pedido atualizado com sucesso!");
+      return { 
+        ...data, 
+        customerName: data.customer_name, // Mapear customer_name do DB para customerName na interface
+        items: (data.items as any[] || []), 
+        date: data.order_date 
+      } as Order;
+    } catch (err: any) {
+      console.error("[StorageService] Erro ao atualizar status do pedido:", err);
+      showError(err.message || "Erro desconhecido ao atualizar status do pedido.");
+      return null;
+    } finally {
+      dismissToast(toastId);
+    }
+  },
+
   // --- Horário de Funcionamento da Loja ---
   getStoreSchedule: async (supabase: SupabaseClient, userId: string): Promise<StoreSchedule> => {
     const { data, error } = await supabase.from('store_schedules').select('*').eq('user_id', userId).single();
