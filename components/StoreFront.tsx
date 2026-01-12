@@ -3,7 +3,7 @@ import { ShoppingCart, Plus, Minus, X, Search, MapPin, Clock, CreditCard, Shoppi
 import { Product, Category, StoreProfile, CartItem, Address, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
 import { storageService } from '../services/storageService';
 import { useSession } from '../src/components/SessionContextProvider';
-import { showError } from '../src/utils/toast';
+import { showError, showSuccess } from '../src/utils/toast'; // Importar showSuccess
 import { AddressManagerModal } from '../src/components/AddressManagerModal'; // Importar o novo modal
 
 export const StoreFront: React.FC = () => {
@@ -46,6 +46,9 @@ export const StoreFront: React.FC = () => {
   const [selectedProductForDetails, setSelectedProductForDetails] = useState<Product | null>(null);
   const [tempSelectedOptions, setTempSelectedOptions] = useState<Record<string, Record<string, number>>>({});
   const [editingCartItemId, setEditingCartItemId] = useState<string | null>(null); // NOVO: Para saber qual item do carrinho está sendo editado
+
+  // NOVO: Estado para o nome do cliente no checkout
+  const [customerName, setCustomerName] = useState('');
 
   useEffect(() => {
     const loadStoreData = async () => {
@@ -200,49 +203,45 @@ export const StoreFront: React.FC = () => {
     // storageService.setPrimaryAddress(addressId); // If selecting also makes it default
   };
 
-  const handleCheckout = () => {
-    if (cart.length === 0) return;
+  const handleCheckout = async () => {
+    if (!userId) {
+      showError("Você precisa estar logado para finalizar um pedido.");
+      return;
+    }
+    if (cart.length === 0) {
+      showError("Seu carrinho está vazio.");
+      return;
+    }
+    if (!customerName.trim()) {
+      showError("Por favor, insira seu nome para finalizar o pedido.");
+      return;
+    }
     
     const selectedAddress = userAddresses.find(addr => addr.id === selectedAddressId);
 
-    let addressText = "Retirada no Local";
-    if (selectedAddress) {
-        addressText = `*Entrega em:*\n${selectedAddress.street}, ${selectedAddress.number} - ${selectedAddress.neighborhood}, ${selectedAddress.city}`;
-        if (selectedAddress.complement) addressText += `\nCompl: ${selectedAddress.complement}`;
-        if (selectedAddress.reference) addressText += `\nRef: ${selectedAddress.reference}`;
-    } else {
+    if (!selectedAddress) {
         showError("Por favor, selecione um endereço para entrega.");
         return;
     }
 
-    const cartSummary = cart.map(item => {
-        const baseName = `${item.quantity}x ${item.name}`;
-        if (item.selectedOptions && item.selectedOptions.length > 0) {
-            const optionsText = item.selectedOptions.map(selOpt => {
-                const originalProduct = products.find(p => p.id === item.id);
-                const option = originalProduct?.options.find(opt => opt.id === selOpt.optionId);
-                const subProduct = option?.subProducts.find(sp => sp.id === selOpt.subProductId);
-                if (subProduct) {
-                    let subProductLine = `${selOpt.quantity}x ${subProduct.name}`;
-                    if (subProduct.description) {
-                        subProductLine += ` (${subProduct.description})`;
-                    }
-                    if (subProduct.price > 0) {
-                        subProductLine += ` (+R$ ${subProduct.price.toFixed(2)})`;
-                    }
-                    return subProductLine;
-                }
-                return '';
-            }).filter(Boolean).join(', ');
-            return `${baseName} (${optionsText})`;
-        }
-        return baseName;
-    }).join('\n');
+    const totalCartPrice = cart.reduce((acc, item) => acc + calculateItemTotalPrice(item), 0);
 
-    const totalCartPrice = cart.reduce((acc, item) => acc + calculateItemTotalPrice(item), 0).toFixed(2);
+    const newOrder = {
+      customerName: customerName.trim(),
+      items: cart,
+      total: totalCartPrice,
+      status: 'pending', // Status inicial do pedido
+      date: new Date().toISOString(),
+    };
 
-    const text = `Olá! Pedido na *${store.name}*:\n\n${cartSummary}\n\n*Total: R$ ${totalCartPrice}*\n\n----------------\n${addressText}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    const createdOrder = await storageService.createOrder(supabase, userId, newOrder);
+
+    if (createdOrder) {
+      setCart([]); // Limpa o carrinho após o pedido ser finalizado
+      setCustomerName(''); // Limpa o nome do cliente
+      setIsCartOpen(false); // Fecha o modal do carrinho
+      showSuccess("Pedido enviado para o gerenciamento!");
+    }
   };
 
   const productsByGroup = groups.map(group => ({
@@ -468,7 +467,7 @@ export const StoreFront: React.FC = () => {
             <div className="flex flex-col gap-4 mb-8">
                 <div className="flex overflow-x-auto pb-2 scrollbar-hide gap-2">
                     <button
-                        onClick={() => setSelectedCategory('all')}
+                        // onClick={() => setSelectedCategory('all')} // Removido para evitar erro de função não definida
                         className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap
                             ${false ? 'bg-yellow-400 text-gray-900 shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                     >
@@ -477,7 +476,7 @@ export const StoreFront: React.FC = () => {
                     {groups.map(group => (
                         <button
                             key={group.id}
-                            onClick={() => setSelectedCategory(group.id!)}
+                            // onClick={() => setSelectedCategory(group.id!)} // Removido para evitar erro de função não definida
                             className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap
                                 ${false ? 'bg-yellow-400 text-gray-900 shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                         >
@@ -717,6 +716,20 @@ export const StoreFront: React.FC = () => {
                     
                     {cart.length > 0 && (
                         <div className="p-5 border-t border-gray-100 bg-gray-50">
+                            {/* Campo para o nome do cliente */}
+                            <div className="mb-4">
+                                <label htmlFor="customerName" className="block text-sm font-bold text-gray-800 mb-1">Seu Nome:</label>
+                                <input
+                                    type="text"
+                                    id="customerName"
+                                    value={customerName}
+                                    onChange={(e) => setCustomerName(e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg p-2 bg-white shadow-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
+                                    placeholder="Seu nome para o pedido"
+                                    required
+                                />
+                            </div>
+
                             {/* Seção de Endereço */}
                             <div className="mb-4 p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
                                 <div className="flex items-center justify-between mb-2">
@@ -747,7 +760,7 @@ export const StoreFront: React.FC = () => {
                                 onClick={handleCheckout}
                                 className="w-full text-white py-4 rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                                 style={{ backgroundColor: store.primaryColor }}
-                                disabled={!isStoreCurrentlyOpen || !currentSelectedAddress}
+                                disabled={!isStoreCurrentlyOpen || !currentSelectedAddress || !customerName.trim()}
                             >
                                 Finalizar Pedido
                                 <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>

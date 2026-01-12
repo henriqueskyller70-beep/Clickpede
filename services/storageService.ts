@@ -1,4 +1,4 @@
-import { Product, Category, StoreProfile, Order, Address, StoreSchedule, Group, Option, SubProduct, Table, TableStatus, Counter, CounterStatus } from '../types';
+import { Product, Category, StoreProfile, Order, Address, StoreSchedule, DailySchedule, Group, Option, SubProduct, Table, TableStatus, Counter, CounterStatus } from '../types';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { showSuccess, showError, showLoading, dismissToast } from '../src/utils/toast'; // Importar utilitários de toast
 
@@ -511,6 +511,30 @@ export const storageService = {
         console.error('Erro ao inserir pedidos:', insertError);
         showError(`Erro ao inserir pedidos: ${insertError.message}`);
       }
+    }
+  },
+
+  // NOVO: Função para criar um único pedido
+  createOrder: async (supabase: SupabaseClient, userId: string, order: Omit<Order, 'id'>): Promise<Order | null> => {
+    const toastId = showLoading("Finalizando pedido...");
+    try {
+      const { data, error } = await supabase.from('orders').insert({
+        ...order,
+        user_id: userId,
+        order_date: order.date, // Mapear 'date' para 'order_date' no DB
+      }).select().single(); // Retorna o pedido inserido
+
+      if (error) {
+        throw new Error(error.message);
+      }
+      showSuccess("Pedido finalizado com sucesso!");
+      return data as Order;
+    } catch (err: any) {
+      console.error("[StorageService] Erro ao criar pedido:", err);
+      showError(err.message || "Erro desconhecido ao finalizar pedido.");
+      return null;
+    } finally {
+      dismissToast(toastId);
     }
   },
 
