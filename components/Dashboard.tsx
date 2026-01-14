@@ -309,10 +309,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         },
         (payload) => {
           console.log('[Realtime] Mudança no pedido recebida:', payload);
+          
+          // Para INSERT e UPDATE, usamos payload.new
+          // Para DELETE, payload.new é null, então precisamos usar payload.old para obter o ID
+          const orderData = payload.eventType === 'DELETE' ? payload.old : payload.new;
+
+          if (!orderData) {
+            console.warn('[Realtime] Dados do pedido ausentes no payload:', payload);
+            return;
+          }
+
           const changedOrder = {
-            ...payload.new,
-            customerName: payload.new?.customer_name,
-            date: payload.new?.order_date,
+            ...orderData,
+            customerName: orderData?.customer_name,
+            date: orderData?.order_date,
           } as Order;
 
           setOrders(prevOrders => {
