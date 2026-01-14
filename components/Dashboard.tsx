@@ -1171,9 +1171,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                             } else if (item.id === 'orders-parent') {
                                 setIsOrdersSubmenuOpen(prev => !prev);
                                 setIsStoreSubmenuOpen(false);
-                                if (!isOrdersSubmenuOpen) {
-                                    setActiveTab('order-manager');
-                                }
+                                // REMOVIDO: Não definir activeTab automaticamente ao abrir o submenu de Pedidos
+                                // if (!isOrdersSubmenuOpen) {
+                                //     setActiveTab('order-manager');
+                                // }
                             } else {
                                 setActiveTab(item.id as any);
                                 setIsStoreSubmenuOpen(false);
