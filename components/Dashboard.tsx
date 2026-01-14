@@ -250,6 +250,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         const userProf = await storageService.getProfile(supabase, userId);
         setUserProfile(userProf);
 
+        // Initial load of sales data
         setWeeklySalesData(generateWeeklySalesData());
         setMonthlySalesData(generateMonthlySalesData());
         setTopSellingProducts(getTopSellingProducts(fetchedOrders, fetchedProducts));
@@ -340,17 +341,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
             }
             return prevOrders;
           });
-
-          // Atualizar dados de vendas e produtos mais vendidos após qualquer mudança nos pedidos
-          // É importante que esta parte seja reavaliada para evitar dependência circular ou re-renderizações excessivas.
-          // Por enquanto, vamos manter, mas pode ser otimizado.
-          setWeeklySalesData(generateWeeklySalesData());
-          setMonthlySalesData(generateMonthlySalesData());
-          // Re-fetch products to ensure latest data for top selling calculation
-          // Isso pode ser custoso. Idealmente, o Realtime também atualizaria os produtos se eles mudassem.
-          storageService.getProducts(supabase, userId).then(latestProducts => {
-            setTopSellingProducts(getTopSellingProducts(orders, latestProducts));
-          });
         }
       )
       .subscribe();
@@ -360,6 +350,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       supabase.removeChannel(ordersChannel);
     };
   }, [userId, supabase]); // Removido 'orders' das dependências para evitar re-subscrição
+
+  // NOVO: useEffect para recalcular dados de vendas e produtos mais vendidos quando 'orders' ou 'products' mudarem
+  useEffect(() => {
+    if (orders.length > 0 || products.length > 0) {
+      setWeeklySalesData(generateWeeklySalesData());
+      setMonthlySalesData(generateMonthlySalesData());
+      setTopSellingProducts(getTopSellingProducts(orders, products));
+    } else {
+      setWeeklySalesData([]);
+      setMonthlySalesData([]);
+      setTopSellingProducts([]);
+    }
+  }, [orders, products]);
+
 
   useEffect(() => {
     let timer: NodeJS.Timeout | undefined;
@@ -1171,10 +1175,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                             } else if (item.id === 'orders-parent') {
                                 setIsOrdersSubmenuOpen(prev => !prev);
                                 setIsStoreSubmenuOpen(false);
-                                // REMOVIDO: Não definir activeTab automaticamente ao abrir o submenu de Pedidos
-                                // if (!isOrdersSubmenuOpen) {
-                                //     setActiveTab('order-manager');
-                                // }
+                                // A navegação para os itens do submenu agora é feita apenas ao clicar nos itens filhos
                             } else {
                                 setActiveTab(item.id as any);
                                 setIsStoreSubmenuOpen(false);
