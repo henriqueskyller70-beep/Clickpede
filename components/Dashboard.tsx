@@ -19,6 +19,7 @@ import { AppLogo } from '../src/components/AppLogo';
 import { TableManagerPage } from '../src/components/TableManagerPage';
 import { CounterManagerPage } from '../src/components/CounterManagerPage';
 import { OrderDetailsModal } from '../src/components/OrderDetailsModal';
+import { AdminPasswordConfirmModal } from '../src/components/AdminPasswordConfirmModal'; // Importar o novo modal
 
 // DND Kit Imports
 import {
@@ -120,6 +121,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const [orderStatusFilter, setOrderStatusFilter] = useState<'all' | 'pending' | 'preparing' | 'in_transit' | 'delivered' | 'rejected' | 'trashed'>('all'); // NOVO: Adicionado 'trashed'
+
+  // NOVO: Estados para o modal de confirmação de senha
+  const [isAdminPasswordConfirmModalOpen, setIsAdminPasswordConfirmModalOpen] = useState(false);
+  const [orderToDeletePermanently, setOrderToDeletePermanently] = useState<string | null>(null);
 
 
   // DND Kit Sensors
@@ -1126,19 +1131,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     }
   };
 
-  // NOVO: Função para excluir permanentemente um pedido da lixeira
-  const handlePermanentlyDeleteOrder = async (orderId: string) => {
-    if (!userId) return;
-    if (window.confirm(`Tem certeza que deseja EXCLUIR PERMANENTEMENTE o pedido #${orderId.substring(0, 8)}? Esta ação é irreversível.`)) {
-      const success = await storageService.permanentlyDeleteOrder(supabase, userId, orderId);
-      if (success) {
-        // O Realtime já vai atualizar o estado 'orders', então não precisamos fazer setOrders aqui.
-        // O toast de sucesso é disparado pelo listener do Realtime
-        if (selectedOrder?.id === orderId) {
-          handleCloseOrderDetails();
-        }
+  // NOVO: Função para abrir o modal de confirmação de senha antes de excluir permanentemente
+  const handleConfirmPermanentDeleteOrder = (orderId: string) => {
+    setOrderToDeletePermanently(orderId);
+    setIsAdminPasswordConfirmModalOpen(true);
+  };
+
+  // NOVO: Função para excluir permanentemente um pedido da lixeira APÓS a confirmação da senha
+  const handlePermanentlyDeleteOrderWithPassword = async (password: string) => {
+    if (!userId || !orderToDeletePermanently) return;
+
+    // ATENÇÃO: Esta é uma validação SIMULADA.
+    // Em um ambiente de produção, 'password' DEVE ser enviado a um backend seguro
+    // para verificação contra a senha real do usuário.
+    if (password.trim() === "") { // Simplesmente verifica se a senha não está vazia
+        showError("Senha inválida. Tente novamente.");
+        return;
+    }
+
+    // Se a validação simulada passar, procede com a exclusão
+    const success = await storageService.permanentlyDeleteOrder(supabase, userId, orderToDeletePermanently);
+    if (success) {
+      // O Realtime já vai atualizar o estado 'orders', então não precisamos fazer setOrders aqui.
+      // O toast de sucesso é disparado pelo listener do Realtime
+      if (selectedOrder?.id === orderToDeletePermanently) {
+        handleCloseOrderDetails();
       }
     }
+    setOrderToDeletePermanently(null);
+    setIsAdminPasswordConfirmModalOpen(false);
   };
 
   const getNextStatus = (currentStatus: Order['status']): Order['status'] | null => {
@@ -1947,7 +1968,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handlePermanentlyDeleteOrder(order.id); // Exclui permanentemente
+                                                        handleConfirmPermanentDeleteOrder(order.id); // Abre o modal de confirmação de senha
                                                     }}
                                                     className="p-2 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 transition-colors transform active:scale-95"
                                                     title="Excluir Permanentemente"
@@ -2323,6 +2344,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
           storePrimaryColor={storeProfile.primaryColor}
           allProducts={products}
           onUpdateOrderStatus={handleUpdateOrderStatus}
+        />
+      )}
+
+      {isAdminPasswordConfirmModalOpen && (
+        <AdminPasswordConfirmModal
+          isOpen={isAdminPasswordConfirmModalOpen}
+          onClose={() => {
+            setIsAdminPasswordConfirmModalOpen(false);
+            setOrderToDeletePermanently(null);
+          }}
+          onConfirm={handlePermanentlyDeleteOrderWithPassword}
+          title="Confirmar Exclusão Permanente"
+          description={`Você está prestes a excluir permanentemente o pedido #${orderToDeletePermanently?.substring(0, 8)}. Esta ação é irreversível.`}
         />
       )}
     </div>
