@@ -577,6 +577,30 @@ export const storageService = {
     }
   },
 
+  // NOVO: Função para excluir um pedido
+  deleteOrder: async (supabase: SupabaseClient, userId: string, orderId: string): Promise<boolean> => {
+    const toastId = showLoading(`Excluindo pedido #${orderId.substring(0, 8)}...`);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .delete()
+        .eq('id', orderId)
+        .eq('user_id', userId);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+      showSuccess("Pedido excluído com sucesso!");
+      return true;
+    } catch (err: any) {
+      console.error("[StorageService] Erro ao excluir pedido:", err);
+      showError(err.message || "Erro desconhecido ao excluir pedido.");
+      return false;
+    } finally {
+      dismissToast(toastId);
+    }
+  },
+
   // NOVO: Função para limpar todo o histórico de pedidos
   clearAllOrders: async (supabase: SupabaseClient, userId: string): Promise<boolean> => {
     const toastId = showLoading("Limpando histórico de pedidos...");

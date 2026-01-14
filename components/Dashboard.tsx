@@ -7,7 +7,7 @@ import {
 import { Product, Category, StoreProfile, Order, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
 import { storageService } from '../services/storageService';
 import { useSession } from '../src/components/SessionContextProvider';
-import { showSuccess, showError } from '../src/utils/toast';
+import { showSuccess, showError, showLoading, dismissToast } from '../src/utils/toast';
 import { ProfileSettingsPage } from '../src/components/ProfileSettingsPage';
 import { debounce } from '../src/utils/debounce';
 import { Modal } from '../src/components/ui/Modal';
@@ -1059,6 +1059,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     }
   };
 
+  const handleDeleteOrder = async (orderId: string) => {
+    if (!userId) return;
+    if (window.confirm(`Tem certeza que deseja excluir o pedido #${orderId.substring(0, 8)}? Esta ação é irreversível.`)) {
+      const success = await storageService.deleteOrder(supabase, userId, orderId);
+      if (success) {
+        // O Realtime já vai atualizar o estado 'orders', então não precisamos fazer setOrders aqui.
+        // Se o pedido excluído era o que estava no modal de detalhes, feche o modal.
+        if (selectedOrder?.id === orderId) {
+          handleCloseOrderDetails();
+        }
+      }
+    }
+  };
+
   const getNextStatus = (currentStatus: Order['status']): Order['status'] | null => {
     switch (currentStatus) {
       case 'pending': return 'preparing';
@@ -1774,11 +1788,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                 return (
                                     <div 
                                         key={order.id} 
-                                        className="bg-white p-6 rounded-xl border border-gray-100 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 transform hover:scale-[1.01] hover:shadow-2xl transition-all duration-200 relative overflow-hidden cursor-pointer"
-                                        onClick={() => handleOpenOrderDetails(order)}
+                                        className="bg-white p-6 rounded-xl border border-gray-100 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 transform hover:scale-[1.01] hover:shadow-2xl transition-all duration-200 relative overflow-hidden"
                                     >
                                         <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
-                                        <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-4 cursor-pointer" onClick={() => handleOpenOrderDetails(order)}>
                                             <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg 
                                                 ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-600' : 
                                                   order.status === 'preparing' ? 'bg-blue-100 text-blue-600' :
@@ -1842,6 +1855,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                                     <ArrowRight className="w-5 h-5" />
                                                 </button>
                                             )}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteOrder(order.id!);
+                                                }}
+                                                className="p-2 bg-gray-300 text-gray-700 rounded-full shadow-md hover:bg-gray-400 transition-colors transform active:scale-95"
+                                                title="Excluir Pedido"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
                                         </div>
                                     </div>
                                 );
