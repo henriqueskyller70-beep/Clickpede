@@ -295,7 +295,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       return;
     }
 
-    console.log('[Realtime] Configurando Realtime para pedidos...');
+    console.log('[Realtime] Configurando Realtime para pedidos com userId:', userId, 'Supabase client:', supabase);
 
     const ordersChannel = supabase
       .channel('orders_changes')
