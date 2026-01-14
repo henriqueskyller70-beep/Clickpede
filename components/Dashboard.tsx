@@ -319,11 +319,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
             return;
           }
 
-          const changedOrder = {
-            ...orderData,
-            customerName: orderData?.customer_name,
-            date: orderData?.order_date,
-          } as Order;
+          let changedOrder: Order;
+          if (payload.eventType === 'DELETE') {
+            // For DELETE, we primarily need the ID from payload.old
+            // We construct a minimal changedOrder for logging and filtering
+            changedOrder = {
+              id: payload.old.id as string, // Explicitly cast to string
+              customerName: payload.old.customer_name || '', 
+              date: payload.old.order_date || new Date().toISOString(),
+              items: payload.old.items || [],
+              total: payload.old.total || 0,
+              status: payload.old.status || 'rejected', 
+            } as Order;
+          } else {
+            changedOrder = {
+              ...orderData,
+              customerName: orderData?.customer_name,
+              date: orderData?.order_date,
+            } as Order;
+          }
 
           setOrders(prevOrders => {
             if (payload.eventType === 'INSERT') {
@@ -344,10 +358,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                 order.id === changedOrder.id ? changedOrder : order
               );
             } else if (payload.eventType === 'DELETE') {
-              console.log('[Realtime] Evento DELETE. Pedido ID:', changedOrder.id);
-              // Remover pedido
-              showSuccess(`Pedido #${changedOrder.id?.substring(0, 8)} foi removido.`);
-              return prevOrders.filter(order => order.id !== changedOrder.id);
+              console.log('[Realtime] Evento DELETE recebido.');
+              console.log('[Realtime] Payload.old:', payload.old);
+              const deletedOrderId = payload.old.id as string; // Get the ID of the deleted item
+              console.log('[Realtime] ID do pedido a ser removido:', deletedOrderId);
+              console.log('[Realtime] Pedidos atuais no estado (IDs):', prevOrders.map(o => o.id));
+
+              const filteredOrders = prevOrders.filter(order => order.id !== deletedOrderId);
+              
+              console.log('[Realtime] Pedidos após filtro (IDs):', filteredOrders.map(o => o.id));
+              showSuccess(`Pedido #${deletedOrderId?.substring(0, 8)} foi removido.`);
+              
+              // If the deleted order was the selected one in the details modal, close it
+              if (selectedOrder?.id === deletedOrderId) {
+                setSelectedOrder(null);
+                setIsOrderDetailsModalOpen(false);
+              }
+
+              return filteredOrders;
             }
             return prevOrders;
           });
@@ -359,7 +387,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       console.log('[Realtime] Desinscrevendo do Realtime de pedidos.');
       supabase.removeChannel(ordersChannel);
     };
-  }, [userId, supabase]); // Removido 'orders' das dependências para evitar re-subscrição
+  }, [userId, supabase, selectedOrder]); // Adicionado selectedOrder às dependências para a lógica do modal
 
   // NOVO: useEffect para recalcular dados de vendas e produtos mais vendidos quando 'orders' ou 'products' mudarem
   useEffect(() => {
@@ -944,7 +972,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       setCoverPreview(updatedProfile.coverUrl);
       setLogoFile(null);
       setCoverFile(null);
-      console.log('[Dashboard] Perfil da loja salvo e recarregado. Logo URL:', updatedProfile.logoUrl, 'Cover URL:', updatedProfile.coverUrl);
+      console.log('[Dashboard] Perfil da loja salvo e recarregado. Logo URL:', updatedProfile.logoUrl, 'Cover URL:', updatedCoverUrl);
     } catch (error) {
       console.error("Erro ao salvar perfil da loja no Dashboard:", error);
     } finally {
