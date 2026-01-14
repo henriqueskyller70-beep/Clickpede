@@ -22,6 +22,10 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   allProducts,
   onUpdateOrderStatus,
 }) => {
+  // Adicionando logs para depuração
+  console.log("OrderDetailsModal rendering. Order:", order);
+  console.log("OrderDetailsModal rendering. All Products:", allProducts);
+
   if (!order) return null;
 
   // Helper to calculate item total including options
@@ -30,10 +34,14 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
     if (item.selectedOptions) {
       item.selectedOptions.forEach(selOpt => {
         const originalProduct = allProducts.find(p => p.id === item.id);
-        const option = originalProduct?.options.find(opt => opt.id === selOpt.optionId);
-        const subProduct = option?.subProducts.find(sp => sp.id === selOpt.subProductId);
-        if (subProduct) {
-          total += subProduct.price * selOpt.quantity;
+        if (originalProduct) { // Adicionando verificação para originalProduct
+          const option = originalProduct.options.find(opt => opt.id === selOpt.optionId);
+          const subProduct = option?.subProducts.find(sp => sp.id === selOpt.subProductId);
+          if (subProduct) {
+            total += subProduct.price * selOpt.quantity;
+          }
+        } else {
+          console.warn(`[OrderDetailsModal] Produto original não encontrado para o item do pedido: ${item.name} (ID: ${item.id})`);
         }
       });
     }

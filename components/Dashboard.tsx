@@ -161,10 +161,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     if (item.selectedOptions) {
       item.selectedOptions.forEach(selOpt => {
         const originalProduct = allProducts.find(p => p.id === item.id);
-        const option = originalProduct?.options.find(opt => opt.id === selOpt.optionId);
-        const subProduct = option?.subProducts.find(sp => sp.id === selOpt.subProductId);
-        if (subProduct) {
-          total += subProduct.price * selOpt.quantity;
+        if (originalProduct) {
+          const option = originalProduct.options.find(opt => opt.id === selOpt.optionId);
+          const subProduct = option?.subProducts.find(sp => sp.id === selOpt.subProductId);
+          if (subProduct) {
+            total += subProduct.price * selOpt.quantity;
+          }
         }
       });
     }
@@ -332,10 +334,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               status: payload.old.status || 'rejected', 
             } as Order;
           } else {
+            // Ensure all properties are correctly mapped and default to empty/zero if missing
             changedOrder = {
-              ...orderData,
-              customerName: orderData?.customer_name,
-              date: orderData?.order_date,
+              id: orderData.id as string,
+              customerName: orderData.customer_name || '',
+              items: (orderData.items as any[] || []),
+              total: orderData.total || 0,
+              status: orderData.status || 'pending', // Default status
+              date: orderData.order_date || new Date().toISOString(),
             } as Order;
           }
 
@@ -608,8 +614,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         const updatedProducts = prevProducts.map(product => {
           if (product.id === productId) {
             return {
-              ...product,
-              options: product.options.map(option => {
+              ...p,
+              options: p.options.map(option => {
                 if (option.id === optionId) {
                   const oldIndex = option.subProducts.findIndex(subProduct => subProduct.id === active.id);
                   const newIndex = option.subProducts.findIndex(subProduct => subProduct.id === over?.id);
@@ -972,7 +978,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       setCoverPreview(updatedProfile.coverUrl);
       setLogoFile(null);
       setCoverFile(null);
-      console.log('[Dashboard] Perfil da loja salvo e recarregado. Logo URL:', updatedProfile.logoUrl, 'Cover URL:', updatedCoverUrl);
+      console.log('[Dashboard] Perfil da loja salvo e recarregado. Logo URL:', updatedProfile.logoUrl, 'Cover URL:', updatedProfile.coverUrl);
     } catch (error) {
       console.error("Erro ao salvar perfil da loja no Dashboard:", error);
     } finally {
