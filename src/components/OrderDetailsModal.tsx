@@ -54,7 +54,8 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
       case 'preparing': return 'bg-blue-100 text-blue-700';
       case 'in_transit': return 'bg-purple-100 text-purple-700';
       case 'delivered': return 'bg-green-100 text-green-700';
-      case 'rejected': return 'bg-red-100 text-red-700'; // NOVO: Cor para 'rejected'
+      case 'rejected': return 'bg-red-100 text-red-700';
+      case 'trashed': return 'bg-gray-200 text-gray-600'; // Cor para 'trashed'
       default: return 'bg-gray-100 text-gray-700';
     }
   };
@@ -123,7 +124,7 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
         <div className="flex justify-end gap-3 mt-6">
           {order.status === 'pending' && (
             <button
-              onClick={() => onUpdateOrderStatus(order.id!, 'preparing')}
+              onClick={() => onUpdateOrderStatus(order.id, 'preparing')}
               className="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 font-bold shadow-lg transition-all transform active:scale-95 flex items-center gap-2"
             >
               <Clock className="w-4 h-4" /> Marcar como Preparando
@@ -131,7 +132,7 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
           )}
           {order.status === 'preparing' && (
             <button
-              onClick={() => onUpdateOrderStatus(order.id!, 'in_transit')} 
+              onClick={() => onUpdateOrderStatus(order.id, 'in_transit')} 
               className="bg-purple-600 text-white px-5 py-2.5 rounded-lg hover:bg-purple-700 font-bold shadow-lg transition-all transform active:scale-95 flex items-center gap-2"
             >
               <Bike className="w-4 h-4" /> Marcar como Em Rota
@@ -139,10 +140,18 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
           )}
           {order.status === 'in_transit' && ( 
             <button
-              onClick={() => onUpdateOrderStatus(order.id!, 'delivered')}
+              onClick={() => onUpdateOrderStatus(order.id, 'delivered')}
               className="bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 font-bold shadow-lg transition-all transform active:scale-95 flex items-center gap-2"
             >
               <Truck className="w-4 h-4" /> Marcar como Entregue
+            </button>
+          )}
+          {order.status === 'trashed' && (
+            <button
+              onClick={() => onUpdateOrderStatus(order.id, 'pending')} // Opção de restaurar da lixeira
+              className="bg-gray-600 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 font-bold shadow-lg transition-all transform active:scale-95 flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" /> Restaurar Pedido
             </button>
           )}
           <button

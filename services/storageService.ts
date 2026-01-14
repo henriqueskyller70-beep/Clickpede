@@ -164,12 +164,12 @@ export const storageService = {
         if (upsertError) throw new Error(`Erro ao atualizar grupos existentes: ${upsertError.message}`);
       }
 
-      showSuccess("Grupos salvos com sucesso!");
+      setTimeout(() => showSuccess("Grupos salvos com sucesso!"), 0); // Usar setTimeout
       // NOVO: Re-fetch all groups to ensure full synchronization
       return await storageService.getGroups(supabase, userId); // Return the fresh list
     } catch (err: any) {
       console.error('Erro ao salvar grupos:', err);
-      showError(err.message || "Erro desconhecido ao salvar grupos.");
+      setTimeout(() => showError(err.message || "Erro desconhecido ao salvar grupos."), 0); // Usar setTimeout
       return null;
     } finally {
       dismissToast(toastId);
@@ -272,12 +272,12 @@ export const storageService = {
         if (upsertError) throw new Error(`Erro ao atualizar produtos existentes: ${upsertError.message}`);
       }
 
-      showSuccess("Produtos salvos com sucesso!");
+      setTimeout(() => showSuccess("Produtos salvos com sucesso!"), 0); // Usar setTimeout
       // NOVO: Re-fetch all products to ensure full synchronization
       return await storageService.getProducts(supabase, userId); // Return the fresh list
     } catch (err: any) {
       console.error('Erro ao salvar produtos:', err);
-      showError(err.message || "Erro desconhecido ao salvar produtos.");
+      setTimeout(() => showError(err.message || "Erro desconhecido ao salvar produtos."), 0); // Usar setTimeout
       return null;
     } finally {
       dismissToast(toastId);
@@ -359,11 +359,11 @@ export const storageService = {
         console.error('[StorageService] Erro ao salvar perfil da loja no banco de dados:', error);
         throw new Error(`Erro ao salvar perfil da loja: ${error.message}`);
       }
-      showSuccess("Configurações da loja salvas com sucesso!");
+      setTimeout(() => showSuccess("Configurações da loja salvas com sucesso!"), 0); // Usar setTimeout
       console.log('[StorageService] Perfil da loja salvo com sucesso no DB. Logo URL:', updatedLogoUrl, 'Cover URL:', updatedCoverUrl);
     } catch (err: any) {
       console.error("[StorageService] Erro geral ao salvar perfil da loja:", err);
-      showError(err.message || "Erro desconhecido ao salvar configurações da loja.");
+      setTimeout(() => showError(err.message || "Erro desconhecido ao salvar configurações da loja."), 0); // Usar setTimeout
     } finally {
       dismissToast(toastId);
     }
@@ -410,11 +410,11 @@ export const storageService = {
         console.error('[StorageService] Erro ao atualizar perfil do usuário:', error);
         throw new Error(`Erro ao atualizar perfil: ${error.message}`);
       }
-      showSuccess("Perfil atualizado com sucesso!");
+      setTimeout(() => showSuccess("Perfil atualizado com sucesso!"), 0); // Usar setTimeout
       return avatarUrl;
     } catch (err: any) {
       console.error("[StorageService] Erro geral ao salvar perfil:", err);
-      showError(err.message || "Erro desconhecido ao salvar perfil.");
+      setTimeout(() => showError(err.message || "Erro desconhecido ao salvar perfil."), 0); // Usar setTimeout
       return null;
     } finally {
       dismissToast(toastId);
@@ -428,11 +428,11 @@ export const storageService = {
       if (error) {
         throw new Error(error.message);
       }
-      showSuccess("E-mail atualizado! Verifique sua nova caixa de entrada para confirmar.");
+      setTimeout(() => showSuccess("E-mail atualizado! Verifique sua nova caixa de entrada para confirmar."), 0); // Usar setTimeout
       return data;
     } catch (err: any) {
       console.error("[StorageService] Erro ao atualizar e-mail:", err);
-      showError(err.message || "Erro desconhecido ao atualizar e-mail.");
+      setTimeout(() => showError(err.message || "Erro desconhecido ao atualizar e-mail."), 0); // Usar setTimeout
       return null;
     } finally {
       dismissToast(toastId);
@@ -446,11 +446,11 @@ export const storageService = {
       if (error) {
         throw new Error(error.message);
       }
-      showSuccess("Senha atualizada com sucesso!");
+      setTimeout(() => showSuccess("Senha atualizada com sucesso!"), 0); // Usar setTimeout
       return data;
     } catch (err: any) {
       console.error("[StorageService] Erro ao atualizar senha:", err);
-      showError(err.message || "Erro desconhecido ao atualizar senha.");
+      setTimeout(() => showError(err.message || "Erro desconhecido ao atualizar senha."), 0); // Usar setTimeout
       return null;
     } finally {
       dismissToast(toastId);
@@ -466,11 +466,11 @@ export const storageService = {
       if (error) {
         throw new Error(error.message);
       }
-      showSuccess("E-mail de redefinição de senha enviado! Verifique sua caixa de entrada.");
+      setTimeout(() => showSuccess("E-mail de redefinição de senha enviado! Verifique sua caixa de entrada."), 0); // Usar setTimeout
       return true;
     } catch (err: any) {
       console.error("[StorageService] Erro ao enviar e-mail de redefinição de senha:", err);
-      showError(err.message || "Erro desconhecido ao enviar e-mail de redefinição de senha.");
+      setTimeout(() => showError(err.message || "Erro desconhecido ao enviar e-mail de redefinição de senha."), 0); // Usar setTimeout
       return false;
     } finally {
       dismissToast(toastId);
@@ -486,9 +486,11 @@ export const storageService = {
       return [];
     }
     return data.map(o => ({ 
-      ...o, 
+      id: o.id, // ID agora é obrigatório
       customerName: o.customer_name, // Mapear customer_name do DB para customerName na interface
       items: (o.items as any[] || []), 
+      total: o.total,
+      status: o.status,
       date: o.order_date 
     })) || [];
   },
@@ -535,11 +537,11 @@ export const storageService = {
       if (error) {
         throw new Error(error.message);
       }
-      showSuccess("Pedido finalizado com sucesso!");
+      setTimeout(() => showSuccess("Pedido finalizado com sucesso!"), 0); // Usar setTimeout
       return data as Order;
     } catch (err: any) {
       console.error("[StorageService] Erro ao criar pedido:", err);
-      showError(err.message || "Erro desconhecido ao finalizar pedido.");
+      setTimeout(() => showError(err.message || "Erro desconhecido ao finalizar pedido."), 0); // Usar setTimeout
       return null;
     } finally {
       dismissToast(toastId);
@@ -561,7 +563,7 @@ export const storageService = {
       if (error) {
         throw new Error(error.message);
       }
-      showSuccess("Status do pedido atualizado com sucesso!");
+      // O toast de sucesso será disparado pelo listener do Realtime no Dashboard
       return { 
         ...data, 
         customerName: data.customer_name, // Mapear customer_name do DB para customerName na interface
@@ -570,16 +572,40 @@ export const storageService = {
       } as Order;
     } catch (err: any) {
       console.error("[StorageService] Erro ao atualizar status do pedido:", err);
-      showError(err.message || "Erro desconhecido ao atualizar status do pedido.");
+      setTimeout(() => showError(err.message || "Erro desconhecido ao atualizar status do pedido."), 0); // Usar setTimeout
       return null;
     } finally {
       dismissToast(toastId);
     }
   },
 
-  // NOVO: Função para excluir um pedido
+  // MODIFICADO: deleteOrder agora move para a lixeira (status 'trashed')
   deleteOrder: async (supabase: SupabaseClient, userId: string, orderId: string): Promise<boolean> => {
-    const toastId = showLoading(`Excluindo pedido #${orderId.substring(0, 8)}...`);
+    const toastId = showLoading(`Movendo pedido #${orderId.substring(0, 8)} para a lixeira...`);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: 'trashed' }) // Altera o status para 'trashed'
+        .eq('id', orderId)
+        .eq('user_id', userId);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+      // O toast de sucesso será disparado pelo listener do Realtime no Dashboard
+      return true;
+    } catch (err: any) {
+      console.error("[StorageService] Erro ao mover pedido para a lixeira:", err);
+      setTimeout(() => showError(err.message || "Erro desconhecido ao mover pedido para a lixeira."), 0); // Usar setTimeout
+      return false;
+    } finally {
+      dismissToast(toastId);
+    }
+  },
+
+  // NOVO: Função para excluir um pedido permanentemente do banco de dados
+  permanentlyDeleteOrder: async (supabase: SupabaseClient, userId: string, orderId: string): Promise<boolean> => {
+    const toastId = showLoading(`Excluindo pedido #${orderId.substring(0, 8)} permanentemente...`);
     try {
       const { error } = await supabase
         .from('orders')
@@ -590,34 +616,34 @@ export const storageService = {
       if (error) {
         throw new Error(error.message);
       }
-      showSuccess("Pedido excluído com sucesso!");
+      // O toast de sucesso será disparado pelo listener do Realtime no Dashboard
       return true;
     } catch (err: any) {
-      console.error("[StorageService] Erro ao excluir pedido:", err);
-      showError(err.message || "Erro desconhecido ao excluir pedido.");
+      console.error("[StorageService] Erro ao excluir pedido permanentemente:", err);
+      setTimeout(() => showError(err.message || "Erro desconhecido ao excluir pedido permanentemente."), 0); // Usar setTimeout
       return false;
     } finally {
       dismissToast(toastId);
     }
   },
 
-  // NOVO: Função para limpar todo o histórico de pedidos
+  // NOVO: Função para limpar todo o histórico de pedidos (agora move para a lixeira)
   clearAllOrders: async (supabase: SupabaseClient, userId: string): Promise<boolean> => {
-    const toastId = showLoading("Limpando histórico de pedidos...");
+    const toastId = showLoading("Movendo todos os pedidos para a lixeira...");
     try {
       const { error } = await supabase
         .from('orders')
-        .delete()
+        .update({ status: 'trashed' }) // Altera o status de todos para 'trashed'
         .eq('user_id', userId);
 
       if (error) {
         throw new Error(error.message);
       }
-      showSuccess("Histórico de pedidos limpo com sucesso!");
+      setTimeout(() => showSuccess("Todos os pedidos foram movidos para a lixeira!"), 0); // Usar setTimeout
       return true;
     } catch (err: any) {
-      console.error("[StorageService] Erro ao limpar histórico de pedidos:", err);
-      showError(err.message || "Erro desconhecido ao limpar histórico de pedidos.");
+      console.error("[StorageService] Erro ao mover pedidos para a lixeira:", err);
+      setTimeout(() => showError(err.message || "Erro desconhecido ao mover pedidos para a lixeira."), 0); // Usar setTimeout
       return false;
     } finally {
       dismissToast(toastId);
@@ -657,9 +683,9 @@ export const storageService = {
         console.error('Erro ao salvar horário da loja:', error);
         throw new Error(`Erro ao salvar horário da loja: ${error.message}`);
       }
-      showSuccess("Horários salvos com sucesso!");
+      setTimeout(() => showSuccess("Horários salvos com sucesso!"), 0); // Usar setTimeout
     } catch (err: any) {
-      showError(err.message || "Erro desconhecido ao salvar horário da loja.");
+      setTimeout(() => showError(err.message || "Erro desconhecido ao salvar horário da loja."), 0); // Usar setTimeout
     } finally {
       dismissToast(toastId);
     }
@@ -715,7 +741,7 @@ export const storageService = {
     const addressToAdd: Address = { ...newAddress, id, isDefault: addresses.length === 0 }; // First address is default
     const updatedAddresses = [...addresses, addressToAdd];
     storageService.saveAddresses(updatedAddresses);
-    showSuccess("Endereço adicionado com sucesso!");
+    setTimeout(() => showSuccess("Endereço adicionado com sucesso!"), 0); // Usar setTimeout
     return updatedAddresses;
   },
 
@@ -725,10 +751,10 @@ export const storageService = {
     if (index > -1) {
       addresses[index] = updatedAddress;
       storageService.saveAddresses(addresses);
-      showSuccess("Endereço atualizado com sucesso!");
+      setTimeout(() => showSuccess("Endereço atualizado com sucesso!"), 0); // Usar setTimeout
       return addresses;
     }
-    showError("Endereço não encontrado para atualização.");
+    setTimeout(() => showError("Endereço não encontrado para atualização."), 0); // Usar setTimeout
     return addresses;
   },
 
@@ -740,7 +766,7 @@ export const storageService = {
       updatedAddresses[0].isDefault = true;
     }
     storageService.saveAddresses(updatedAddresses);
-    showSuccess("Endereço excluído com sucesso!");
+    setTimeout(() => showSuccess("Endereço excluído com sucesso!"), 0); // Usar setTimeout
     return updatedAddresses;
   },
 
@@ -751,7 +777,7 @@ export const storageService = {
       isDefault: addr.id === id,
     }));
     storageService.saveAddresses(updatedAddresses);
-    showSuccess("Endereço padrão atualizado!");
+    setTimeout(() => showSuccess("Endereço padrão atualizado!"), 0); // Usar setTimeout
     return updatedAddresses;
   },
 
@@ -825,11 +851,11 @@ export const storageService = {
         if (upsertError) throw new Error(`Erro ao atualizar mesas existentes: ${upsertError.message}`);
       }
 
-      showSuccess("Mesas salvas com sucesso!");
+      setTimeout(() => showSuccess("Mesas salvas com sucesso!"), 0); // Usar setTimeout
       return await storageService.getTables(supabase, userId);
     } catch (err: any) {
       console.error('Erro ao salvar mesas:', err);
-      showError(err.message || "Erro desconhecido ao salvar mesas.");
+      setTimeout(() => showError(err.message || "Erro desconhecido ao salvar mesas."), 0); // Usar setTimeout
       return null;
     } finally {
       dismissToast(toastId);
@@ -904,11 +930,11 @@ export const storageService = {
         if (upsertError) throw new Error(`Erro ao atualizar balcões existentes: ${upsertError.message}`);
       }
 
-      showSuccess("Balcões salvos com sucesso!");
+      setTimeout(() => showSuccess("Balcões salvos com sucesso!"), 0); // Usar setTimeout
       return await storageService.getCounters(supabase, userId);
     } catch (err: any) {
       console.error('Erro ao salvar balcões:', err);
-      showError(err.message || "Erro desconhecido ao salvar balcões.");
+      setTimeout(() => showError(err.message || "Erro desconhecido ao salvar balcões."), 0); // Usar setTimeout
       return null;
     } finally {
       dismissToast(toastId);

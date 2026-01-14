@@ -73,11 +73,11 @@ export interface Address {
 }
 
 export interface Order {
-  id: string;
+  id: string; // AGORA OBRIGATÓRIO
   customerName: string;
   items: CartItem[];
   total: number;
-  status: 'pending' | 'preparing' | 'in_transit' | 'delivered' | 'rejected'; // NOVO: Adicionado 'rejected'
+  status: 'pending' | 'preparing' | 'in_transit' | 'delivered' | 'rejected' | 'trashed'; // NOVO: Adicionado 'trashed'
   date: string;
 }
 
