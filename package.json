@@ -13,10 +13,10 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@google/genai": "^1.30.0",
-    "@supabase/supabase-js": "^2.87.1",
+    "@supabase/supabase-js": "^2.43.0",
     "lucide-react": "^0.555.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-hot-toast": "^2.6.0",
     "recharts": "^3.5.1"
   },
@@ -25,11 +25,5 @@
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "react": "npm:react@19.2.0",
-      "react-dom": "npm:react-dom@19.2.0"
-    }
   }
 }
