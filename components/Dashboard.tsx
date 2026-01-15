@@ -372,16 +372,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                 order.id === changedOrder.id ? changedOrder : order
               );
             } else if (payload.eventType === 'DELETE') {
-              console.log('[Realtime] Evento DELETE recebido.');
-              console.log('[Realtime] Payload.old:', payload.old);
-              const deletedOrderId = payload.old.id as string; // Get the ID of the deleted item
+              console.log('[Realtime] Evento DELETE recebido. Payload:', payload);
+              const deletedOrderId = payload.old?.id as string; // Use optional chaining for safety
+              
+              if (!deletedOrderId) {
+                console.error('[Realtime] Erro: ID do pedido excluído não encontrado no payload.old:', payload.old);
+                setTimeout(() => showError('Erro ao processar exclusão de pedido: ID ausente.'), 0);
+                return prevOrders; // Return previous state to avoid breaking
+              }
+
               console.log('[Realtime] ID do pedido a ser removido:', deletedOrderId);
               console.log('[Realtime] Pedidos atuais no estado (IDs):', prevOrders.map(o => o.id));
 
               const filteredOrders = prevOrders.filter(order => order.id !== deletedOrderId);
               
               console.log('[Realtime] Pedidos após filtro (IDs):', filteredOrders.map(o => o.id));
-              setTimeout(() => showSuccess(`Pedido #${deletedOrderId?.substring(0, 8)} foi removido permanentemente.`), 0); // Usar setTimeout
+              setTimeout(() => showSuccess(`Pedido #${deletedOrderId.substring(0, 8)} foi removido permanentemente.`), 0); 
               
               // If the deleted order was the selected one in the details modal, close it
               if (selectedOrder?.id === deletedOrderId) {
@@ -986,7 +992,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       setCoverPreview(updatedProfile.coverUrl);
       setLogoFile(null);
       setCoverFile(null);
-      console.log('[Dashboard] Perfil da loja salvo e recarregado. Logo URL:', updatedProfile.logoUrl, 'Cover URL:', updatedProfile.coverUrl);
+      console.log('[Dashboard] Perfil da loja salvo e recarregado. Logo URL:', updatedProfile.logoUrl, 'Cover URL:', updatedCoverUrl);
     } catch (error) {
       console.error("Erro ao salvar perfil da loja no Dashboard:", error);
     } finally {
@@ -1139,27 +1145,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   // NOVO: Função para excluir permanentemente um pedido da lixeira APÓS a confirmação da senha
   const handlePermanentlyDeleteOrderWithPassword = async (password: string) => {
-    if (!userId || !orderToDeletePermanently) return;
+    if (!userId || !orderToDeletePermanently) {
+      showError("Erro interno: ID do pedido ou usuário ausente.");
+      return;
+    }
 
     // ATENÇÃO: Esta é uma validação SIMULADA.
     // Em um ambiente de produção, 'password' DEVE ser enviado a um backend seguro
     // para verificação contra a senha real do usuário.
-    if (password.trim() === "") { // Simplesmente verifica se a senha não está vazia
+    if (password.trim() === "") { 
         showError("Senha inválida. Tente novamente.");
         return;
     }
 
     // Se a validação simulada passar, procede com a exclusão
-    const success = await storageService.permanentlyDeleteOrder(supabase, userId, orderToDeletePermanently);
-    if (success) {
-      // O Realtime já vai atualizar o estado 'orders', então não precisamos fazer setOrders aqui.
-      // O toast de sucesso é disparado pelo listener do Realtime
-      if (selectedOrder?.id === orderToDeletePermanently) {
-        handleCloseOrderDetails();
+    try {
+      const success = await storageService.permanentlyDeleteOrder(supabase, userId, orderToDeletePermanently);
+      if (success) {
+        // O Realtime listener já vai lidar com a atualização da UI e o toast de sucesso
+        // Não é necessário chamar setOrders ou showSuccess aqui diretamente
+      } else {
+        showError("Falha ao excluir pedido permanentemente.");
       }
+    } catch (error: any) {
+      console.error("Erro ao excluir pedido permanentemente com senha:", error);
+      showError(error.message || "Erro desconhecido ao excluir pedido permanentemente.");
+    } finally {
+      setOrderToDeletePermanently(null);
+      setIsAdminPasswordConfirmModalOpen(false);
     }
-    setOrderToDeletePermanently(null);
-    setIsAdminPasswordConfirmModalOpen(false);
   };
 
   const getNextStatus = (currentStatus: Order['status']): Order['status'] | null => {
