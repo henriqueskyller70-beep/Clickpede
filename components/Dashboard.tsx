@@ -381,11 +381,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                 return prevOrders; // Return previous state to avoid breaking
               }
 
-              console.log('[Realtime] Pedidos atuais no estado (IDs):', prevOrders.map(o => o.id));
+              console.log('[Realtime] Pedido a ser removido (ID):', deletedOrderId);
+              console.log('[Realtime] Pedidos antes da remoção (IDs):', prevOrders.map(o => o.id));
 
-              const filteredOrders = prevOrders.filter(order => order.id !== deletedOrderId);
+              const updatedOrders = prevOrders.filter(order => order.id !== deletedOrderId);
               
-              console.log('[Realtime] Pedidos após filtro (IDs):', filteredOrders.map(o => o.id));
+              console.log('[Realtime] Pedidos após remoção (IDs):', updatedOrders.map(o => o.id));
               setTimeout(() => showSuccess(`Pedido #${deletedOrderId.substring(0, 8)} foi removido permanentemente.`), 0); 
               
               // If the deleted order was the selected one in the details modal, close it
@@ -394,7 +395,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                 setIsOrderDetailsModalOpen(false);
               }
 
-              return filteredOrders;
+              console.log('[Realtime] Final state for setOrders (DELETE):', updatedOrders.map(o => o.id));
+              return updatedOrders;
             }
             return prevOrders;
           });
@@ -627,8 +629,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         const updatedProducts = prevProducts.map(product => {
           if (product.id === productId) {
             return {
-              ...p,
-              options: p.options.map(option => {
+              ...product, // Corrigido de 'p' para 'product'
+              options: product.options.map(option => {
                 if (option.id === optionId) {
                   const oldIndex = option.subProducts.findIndex(subProduct => subProduct.id === active.id);
                   const newIndex = option.subProducts.findIndex(subProduct => subProduct.id === over?.id);
@@ -1226,11 +1228,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     }
   });
 
-  const filteredOrders = orders.filter(order => {
-    if (orderStatusFilter === 'all') return order.status !== 'trashed'; // 'all' não mostra lixeira por padrão
-    if (orderStatusFilter === 'trashed') return order.status === 'trashed';
-    return order.status === orderStatusFilter;
-  });
+  // Usando useMemo para otimizar a filtragem de pedidos
+  const filteredOrders = React.useMemo(() => {
+    console.log('[Dashboard] Recalculando filteredOrders. orders length:', orders.length, 'filter:', orderStatusFilter);
+    return orders.filter(order => {
+      if (orderStatusFilter === 'all') return order.status !== 'trashed'; // 'all' não mostra lixeira por padrão
+      if (orderStatusFilter === 'trashed') return order.status === 'trashed';
+      return order.status === orderStatusFilter;
+    });
+  }, [orders, orderStatusFilter]);
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-200 font-sans">
