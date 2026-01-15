@@ -993,7 +993,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       setCoverPreview(updatedProfile.coverUrl);
       setLogoFile(null);
       setCoverFile(null);
-      console.log('[Dashboard] Perfil da loja salvo e recarregado. Logo URL:', updatedProfile.logoUrl, 'Cover URL:', updatedCoverUrl);
+      console.log('[Dashboard] Perfil da loja salvo e recarregado. Logo URL:', updatedProfile.logoUrl, 'Cover URL:', updatedProfile.coverUrl);
     } catch (error) {
       console.error("Erro ao salvar perfil da loja no Dashboard:", error);
     } finally {
@@ -2366,7 +2366,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
       {isAdminPasswordConfirmModalOpen && (
         <AdminPasswordConfirmModal
-          isOpen={isAdminPasswordConfirmModalModalOpen}
+          isOpen={isAdminPasswordConfirmModalOpen} {/* CORRIGIDO AQUI */}
           onClose={() => {
             setIsAdminPasswordConfirmModalOpen(false);
             setOrderToDeletePermanently(null);
