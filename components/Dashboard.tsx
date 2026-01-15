@@ -71,7 +71,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       { day: 'Segunda-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
       { day: 'Terça-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
       { day: 'Quarta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
-      { day: 'Quinta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
+      { 'day': 'Quinta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
       { day: 'Sexta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
       { day: 'Sábado', isOpen: false, openTime: '00:00', closeTime: '00:00' },
     ],
@@ -240,8 +240,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     const loadData = async () => {
       if (userId) {
         console.log('[Dashboard] Carregando dados iniciais...');
+        // MODIFICADO: Chamar getOrders com 'all' para buscar todos os pedidos
+        const fetchedOrders = await storageService.getOrders(supabase, userId, 'all');
         const fetchedProducts = await storageService.getProducts(supabase, userId);
-        const fetchedOrders = await storageService.getOrders(supabase, userId);
         const fetchedSchedule = await storageService.getStoreSchedule(supabase, userId);
         
         setProducts(fetchedProducts);
@@ -277,7 +278,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
             { day: 'Segunda-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
             { day: 'Terça-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
             { day: 'Quarta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
-            { day: 'Quinta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
+            { 'day': 'Quinta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
             { day: 'Sexta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
             { day: 'Sábado', isOpen: false, openTime: '00:00', closeTime: '00:00' },
           ],
@@ -292,7 +293,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         setUserProfile(null);
         setWeeklySalesData([]);
         setMonthlySalesData([]);
-        setTopSellingProducts([]);
       }
     };
     loadData();
@@ -381,7 +381,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                 return prevOrders; // Return previous state to avoid breaking
               }
 
-              console.log('[Realtime] ID do pedido a ser removido:', deletedOrderId);
               console.log('[Realtime] Pedidos atuais no estado (IDs):', prevOrders.map(o => o.id));
 
               const filteredOrders = prevOrders.filter(order => order.id !== deletedOrderId);
@@ -880,7 +879,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     if (!pendingToggleAction || !userId) return;
     const { productId, optionId, searchTerm, targetActiveState } = pendingToggleAction;
 
-    updateProductOptionsAndSave(productId, optionId, targetActiveState, searchTerm, false);
+    updateProductOptionsAndSave(productId, optionId, targetActiveState, '', false);
     setIsToggleConfirmationModalOpen(false);
     setPendingToggleAction(null);
     setTimeout(() => showSuccess(`Todos os itens da opção foram ${targetActiveState ? 'ativados' : 'desativados'}!`), 0); // Usar setTimeout
@@ -1916,7 +1915,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                                  order.status === 'preparing' ? 'bg-blue-100 text-blue-700' :
                                                  order.status === 'in_transit' ? 'bg-purple-100 text-purple-700' :
                                                  order.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                                                 order.status === 'trashed' ? 'bg-gray-200 text-gray-600' : // Cor para lixeira
+                                                 order.status === 'trashed' ? 'bg-gray-200 text-gray-600' : // Texto para lixeira
                                                  'bg-green-100 text-green-700'}`}>
                                                 {order.status === 'pending' ? 'Pendente' : 
                                                  order.status === 'preparing' ? 'Preparando' :

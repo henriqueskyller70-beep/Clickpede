@@ -478,8 +478,17 @@ export const storageService = {
   },
 
   // --- Pedidos ---
-  getOrders: async (supabase: SupabaseClient, userId: string): Promise<Order[]> => {
-    const { data, error } = await supabase.from('orders').select('*').eq('user_id', userId).order('order_date', { ascending: false });
+  getOrders: async (supabase: SupabaseClient, userId: string, fetchType: 'all' | 'only-trashed' | 'non-trashed' = 'non-trashed'): Promise<Order[]> => {
+    let query = supabase.from('orders').select('*').eq('user_id', userId);
+
+    if (fetchType === 'only-trashed') {
+      query = query.eq('status', 'trashed');
+    } else if (fetchType === 'non-trashed') {
+      query = query.neq('status', 'trashed');
+    }
+    // If fetchType is 'all', no status filter is applied to the query
+
+    const { data, error } = await query.order('order_date', { ascending: false });
     if (error) {
       console.error('Erro ao buscar pedidos:', error);
       showError(`Erro ao buscar pedidos: ${error.message}`);
