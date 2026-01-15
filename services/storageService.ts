@@ -25,7 +25,7 @@ const DEFAULT_STORE_SCHEDULE: StoreSchedule = {
     { day: 'Segunda-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
     { day: 'Terça-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
     { day: 'Quarta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
-    { day: 'Quinta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
+    { 'day': 'Quinta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
     { day: 'Sexta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
     { day: 'Sábado', isOpen: false, openTime: '00:00', closeTime: '00:00' },
   ],
@@ -652,7 +652,10 @@ export const storageService = {
 
   // NOVO: Função para verificar a senha do administrador usando a Edge Function
   verifyAdminPassword: async (supabase: SupabaseClient, userId: string, password: string): Promise<{ success: boolean; message?: string }> => {
+    console.log('[StorageService] verifyAdminPassword chamado com userId:', userId);
     try {
+      // Log the invocation details before making the call
+      console.log('[StorageService] Invocando Edge Function "verify-admin-password" com body:', { userId, password: '***' }); // Mascara a senha por segurança
       const { data, error } = await supabase.functions.invoke('verify-admin-password', {
         body: JSON.stringify({ userId, password }),
         method: 'POST',
@@ -663,6 +666,7 @@ export const storageService = {
         return { success: false, message: error.message || 'Erro ao verificar senha.' };
       }
 
+      console.log('[StorageService] Resposta da Edge Function:', data);
       // A resposta da Edge Function já deve ser um JSON com { success: boolean, message?: string }
       return data as { success: boolean; message?: string };
 
