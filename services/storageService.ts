@@ -29,8 +29,8 @@ const DEFAULT_STORE_SCHEDULE: StoreSchedule = {
     { day: 'Sexta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
     { day: 'Sábado', isOpen: false, openTime: '00:00', closeTime: '00:00' },
   ],
-  reopenAt: null, // Adicionado valor padrão
-  isTemporariamenteClosedIndefinidamente: false, // Adicionado valor padrão
+  reopenAt: null,
+  isTemporariamenteClosedIndefinidamente: false,
 };
 
 // Função auxiliar para verificar se um ID é um ID temporário gerado pelo cliente (timestamp-like)
