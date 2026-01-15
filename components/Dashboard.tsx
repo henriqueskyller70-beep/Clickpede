@@ -382,11 +382,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               }
 
               console.log('[Realtime] Pedido a ser removido (ID):', deletedOrderId);
-              console.log('[Realtime] Pedidos antes da remoção (IDs):', prevOrders.map(o => o.id));
-
+              console.log('[Realtime] prevOrders antes da remoção (IDs):', prevOrders.map(o => o.id)); // NOVO LOG
+              
               const updatedOrders = prevOrders.filter(order => order.id !== deletedOrderId);
               
-              console.log('[Realtime] Pedidos após remoção (IDs):', updatedOrders.map(o => o.id));
+              console.log('[Realtime] updatedOrders após remoção (IDs):', updatedOrders.map(o => o.id)); // NOVO LOG
               setTimeout(() => showSuccess(`Pedido #${deletedOrderId.substring(0, 8)} foi removido permanentemente.`), 0); 
               
               // If the deleted order was the selected one in the details modal, close it
@@ -1230,12 +1230,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   // Usando useMemo para otimizar a filtragem de pedidos
   const filteredOrders = React.useMemo(() => {
-    console.log('[Dashboard] Recalculando filteredOrders. orders length:', orders.length, 'filter:', orderStatusFilter);
-    return orders.filter(order => {
+    console.log('[Dashboard] Recalculando filteredOrders. orders state (IDs):', orders.map(o => o.id), 'filter:', orderStatusFilter); // MODIFIED LOG
+    const result = orders.filter(order => {
       if (orderStatusFilter === 'all') return order.status !== 'trashed'; // 'all' não mostra lixeira por padrão
       if (orderStatusFilter === 'trashed') return order.status === 'trashed';
       return order.status === orderStatusFilter;
     });
+    console.log('[Dashboard] filteredOrders result (IDs):', result.map(o => o.id)); // NOVO LOG
+    return result;
   }, [orders, orderStatusFilter]);
 
   return (
@@ -1683,7 +1685,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                                 <input 
                                                     type="number" step="0.01"
                                                     className="w-full mt-1 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#9f1239]/20 p-3 bg-gray-50 transition-all"
-                                                    style={{ borderColor: storeProfile.primaryColor, '--tw-ring-color': `${storeProfile.primaryColor}20` } as React.CSSProperties}
+                                                style={{ borderColor: storeProfile.primaryColor, '--tw-ring-color': `${storeProfile.primaryColor}20` } as React.CSSProperties}
                                                     value={currentProduct.price || ''}
                                                     onChange={e => setCurrentProduct({...currentProduct, price: parseFloat(e.target.value)})}
                                                 />
@@ -1693,7 +1695,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                                 <input 
                                                     type="number"
                                                     className="w-full mt-1 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#9f1239]/20 p-3 bg-gray-50 transition-all"
-                                                    style={{ borderColor: storeProfile.primaryColor, '--tw-ring-color': `${storeProfile.primaryColor}20` } as React.CSSProperties}
+                                                style={{ borderColor: storeProfile.primaryColor, '--tw-ring-color': `${storeProfile.primaryColor}20` } as React.CSSProperties}
                                                     value={currentProduct.stock || ''}
                                                     onChange={e => setCurrentProduct({...currentProduct, stock: parseInt(e.target.value)})}
                                                 />
