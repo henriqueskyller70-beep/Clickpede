@@ -650,6 +650,28 @@ export const storageService = {
     }
   },
 
+  // NOVO: Função para verificar a senha do administrador usando a Edge Function
+  verifyAdminPassword: async (supabase: SupabaseClient, userId: string, password: string): Promise<{ success: boolean; message?: string }> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-admin-password', {
+        body: JSON.stringify({ userId, password }),
+        method: 'POST',
+      });
+
+      if (error) {
+        console.error('[StorageService] Erro ao invocar Edge Function:', error);
+        return { success: false, message: error.message || 'Erro ao verificar senha.' };
+      }
+
+      // A resposta da Edge Function já deve ser um JSON com { success: boolean, message?: string }
+      return data as { success: boolean; message?: string };
+
+    } catch (err: any) {
+      console.error('[StorageService] Erro inesperado ao chamar Edge Function:', err);
+      return { success: false, message: err.message || 'Erro inesperado ao verificar senha.' };
+    }
+  },
+
   // --- Horário de Funcionamento da Loja ---
   getStoreSchedule: async (supabase: SupabaseClient, userId: string): Promise<StoreSchedule> => {
     const { data, error } = await supabase.from('store_schedules').select('*').eq('user_id', userId).single();

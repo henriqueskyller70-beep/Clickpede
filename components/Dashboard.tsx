@@ -992,7 +992,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       setCoverPreview(updatedProfile.coverUrl);
       setLogoFile(null);
       setCoverFile(null);
-      console.log('[Dashboard] Perfil da loja salvo e recarregado. Logo URL:', updatedProfile.logoUrl, 'Cover URL:', updatedCoverUrl);
+      console.log('[Dashboard] Perfil da loja salvo e recarregado. Logo URL:', updatedProfile.logoUrl, 'Cover URL:', updatedProfile.coverUrl);
     } catch (error) {
       console.error("Erro ao salvar perfil da loja no Dashboard:", error);
     } finally {
@@ -1150,15 +1150,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       return;
     }
 
-    // ATENÇÃO: Esta é uma validação SIMULADA.
-    // Em um ambiente de produção, 'password' DEVE ser enviado a um backend seguro
-    // para verificação contra a senha real do usuário.
-    if (password.trim() === "") { 
-        showError("Senha inválida. Tente novamente.");
-        return;
-    }
-
-    // Se a validação simulada passar, procede com a exclusão
+    // A validação da senha agora é feita dentro do AdminPasswordConfirmModal
+    // e passada para cá apenas se for bem-sucedida.
+    // Então, aqui, apenas prosseguimos com a exclusão.
     try {
       const success = await storageService.permanentlyDeleteOrder(supabase, userId, orderToDeletePermanently);
       if (success) {
