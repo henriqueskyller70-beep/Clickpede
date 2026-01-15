@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Modal } from './ui/Modal';
-import { Lock, AlertTriangle } from 'lucide-react';
+import { Lock, AlertTriangle, X } from 'lucide-react'; // Adicionado X aqui
 
 interface AdminPasswordConfirmModalProps {
   isOpen: boolean;
