@@ -33,7 +33,7 @@ export const StoreFront: React.FC<StoreFrontProps> = () => { // Removido onOrder
       { day: 'Segunda-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
       { day: 'Terça-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
       { day: 'Quarta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
-      { 'day': 'Quinta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
+      { day: 'Quinta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
       { day: 'Sexta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
       { day: 'Sábado', isOpen: false, openTime: '00:00', closeTime: '00:00' },
     ],
@@ -78,7 +78,7 @@ export const StoreFront: React.FC<StoreFrontProps> = () => { // Removido onOrder
             { day: 'Segunda-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
             { day: 'Terça-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
             { day: 'Quarta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
-            { 'day': 'Quinta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
+            { day: 'Quinta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
             { day: 'Sexta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
             { day: 'Sábado', isOpen: false, openTime: '00:00', closeTime: '00:00' },
           ],
@@ -244,7 +244,7 @@ export const StoreFront: React.FC<StoreFrontProps> = () => { // Removido onOrder
       setCart([]); // Limpa o carrinho após o pedido ser finalizado
       setCustomerName(''); // Limpa o nome do cliente
       setIsCartOpen(false); // Fecha o modal do carrinho
-      // showSuccess("Pedido enviado para o gerenciamento!"); // REMOVIDO: Esta mensagem será removida
+      showSuccess("Pedido enviado para o gerenciamento!");
       // REMOVIDO: onOrderCreated() não é mais necessário com o Realtime do Supabase.
     }
   };
