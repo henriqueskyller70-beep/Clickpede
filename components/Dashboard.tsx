@@ -359,7 +359,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               console.log('[Realtime] Evento INSERT. Novo pedido ID:', changedOrder.id);
               // Adicionar novo pedido, garantindo que não haja duplicatas
               if (!prevOrders.some(order => order.id === changedOrder.id)) {
-                showSuccess(`Novo pedido recebido!`, { id: 'new-order-toast' }); 
+                setTimeout(() => showSuccess(`Novo pedido recebido!`), 0); 
                 return [changedOrder, ...prevOrders]; // Adiciona o novo pedido no topo
               } else {
                 console.log('[Realtime] Pedido já existe no estado, ignorando INSERT duplicado:', changedOrder.id);
@@ -370,19 +370,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               // Atualizar pedido existente
               let message: string;
               if (changedOrder.status === 'trashed') {
-                message = `Pedido movido para a lixeira.`;
+                message = `Pedido foi para a lixeira!`;
               } else if (changedOrder.status === 'preparing') {
-                message = `Pedido aceito e em preparação!`; 
+                message = `Pedido Aceito com Sucesso!`; 
               } else if (changedOrder.status === 'in_transit') {
                 message = `Pedido em rota!`;
               } else if (changedOrder.status === 'delivered') { 
-                message = `Pedido entregue com sucesso!`;
+                message = `Pedido Entregue com Sucesso!`;
               } else if (changedOrder.status === 'rejected') {
-                message = `Pedido rejeitado.`;
+                message = `Pedido Rejeitado!`;
               } else {
-                message = `Pedido atualizado para ${changedOrder.status}.`; 
+                message = `Pedido atualizado para ${changedOrder.status}!`; 
               }
-              showSuccess(message, { id: `order-status-${changedOrder.id}` }); 
+              setTimeout(() => showSuccess(message), 0); 
               return prevOrders.map(order =>
                 order.id === changedOrder.id ? changedOrder : order
               );
@@ -392,7 +392,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               
               if (!deletedOrderId) {
                 console.error('[Realtime] Erro: ID do pedido excluído não encontrado no payload.old:', payload.old);
-                showError('Erro ao processar exclusão de pedido: ID ausente.');
+                setTimeout(() => showError('Erro ao processar exclusão de pedido: ID ausente.'), 0);
                 return prevOrders; 
               }
 
@@ -402,7 +402,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               const updatedOrders = prevOrders.filter(order => order.id !== deletedOrderId);
               
               console.log('[Realtime] updatedOrders após remoção (IDs):', updatedOrders.map(o => o.id)); 
-              showSuccess(`Pedido removido permanentemente.`, { id: `order-deleted-${deletedOrderId}` }); 
+              setTimeout(() => showSuccess(`Pedido foi removido permanentemente.`), 0); 
               
               // If the deleted order was the selected one in the details modal, close it
               if (selectedOrder?.id === deletedOrderId) {

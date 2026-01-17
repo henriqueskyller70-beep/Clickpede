@@ -170,14 +170,10 @@ export const StoreFront: React.FC<StoreFrontProps> = () => { // Removido onOrder
     if (item.selectedOptions) {
       item.selectedOptions.forEach(selOpt => {
         const originalProduct = products.find(p => p.id === item.id);
-        if (originalProduct) { // Adicionando verificação para originalProduct
-          const option = originalProduct.options.find(opt => opt.id === selOpt.optionId);
-          const subProduct = option?.subProducts.find(sp => sp.id === selOpt.subProductId);
-          if (subProduct) {
-            total += subProduct.price * selOpt.quantity;
-          }
-        } else {
-          console.warn(`[StoreFront] Produto original não encontrado para o item do carrinho: ${item.name} (ID: ${item.id})`);
+        const option = originalProduct?.options.find(opt => opt.id === selOpt.optionId);
+        const subProduct = option?.subProducts.find(sp => sp.id === selOpt.subProductId);
+        if (subProduct) {
+          total += subProduct.price * selOpt.quantity;
         }
       });
     }
@@ -248,7 +244,7 @@ export const StoreFront: React.FC<StoreFrontProps> = () => { // Removido onOrder
       setCart([]); // Limpa o carrinho após o pedido ser finalizado
       setCustomerName(''); // Limpa o nome do cliente
       setIsCartOpen(false); // Fecha o modal do carrinho
-      // REMOVIDO: showSuccess("Pedido finalizado com sucesso!"); // Esta mensagem será disparada pelo Realtime no Dashboard
+      showSuccess("Pedido finalizado com sucesso!");
       // REMOVIDO: onOrderCreated() não é mais necessário com o Realtime do Supabase.
     }
   };
