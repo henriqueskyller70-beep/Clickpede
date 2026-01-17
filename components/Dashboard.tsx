@@ -367,9 +367,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
             } else if (payload.eventType === 'UPDATE') {
               console.log('[Realtime] Evento UPDATE. Pedido ID:', changedOrder.id, 'Novo Status:', changedOrder.status);
               // Atualizar pedido existente
-              const message = changedOrder.status === 'trashed' 
-                ? `Pedido #${changedOrder.id?.substring(0, 8)} foi para a lixeira!` 
-                : `Pedido #${changedOrder.id?.substring(0, 8)} atualizado para ${changedOrder.status}!`;
+              let message: string;
+              if (changedOrder.status === 'trashed') {
+                message = `Pedido #${changedOrder.id?.substring(0, 8)} foi para a lixeira!`;
+              } else if (changedOrder.status === 'preparing') {
+                message = `Pedido Aceito com Sucesso!`; // Mensagem específica para 'preparing'
+              } else {
+                message = `Pedido #${changedOrder.id?.substring(0, 8)} atualizado para ${changedOrder.status}!`;
+              }
               setTimeout(() => showSuccess(message), 0); // Usar setTimeout
               return prevOrders.map(order =>
                 order.id === changedOrder.id ? changedOrder : order
@@ -1018,7 +1023,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       setIsStoreTemporariamenteClosed(false);
       setStoreSchedule(prev => ({ ...prev, reopenAt: null, isTemporariamenteClosedIndefinidamente: false }));
       storageService.saveStoreSchedule(supabase, userId, { ...storeSchedule, reopenAt: null, isTemporariamenteClosedIndefinidamente: false });
-      setTimeout(() => showSuccess("A loja foi reaberta!"), 0); // Usar setTimeout
+      setTimeout(() => showSuccess("A loja foi reaberta automaticamente!"), 0); // Usar setTimeout
       setIsCloseModalOpen(false);
     } else {
       setIsCloseModalOpen(true);
