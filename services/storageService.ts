@@ -532,7 +532,6 @@ export const storageService = {
 
   // NOVO: Função para criar um único pedido
   createOrder: async (supabase: SupabaseClient, userId: string, order: Omit<Order, 'id'>): Promise<Order | null> => {
-    // Removido showLoading e dismissToast daqui
     try {
       const { data, error } = await supabase.from('orders').insert({
         customer_name: order.customerName, // Mapear customerName para customer_name no DB
@@ -556,7 +555,6 @@ export const storageService = {
 
   // NOVO: Função para atualizar o status de um pedido
   updateOrderStatus: async (supabase: SupabaseClient, userId: string, orderId: string, newStatus: Order['status']): Promise<Order | null> => {
-    // Removido showLoading e dismissToast daqui
     try {
       const { data, error } = await supabase
         .from('orders')
@@ -584,7 +582,6 @@ export const storageService = {
 
   // MODIFICADO: deleteOrder agora move para a lixeira (status 'trashed')
   deleteOrder: async (supabase: SupabaseClient, userId: string, orderId: string): Promise<boolean> => {
-    // Removido showLoading e dismissToast daqui
     try {
       const { error } = await supabase
         .from('orders')
@@ -605,7 +602,6 @@ export const storageService = {
 
   // NOVO: Função para excluir um pedido permanentemente do banco de dados
   permanentlyDeleteOrder: async (supabase: SupabaseClient, userId: string, orderId: string): Promise<boolean> => {
-    // Removido showLoading e dismissToast daqui
     try {
       const { error } = await supabase
         .from('orders')
@@ -626,7 +622,6 @@ export const storageService = {
 
   // NOVO: Função para limpar todo o histórico de pedidos (agora move para a lixeira)
   clearAllOrders: async (supabase: SupabaseClient, userId: string): Promise<boolean> => {
-    // Removido showLoading e dismissToast daqui
     try {
       const { error } = await supabase
         .from('orders')

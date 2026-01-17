@@ -354,67 +354,60 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
             } as Order;
           }
 
+          // Update the state first
           setOrders(prevOrders => {
             if (payload.eventType === 'INSERT') {
               console.log('[Realtime] Evento INSERT. Novo pedido ID:', changedOrder.id);
-              // Adicionar novo pedido, garantindo que não haja duplicatas
               if (!prevOrders.some(order => order.id === changedOrder.id)) {
-                setTimeout(() => showSuccess(`Novo pedido recebido!`), 0); 
-                return [changedOrder, ...prevOrders]; // Adiciona o novo pedido no topo
+                return [changedOrder, ...prevOrders];
               } else {
                 console.log('[Realtime] Pedido já existe no estado, ignorando INSERT duplicado:', changedOrder.id);
                 return prevOrders;
               }
             } else if (payload.eventType === 'UPDATE') {
               console.log('[Realtime] Evento UPDATE. Pedido ID:', changedOrder.id, 'Novo Status:', changedOrder.status);
-              // Atualizar pedido existente
-              let message: string;
-              if (changedOrder.status === 'trashed') {
-                message = `Pedido foi para a lixeira!`;
-              } else if (changedOrder.status === 'preparing') {
-                message = `Pedido Aceito com Sucesso!`; 
-              } else if (changedOrder.status === 'in_transit') {
-                message = `Pedido em rota!`;
-              } else if (changedOrder.status === 'delivered') { 
-                message = `Pedido Entregue com Sucesso!`;
-              } else if (changedOrder.status === 'rejected') {
-                message = `Pedido Rejeitado!`;
-              } else {
-                message = `Pedido atualizado para ${changedOrder.status}!`; 
-              }
-              setTimeout(() => showSuccess(message), 0); 
               return prevOrders.map(order =>
                 order.id === changedOrder.id ? changedOrder : order
               );
             } else if (payload.eventType === 'DELETE') {
-              console.log('[Realtime] Evento DELETE recebido. Payload:', payload);
-              const deletedOrderId = payload.old?.id as string; 
-              
-              if (!deletedOrderId) {
-                console.error('[Realtime] Erro: ID do pedido excluído não encontrado no payload.old:', payload.old);
-                setTimeout(() => showError('Erro ao processar exclusão de pedido: ID ausente.'), 0);
-                return prevOrders; 
-              }
-
-              console.log('[Realtime] Pedido a ser removido (ID):', deletedOrderId);
-              console.log('[Realtime] prevOrders antes da remoção (IDs):', prevOrders.map(o => o.id)); 
-              
-              const updatedOrders = prevOrders.filter(order => order.id !== deletedOrderId);
-              
-              console.log('[Realtime] updatedOrders após remoção (IDs):', updatedOrders.map(o => o.id)); 
-              setTimeout(() => showSuccess(`Pedido foi removido permanentemente.`), 0); 
-              
-              // If the deleted order was the selected one in the details modal, close it
-              if (selectedOrder?.id === deletedOrderId) {
+              console.log('[Realtime] Evento DELETE recebido. Pedido ID:', changedOrder.id);
+              const updatedOrders = prevOrders.filter(order => order.id !== changedOrder.id);
+              if (selectedOrder?.id === changedOrder.id) {
                 setSelectedOrder(null);
                 setIsOrderDetailsModalOpen(false);
               }
-
-              console.log('[Realtime] Final state for setOrders (DELETE):', updatedOrders.map(o => o.id));
               return updatedOrders;
             }
             return prevOrders;
           });
+
+          // Then, show the toast based on the event type and new status
+          let message: string = '';
+          let toastIdValue: string = `order-status-${changedOrder.id}`; // Unique ID for each order status toast
+
+          if (payload.eventType === 'INSERT') {
+            message = `Novo pedido recebido!`;
+          } else if (payload.eventType === 'UPDATE') {
+            if (changedOrder.status === 'trashed') {
+              message = `Pedido movido para a lixeira.`;
+            } else if (changedOrder.status === 'preparing') {
+              message = `Pedido aceito com sucesso!`;
+            } else if (changedOrder.status === 'in_transit') {
+              message = `Pedido em rota!`;
+            } else if (changedOrder.status === 'delivered') {
+              message = `Pedido entregue com sucesso!`;
+            } else if (changedOrder.status === 'rejected') {
+              message = `Pedido rejeitado.`;
+            } else {
+              message = `Pedido atualizado.`;
+            }
+          } else if (payload.eventType === 'DELETE') {
+            message = `Pedido removido permanentemente.`;
+          }
+
+          if (message) {
+            showSuccess(message, { toastId: toastIdValue });
+          }
         }
       )
       .subscribe();
@@ -1126,30 +1119,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   const handleUpdateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
     if (!userId) return;
-    const updatedOrder = await storageService.updateOrderStatus(supabase, userId, orderId, newStatus);
-    if (updatedOrder) {
-      // O Realtime já vai atualizar o estado 'orders', então não precisamos fazer setOrders aqui.
-      // Apenas atualizamos o 'selectedOrder' se o modal estiver aberto para refletir a mudança.
-      if (selectedOrder?.id === orderId) {
-        setSelectedOrder(updatedOrder);
-      }
-      // O toast de sucesso é disparado pelo listener do Realtime
-    }
+    // Apenas chama o serviço para atualizar o DB. O toast será disparado pelo listener do Realtime.
+    await storageService.updateOrderStatus(supabase, userId, orderId, newStatus);
   };
 
   // MODIFICADO: handleDeleteOrder agora move para a lixeira
   const handleDeleteOrder = async (orderId: string) => {
     if (!userId) return;
     if (window.confirm(`Tem certeza que deseja mover o pedido #${orderId.substring(0, 8)} para a lixeira?`)) {
-      const success = await storageService.deleteOrder(supabase, userId, orderId); // Chama a função que altera o status para 'trashed'
-      if (success) {
-        // O Realtime já vai atualizar o estado 'orders', então não precisamos fazer setOrders aqui.
-        // O toast de sucesso é disparado pelo listener do Realtime
-        // Se o pedido movido para a lixeira era o que estava no modal de detalhes, feche o modal.
-        if (selectedOrder?.id === orderId) {
-          handleCloseOrderDetails();
-        }
-      }
+      // Apenas chama o serviço para atualizar o DB. O toast será disparado pelo listener do Realtime.
+      await storageService.deleteOrder(supabase, userId, orderId);
     }
   };
 
@@ -1166,17 +1145,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       return;
     }
 
-    // A validação da senha agora é feita dentro do AdminPasswordConfirmModal
-    // e passada para cá apenas se for bem-sucedida.
-    // Então, aqui, apenas prosseguimos com a exclusão.
     try {
+      // Apenas chama o serviço para atualizar o DB. O toast será disparado pelo listener do Realtime.
       const success = await storageService.permanentlyDeleteOrder(supabase, userId, orderToDeletePermanently);
-      if (success) {
-        // Manually update the state to immediately remove the deleted order from the UI
-        setOrders(prevOrders => prevOrders.filter(order => order.id !== orderToDeletePermanently));
-        // The toast for success is already handled by storageService.permanentlyDeleteOrder
-        // No need to call showSuccess here again.
-      } else {
+      if (!success) {
         showError("Falha ao excluir pedido permanentemente.");
       }
     } catch (error: any) {
