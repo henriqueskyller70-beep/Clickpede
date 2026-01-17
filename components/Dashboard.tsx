@@ -133,7 +133,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     { id: 'clock-alarm-8761.mp3', name: 'Alarme de Relógio' },
     { id: 'rotary-phone-ring-medium-103869.mp3', name: 'Telefone Antigo' },
     { id: 'school-bell-199584.mp3', name: 'Sino de Escola' },
-    { id: 'cash-register-sound.mp3', name: 'Caixa Registradora' }, // NOVO: Som de caixa registradora
+    { id: 'cash-register-sound.mp3', name: 'Caixa Registradora' },
+    { id: 'test-beep.mp3', name: 'Beep de Teste' }, // NOVO: Adicionado o som de teste
   ];
 
 
@@ -1164,12 +1165,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   const handleTestSound = () => {
     if (newOrderSoundRef.current) {
+      // For testing, we'll temporarily override the src to use the test-beep
+      const originalSrc = newOrderSoundRef.current.src;
+      newOrderSoundRef.current.src = '/sounds/test-beep.mp3'; // Use the test beep for the test button
+      
       setIsSoundTestPlaying(true);
       newOrderSoundRef.current.play().catch(e => {
         console.error("Erro ao reproduzir som de teste:", e);
         showError("Erro ao reproduzir som de teste. Verifique o console do navegador.");
       }).finally(() => {
-        setTimeout(() => setIsSoundTestPlaying(false), 2000); 
+        setTimeout(() => {
+          setIsSoundTestPlaying(false);
+          newOrderSoundRef.current!.src = originalSrc; // Restore original src after test
+        }, 2000); 
       });
     } else {
       showError("Elemento de áudio não encontrado.");
