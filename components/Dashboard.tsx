@@ -176,7 +176,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
           if (subProduct) {
             total += subProduct.price * selOpt.quantity;
           }
-        });
+        } // Adicionado o fechamento do if (originalProduct)
+      });
     }
     return total;
   };
