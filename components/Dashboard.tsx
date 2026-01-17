@@ -420,6 +420,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                 }
                 // NOVO: Ativar animação de tremor para pedidos pendentes
                 if (changedOrder.status === 'pending') {
+                    console.log('[Dashboard] Ativando animação de tremor para Pedidos Pendentes.'); // Log de depuração
                     setIsPendingOrdersShaking(true);
                     setTimeout(() => setIsPendingOrdersShaking(false), 1500); // Tremer por 1.5 segundos
                 }
@@ -699,8 +700,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         const updatedProducts = prevProducts.map(product => {
           if (product.id === productId) {
             return {
-              ...p,
-              options: p.options.map(option => {
+              ...product,
+              options: product.options.map(option => {
                 if (option.id === optionId) {
                   const oldIndex = option.subProducts.findIndex(subProduct => subProduct.id === active.id);
                   const newIndex = option.subProducts.findIndex(subProduct => subProduct.id === over?.id);
