@@ -648,7 +648,8 @@ export const storageService = {
       if (error) {
         throw new Error(error.message);
       }
-      setTimeout(() => showSuccess("Todos os pedidos foram movidos para a lixeira!"), 0); // Usar setTimeout
+      // O toast de sucesso será disparado pelo listener do Realtime no Dashboard
+      // setTimeout(() => showSuccess("Todos os pedidos foram movidos para a lixeira!"), 0); // Usar setTimeout
       return true;
     } catch (err: any) {
       console.error("[StorageService] Erro ao mover pedidos para a lixeira:", err);
