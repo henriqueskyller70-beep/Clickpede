@@ -133,6 +133,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     { id: 'clock-alarm-8761.mp3', name: 'Alarme de Relógio' },
     { id: 'rotary-phone-ring-medium-103869.mp3', name: 'Telefone Antigo' },
     { id: 'school-bell-199584.mp3', name: 'Sino de Escola' },
+    { id: 'cash-register-sound.mp3', name: 'Caixa Registradora' }, // NOVO: Som de caixa registradora
   ];
 
 
@@ -635,7 +636,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         const updatedProducts = prevProducts.map(product => {
           if (product.id === productId) {
             return {
-              ...p,
+              ...product,
               options: product.options.map(option => {
                 if (option.id === optionId) {
                   const oldIndex = option.subProducts.findIndex(subProduct => subProduct.id === active.id);
