@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react'; // Importar useRef
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   LayoutDashboard, Package, ShoppingBag, Settings, Plus, 
   Trash2, Edit, LogOut, Store, Users, FileText, ChevronDown, Menu, Clock,
-  GripVertical, Search, X, Copy, Star, Infinity, User as UserIcon, TrendingUp, Table as TableIcon, Monitor, Bike, CheckCircle, ArrowRight 
+  GripVertical, Search, X, Copy, Star, Infinity, User as UserIcon, TrendingUp, Table as TableIcon, Monitor, Bike, CheckCircle, ArrowRight, Volume2
 } from 'lucide-react';
 import { Product, Category, StoreProfile, Order, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
 import { storageService } from '../services/storageService';
@@ -20,7 +20,7 @@ import { AppLogo } from '../src/components/AppLogo';
 import { TableManagerPage } from '../src/components/TableManagerPage';
 import { CounterManagerPage } from '../src/components/CounterManagerPage';
 import { OrderDetailsModal } from '../src/components/OrderDetailsModal';
-import { AdminPasswordConfirmModal } from '../src/components/AdminPasswordConfirmModal'; // Importar o novo modal
+import { AdminPasswordConfirmModal } from '../src/components/AdminPasswordConfirmModal';
 
 // DND Kit Imports
 import {
@@ -45,10 +45,9 @@ import { SortableProductItem } from '../src/components/SortableProductItem';
 interface DashboardProps {
     onLogout: () => void;
     onNavigate: (path: string) => void;
-    // REMOVIDO: refreshTrigger não é mais necessário com o Realtime do Supabase.
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) => { // Removido refreshTrigger das props
+export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) => {
   const { supabase, session } = useSession();
   const userId = session?.user?.id;
 
@@ -121,14 +120,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const [isOrderDetailsModalOpen, setIsOrderDetailsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  const [orderStatusFilter, setOrderStatusFilter] = useState<'all' | 'pending' | 'preparing' | 'in_transit' | 'delivered' | 'rejected' | 'trashed'>('all'); // NOVO: Adicionado 'trashed'
+  const [orderStatusFilter, setOrderStatusFilter] = useState<'all' | 'pending' | 'preparing' | 'in_transit' | 'delivered' | 'rejected' | 'trashed'>('all');
 
-  // NOVO: Estados para o modal de confirmação de senha
   const [isAdminPasswordConfirmModalOpen, setIsAdminPasswordConfirmModalOpen] = useState(false);
   const [orderToDeletePermanently, setOrderToDeletePermanently] = useState<string | null>(null);
 
-  // NOVO: Ref para o elemento de áudio
   const newOrderSoundRef = useRef<HTMLAudioElement>(null);
+  const [isSoundTestPlaying, setIsSoundTestPlaying] = useState(false); // NOVO: Estado para o botão de teste de som
 
 
   // DND Kit Sensors
@@ -176,7 +174,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
           if (subProduct) {
             total += subProduct.price * selOpt.quantity;
           }
-        } // Adicionado o fechamento do if (originalProduct)
+        }
       });
     }
     return total;
@@ -216,7 +214,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     const productSales: { [productId: string]: { name: string; totalQuantity: number; totalRevenue: number } } = {};
 
     orders.forEach(order => {
-      // Apenas considere pedidos que não estão na lixeira para os relatórios de vendas
       if (order.status !== 'trashed') { 
         order.items.forEach(item => {
           const productId = item.id!;
@@ -239,12 +236,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   };
 
 
-  // Carregar dados do Supabase ao montar o componente ou quando o userId mudar
   useEffect(() => {
     const loadData = async () => {
       if (userId) {
         console.log('[Dashboard] Carregando dados iniciais...');
-        // MODIFICADO: Chamar getOrders com 'all' para buscar todos os pedidos
         const fetchedOrders = await storageService.getOrders(supabase, userId, 'all');
         const fetchedProducts = await storageService.getProducts(supabase, userId);
         const fetchedSchedule = await storageService.getStoreSchedule(supabase, userId);
@@ -265,7 +260,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         const userProf = await storageService.getProfile(supabase, userId);
         setUserProfile(userProf);
 
-        // Initial load of sales data
         setWeeklySalesData(generateWeeklySalesData());
         setMonthlySalesData(generateMonthlySalesData());
         setTopSellingProducts(getTopSellingProducts(fetchedOrders, fetchedProducts));
@@ -300,9 +294,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       }
     };
     loadData();
-  }, [userId, supabase]); // Removido refreshTrigger das dependências
+  }, [userId, supabase]);
 
-  // NOVO: useEffect para Realtime do Supabase para Pedidos
   useEffect(() => {
     if (!userId) {
       console.log('[Realtime] userId não disponível, pulando configuração do Realtime.');
@@ -316,16 +309,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       .on(
         'postgres_changes',
         {
-          event: '*', // Escutar INSERT, UPDATE, DELETE
+          event: '*',
           schema: 'public',
           table: 'orders',
-          filter: `user_id=eq.${userId}`, // Filtrar apenas pelos pedidos deste usuário
+          filter: `user_id=eq.${userId}`,
         },
         (payload) => {
           console.log('[Realtime] Mudança no pedido recebida:', payload);
           
-          // Para INSERT e UPDATE, usamos payload.new
-          // Para DELETE, payload.new é null, então precisamos usar payload.old para obter o ID
           const orderData = payload.eventType === 'DELETE' ? payload.old : payload.new;
 
           if (!orderData) {
@@ -335,10 +326,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
           let changedOrder: Order;
           if (payload.eventType === 'DELETE') {
-            // For DELETE, we primarily need the ID from payload.old
-            // We construct a minimal changedOrder for logging and filtering
             changedOrder = {
-              id: payload.old.id as string, // Explicitly cast to string
+              id: payload.old.id as string,
               customerName: payload.old.customer_name || '', 
               date: payload.old.order_date || new Date().toISOString(),
               items: payload.old.items || [],
@@ -346,23 +335,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               status: payload.old.status || 'rejected', 
             } as Order;
           } else {
-            // Ensure all properties are correctly mapped and default to empty/zero if missing
             changedOrder = {
               id: orderData.id as string,
               customerName: orderData.customer_name || '',
               items: (orderData.items as any[] || []),
               total: orderData.total || 0,
-              status: orderData.status || 'pending', // Default status
+              status: orderData.status || 'pending',
               date: orderData.order_date || new Date().toISOString(),
             } as Order;
           }
 
-          // Update the state first
           setOrders(prevOrders => {
             if (payload.eventType === 'INSERT') {
               console.log('[Realtime] Evento INSERT. Novo pedido ID:', changedOrder.id);
               if (!prevOrders.some(order => order.id === changedOrder.id)) {
-                // Reproduzir som para novo pedido
                 if (newOrderSoundRef.current) {
                   newOrderSoundRef.current.play().catch(e => console.error("Erro ao reproduzir som:", e));
                 }
@@ -388,9 +374,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
             return prevOrders;
           });
 
-          // Then, show the toast based on the event type and new status
           let message: string = '';
-          let toastIdValue: string = `order-status-${changedOrder.id}`; // Unique ID for each order status toast
+          let toastIdValue: string = `order-status-${changedOrder.id}`;
 
           if (payload.eventType === 'INSERT') {
             message = `Novo pedido recebido!`;
@@ -425,7 +410,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     };
   }, [userId, supabase, selectedOrder]); 
 
-  // NOVO: useEffect para recalcular dados de vendas e produtos mais vendidos quando 'orders' ou 'products' mudarem
   useEffect(() => {
     if (orders.length > 0 || products.length > 0) {
       setWeeklySalesData(generateWeeklySalesData());
@@ -453,7 +437,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
           if (userId) {
             storageService.saveStoreSchedule(supabase, userId, { ...storeSchedule, reopenAt: null, isTemporariamenteClosedIndefinidamente: false });
           }
-          setTimeout(() => showSuccess("A loja foi reaberta automaticamente!"), 0); // Usar setTimeout
+          setTimeout(() => showSuccess("A loja foi reaberta automaticamente!"), 0);
           clearInterval(timer);
         } else {
           const minutes = Math.floor(diff / (1000 * 60));
@@ -644,7 +628,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         const updatedProducts = prevProducts.map(product => {
           if (product.id === productId) {
             return {
-              ...product, // Corrigido de 'p' para 'product'
+              ...product,
               options: product.options.map(option => {
                 if (option.id === optionId) {
                   const oldIndex = option.subProducts.findIndex(subProduct => subProduct.id === active.id);
@@ -733,7 +717,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     );
     setProducts(updatedProducts);
     await storageService.saveProducts(supabase, userId, updatedProducts);
-    setTimeout(() => showSuccess(`Produto ${isFeatured ? 'adicionado aos destaques' : 'removido dos destaques'}!`), 0); // Usar setTimeout
+    setTimeout(() => showSuccess(`Produto ${isFeatured ? 'adicionado aos destaques' : 'removido dos destaques'}!`), 0);
   };
 
   const handleOptionChange = async (productId: string, optionId: string, field: keyof Option, value: any) => {
@@ -888,7 +872,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       setIsToggleConfirmationModalOpen(true);
     } else {
       updateProductOptionsAndSave(productId, optionId, targetActiveState, '', false);
-      setTimeout(() => showSuccess(`Todos os sabores foram ${targetActiveState ? 'ativados' : 'desativados'}!`), 0); // Usar setTimeout
+      setTimeout(() => showSuccess(`Todos os sabores foram ${targetActiveState ? 'ativados' : 'desativados'}!`), 0);
     }
   };
 
@@ -899,7 +883,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     updateProductOptionsAndSave(productId, optionId, targetActiveState, '', false);
     setIsToggleConfirmationModalOpen(false);
     setPendingToggleAction(null);
-    setTimeout(() => showSuccess(`Todos os itens da opção foram ${targetActiveState ? 'ativados' : 'desativados'}!`), 0); // Usar setTimeout
+    setTimeout(() => showSuccess(`Todos os itens da opção foram ${targetActiveState ? 'ativados' : 'desativados'}!`), 0);
   };
 
   const confirmToggleFilteredSubProducts = async () => {
@@ -909,7 +893,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     updateProductOptionsAndSave(productId, optionId, targetActiveState, searchTerm, true);
     setIsToggleConfirmationModalOpen(false);
     setPendingToggleAction(null);
-    setTimeout(() => showSuccess(`Somente os nomes filtrados foram ${targetActiveState ? 'ativados' : 'desativados'}!`), 0); // Usar setTimeout
+    setTimeout(() => showSuccess(`Somente os nomes filtrados foram ${targetActiveState ? 'ativados' : 'desativados'}!`), 0);
   };
 
 
@@ -928,7 +912,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     );
     setProducts(updatedProducts);
     await storageService.saveProducts(supabase, userId, updatedProducts);
-    setTimeout(() => showSuccess(`Sabor ${updatedProducts.find(p => p.id === productId)?.options.find(opt => opt.id === optionId)?.subProducts.find(sp => sp.id === subProductId)?.name} foi ${updatedProducts.find(p => p.id === productId)?.options.find(opt => opt.id === optionId)?.subProducts.find(sp => sp.id === subProductId)?.isActive ? 'ativado' : 'desativado'}!`), 0); // Usar setTimeout
+    setTimeout(() => showSuccess(`Sabor ${updatedProducts.find(p => p.id === productId)?.options.find(opt => opt.id === optionId)?.subProducts.find(sp => sp.id === subProductId)?.name} foi ${updatedProducts.find(p => p.id === productId)?.options.find(opt => opt.id === optionId)?.subProducts.find(sp => sp.id === subProductId)?.isActive ? 'ativado' : 'desativado'}!`), 0);
   };
 
   const handleDeleteOption = async (productId: string, optionId: string) => {
@@ -1030,7 +1014,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       setIsStoreTemporariamenteClosed(false);
       setStoreSchedule(prev => ({ ...prev, reopenAt: null, isTemporariamenteClosedIndefinidamente: false }));
       storageService.saveStoreSchedule(supabase, userId, { ...storeSchedule, reopenAt: null, isTemporariamenteClosedIndefinidamente: false });
-      setTimeout(() => showSuccess("A loja foi reaberta automaticamente!"), 0); // Usar setTimeout
+      setTimeout(() => showSuccess("A loja foi reaberta automaticamente!"), 0);
       setIsCloseModalOpen(false);
     } else {
       setIsCloseModalOpen(true);
@@ -1067,7 +1051,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         reopenAt: reopenAtISO, 
         isTemporariamenteClosedIndefinidamente: isIndefinite 
     });
-    setTimeout(() => showSuccess(successMessage), 0); // Usar setTimeout
+    setTimeout(() => showSuccess(successMessage), 0);
   };
 
   const handleOpenCopyOptionModal = (productId: string, optionId: string) => {
@@ -1110,7 +1094,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
     setProducts(updatedProducts);
     await storageService.saveProducts(supabase, userId, updatedProducts);
-    setTimeout(() => showSuccess(`Opção '${sourceOption.title}' copiada com sucesso!`), 0); // Usar setTimeout
+    setTimeout(() => showSuccess(`Opção '${sourceOption.title}' copiada com sucesso!`), 0);
     handleCloseCopyOptionModal();
   };
 
@@ -1126,26 +1110,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   const handleUpdateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
     if (!userId) return;
-    // Apenas chama o serviço para atualizar o DB. O toast será disparado pelo listener do Realtime.
     await storageService.updateOrderStatus(supabase, userId, orderId, newStatus);
   };
 
-  // MODIFICADO: handleDeleteOrder agora move para a lixeira
   const handleDeleteOrder = async (orderId: string) => {
     if (!userId) return;
     if (window.confirm(`Tem certeza que deseja mover o pedido #${orderId.substring(0, 8)} para a lixeira?`)) {
-      // Apenas chama o serviço para atualizar o DB. O toast será disparado pelo listener do Realtime.
       await storageService.deleteOrder(supabase, userId, orderId);
     }
   };
 
-  // NOVO: Função para abrir o modal de confirmação de senha antes de excluir permanentemente
   const handleConfirmPermanentDeleteOrder = (orderId: string) => {
     setOrderToDeletePermanently(orderId);
     setIsAdminPasswordConfirmModalOpen(true);
   };
 
-  // NOVO: Função para excluir permanentemente um pedido da lixeira APÓS a confirmação da senha
   const handlePermanentlyDeleteOrderWithPassword = async (password: string) => {
     if (!userId || !orderToDeletePermanently) {
       showError("Erro interno: ID do pedido ou usuário ausente.");
@@ -1153,7 +1132,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     }
 
     try {
-      // Apenas chama o serviço para atualizar o DB. O toast será disparado pelo listener do Realtime.
       const success = await storageService.permanentlyDeleteOrder(supabase, userId, orderToDeletePermanently);
       if (!success) {
         showError("Falha ao excluir pedido permanentemente.");
@@ -1172,7 +1150,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       case 'pending': return 'preparing';
       case 'preparing': return 'in_transit';
       case 'in_transit': return 'delivered';
-      default: return null; // Não há próximo status para 'delivered', 'rejected' ou 'trashed'
+      default: return null;
+    }
+  };
+
+  // NOVO: Função para testar o som
+  const handleTestSound = () => {
+    if (newOrderSoundRef.current) {
+      setIsSoundTestPlaying(true);
+      newOrderSoundRef.current.play().catch(e => {
+        console.error("Erro ao reproduzir som de teste:", e);
+        showError("Erro ao reproduzir som de teste. Verifique o console do navegador.");
+      }).finally(() => {
+        // Opcional: resetar o estado após um curto período ou quando o som terminar
+        setTimeout(() => setIsSoundTestPlaying(false), 2000); 
+      });
+    } else {
+      showError("Elemento de áudio não encontrado.");
     }
   };
 
@@ -1224,15 +1218,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     }
   });
 
-  // Usando useMemo para otimizar a filtragem de pedidos
   const filteredOrders = React.useMemo(() => {
-    console.log('[Dashboard] Recalculando filteredOrders. orders state (IDs):', orders.map(o => o.id), 'filter:', orderStatusFilter); // MODIFIED LOG
+    console.log('[Dashboard] Recalculando filteredOrders. orders state (IDs):', orders.map(o => o.id), 'filter:', orderStatusFilter);
     const result = orders.filter(order => {
-      if (orderStatusFilter === 'all') return order.status !== 'trashed'; // 'all' não mostra lixeira por padrão
+      if (orderStatusFilter === 'all') return order.status !== 'trashed';
       if (orderStatusFilter === 'trashed') return order.status === 'trashed';
       return order.status === orderStatusFilter;
     });
-    console.log('[Dashboard] filteredOrders result (IDs):', result.map(o => o.id)); // NOVO LOG
+    console.log('[Dashboard] filteredOrders result (IDs):', result.map(o => o.id));
     return result;
   }, [orders, orderStatusFilter]);
 
@@ -1240,7 +1233,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-200 font-sans">
-      {/* Elemento de áudio para notificação de novo pedido */}
       <audio ref={newOrderSoundRef} src="/sounds/clock-alarm-8761.mp3" preload="auto" />
 
       <aside 
@@ -1277,7 +1269,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                             } else if (item.id === 'orders-parent') {
                                 setIsOrdersSubmenuOpen(prev => !prev);
                                 setIsStoreSubmenuOpen(false);
-                                // A navegação para os itens do submenu agora é feita apenas ao clicar nos itens filhos
                             } else {
                                 setActiveTab(item.id as any);
                                 setIsStoreSubmenuOpen(false);
@@ -1396,6 +1387,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                     )}
                 </div>
 
+                <button 
+                    onClick={handleTestSound}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-xl transition-all transform active:scale-95 flex items-center gap-2"
+                    disabled={isSoundTestPlaying}
+                >
+                    <Volume2 className="w-4 h-4" /> {isSoundTestPlaying ? 'Tocando...' : 'Testar Som'}
+                </button>
+
                 <a 
                     href="#/store" 
                     target="_blank" 
@@ -1440,7 +1439,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                             </button>
                             <button 
                                 onClick={() => { 
-                                    setTimeout(() => showSuccess("Funcionalidade de Suporte em breve!"), 0); // Usar setTimeout
+                                    setTimeout(() => showSuccess("Funcionalidade de Suporte em breve!"), 0);
                                     setIsProfileDropdownOpen(false); 
                                 }} 
                                 className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -1449,7 +1448,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                             </button>
                             <button 
                                 onClick={() => { 
-                                    setTimeout(() => showSuccess("Funcionalidade de Meu Plano em breve!"), 0); // Usar setTimeout
+                                    setTimeout(() => showSuccess("Funcionalidade de Meu Plano em breve!"), 0);
                                     setIsProfileDropdownOpen(false); 
                                 }} 
                                 className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -1514,7 +1513,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
                         <RecentOrders 
-                            orders={orders.filter(o => o.status !== 'trashed')} // Não mostra pedidos da lixeira
+                            orders={orders.filter(o => o.status !== 'trashed')}
                             storePrimaryColor={storeProfile.primaryColor} 
                             onViewAllOrders={() => setActiveTab('order-manager')}
                         />
@@ -1908,7 +1907,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                                   order.status === 'preparing' ? 'bg-blue-100 text-blue-600' :
                                                   order.status === 'in_transit' ? 'bg-purple-100 text-purple-600' :
                                                   order.status === 'rejected' ? 'bg-red-100 text-red-600' :
-                                                  order.status === 'trashed' ? 'bg-gray-200 text-gray-600' : // Cor para lixeira
+                                                  order.status === 'trashed' ? 'bg-gray-200 text-gray-600' :
                                                   'bg-green-100 text-green-600'}`}>
                                                 {order.customerName[0]}
                                             </div>
@@ -1924,13 +1923,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                                  order.status === 'preparing' ? 'bg-blue-100 text-blue-700' :
                                                  order.status === 'in_transit' ? 'bg-purple-100 text-purple-700' :
                                                  order.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                                                 order.status === 'trashed' ? 'bg-gray-200 text-gray-600' : // Texto para lixeira
+                                                 order.status === 'trashed' ? 'bg-gray-200 text-gray-600' :
                                                  'bg-green-100 text-green-700'}`}>
                                                 {order.status === 'pending' ? 'Pendente' : 
                                                  order.status === 'preparing' ? 'Preparando' :
                                                  order.status === 'in_transit' ? 'Em Rota' :
                                                  order.status === 'rejected' ? 'Rejeitado' :
-                                                 order.status === 'trashed' ? 'Lixeira' : // Texto para lixeira
+                                                 order.status === 'trashed' ? 'Lixeira' :
                                                  'Entregue'}
                                             </span>
                                             {order.status === 'pending' && (
@@ -1973,7 +1972,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handleDeleteOrder(order.id); // Move para a lixeira
+                                                        handleDeleteOrder(order.id);
                                                     }}
                                                     className="p-2 bg-gray-300 text-gray-700 rounded-full shadow-md hover:bg-gray-400 transition-colors transform active:scale-95"
                                                     title="Mover para a Lixeira"
@@ -1984,7 +1983,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handleConfirmPermanentDeleteOrder(order.id); // Abre o modal de confirmação de senha
+                                                        handleConfirmPermanentDeleteOrder(order.id);
                                                     }}
                                                     className="p-2 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 transition-colors transform active:scale-95"
                                                     title="Excluir Permanentemente"
