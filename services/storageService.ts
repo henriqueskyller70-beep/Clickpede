@@ -532,7 +532,7 @@ export const storageService = {
 
   // NOVO: Função para criar um único pedido
   createOrder: async (supabase: SupabaseClient, userId: string, order: Omit<Order, 'id'>): Promise<Order | null> => {
-    const toastId = showLoading("Finalizando pedido...");
+    // Removido showLoading e dismissToast daqui
     try {
       const { data, error } = await supabase.from('orders').insert({
         customer_name: order.customerName, // Mapear customerName para customer_name no DB
@@ -546,20 +546,17 @@ export const storageService = {
       if (error) {
         throw new Error(error.message);
       }
-      // A mensagem de sucesso será disparada pelo listener do Realtime no Dashboard
       return data as Order;
     } catch (err: any) {
       console.error("[StorageService] Erro ao criar pedido:", err);
       setTimeout(() => showError(err.message || "Erro desconhecido ao finalizar pedido."), 0); // Usar setTimeout
       return null;
-    } finally {
-      dismissToast(toastId);
     }
   },
 
   // NOVO: Função para atualizar o status de um pedido
   updateOrderStatus: async (supabase: SupabaseClient, userId: string, orderId: string, newStatus: Order['status']): Promise<Order | null> => {
-    const toastId = showLoading(`Atualizando status do pedido...`);
+    // Removido showLoading e dismissToast daqui
     try {
       const { data, error } = await supabase
         .from('orders')
@@ -572,7 +569,6 @@ export const storageService = {
       if (error) {
         throw new Error(error.message);
       }
-      // O toast de sucesso será disparado pelo listener do Realtime no Dashboard
       return { 
         ...data, 
         customerName: data.customer_name, // Mapear customer_name do DB para customerName na interface
@@ -583,14 +579,12 @@ export const storageService = {
       console.error("[StorageService] Erro ao atualizar status do pedido:", err);
       setTimeout(() => showError(err.message || "Erro desconhecido ao atualizar status do pedido."), 0); // Usar setTimeout
       return null;
-    } finally {
-      dismissToast(toastId);
     }
   },
 
   // MODIFICADO: deleteOrder agora move para a lixeira (status 'trashed')
   deleteOrder: async (supabase: SupabaseClient, userId: string, orderId: string): Promise<boolean> => {
-    const toastId = showLoading(`Movendo pedido para a lixeira...`);
+    // Removido showLoading e dismissToast daqui
     try {
       const { error } = await supabase
         .from('orders')
@@ -601,20 +595,17 @@ export const storageService = {
       if (error) {
         throw new Error(error.message);
       }
-      // O toast de sucesso será disparado pelo listener do Realtime no Dashboard
       return true;
     } catch (err: any) {
       console.error("[StorageService] Erro ao mover pedido para a lixeira:", err);
       setTimeout(() => showError(err.message || "Erro desconhecido ao mover pedido para a lixeira."), 0); // Usar setTimeout
       return false;
-    } finally {
-      dismissToast(toastId);
     }
   },
 
   // NOVO: Função para excluir um pedido permanentemente do banco de dados
   permanentlyDeleteOrder: async (supabase: SupabaseClient, userId: string, orderId: string): Promise<boolean> => {
-    const toastId = showLoading(`Excluindo pedido permanentemente...`);
+    // Removido showLoading e dismissToast daqui
     try {
       const { error } = await supabase
         .from('orders')
@@ -625,20 +616,17 @@ export const storageService = {
       if (error) {
         throw new Error(error.message);
       }
-      // O toast de sucesso será disparado pelo listener do Realtime no Dashboard
       return true;
     } catch (err: any) {
       console.error("[StorageService] Erro ao excluir pedido permanentemente:", err);
       setTimeout(() => showError(err.message || "Erro desconhecido ao excluir pedido permanentemente."), 0); // Usar setTimeout
       return false;
-    } finally {
-      dismissToast(toastId);
     }
   },
 
   // NOVO: Função para limpar todo o histórico de pedidos (agora move para a lixeira)
   clearAllOrders: async (supabase: SupabaseClient, userId: string): Promise<boolean> => {
-    const toastId = showLoading("Movendo todos os pedidos para a lixeira...");
+    // Removido showLoading e dismissToast daqui
     try {
       const { error } = await supabase
         .from('orders')
@@ -648,14 +636,11 @@ export const storageService = {
       if (error) {
         throw new Error(error.message);
       }
-      // O toast de sucesso será disparado pelo listener do Realtime no Dashboard
       return true;
     } catch (err: any) {
       console.error("[StorageService] Erro ao mover pedidos para a lixeira:", err);
       setTimeout(() => showError(err.message || "Erro desconhecido ao mover pedidos para a lixeira."), 0); // Usar setTimeout
       return false;
-    } finally {
-      dismissToast(toastId);
     }
   },
 

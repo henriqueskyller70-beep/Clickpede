@@ -1689,7 +1689,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="text-sm font-semibold text-gray-700">Nome do Item</label>
+                                            <label className="block text-sm font-semibold text-gray-700">Nome do Item</label>
                                             <input 
                                                 type="text" 
                                                 className="w-full mt-1 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#9f1239]/20 p-3 bg-gray-50 transition-all"
