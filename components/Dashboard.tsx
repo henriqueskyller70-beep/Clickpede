@@ -9,8 +9,8 @@ import { storageService } from '../services/storageService';
 import { useSession } from '../src/components/SessionContextProvider';
 import { showSuccess, showError, showLoading, dismissToast } from '../src/utils/toast';
 import { ProfileSettingsPage } from '../src/components/ProfileSettingsPage';
-import { debounce }
- from '../src/utils/debounce';
+import { debounce
+ } from '../src/utils/debounce';
 import { Modal } from '../src/components/ui/Modal';
 import { AddSubProductModal } from '../src/components/AddSubProductModal';
 import { CopyOptionModal } from '../src/components/CopyOptionModal';
@@ -126,7 +126,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const [orderToDeletePermanently, setOrderToDeletePermanently] = useState<string | null>(null);
 
   const newOrderSoundRef = useRef<HTMLAudioElement>(null);
-  const [isSoundTestPlaying, setIsSoundTestPlaying] = useState(false); // NOVO: Estado para o botão de teste de som
+  const [isSoundTestPlaying, setIsSoundTestPlaying] = useState(false);
 
 
   // DND Kit Sensors
@@ -1233,7 +1233,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-200 font-sans">
-      <audio ref={newOrderSoundRef} src="/sounds/clock-alarm-8761.mp3" preload="auto" />
+      <audio ref={newOrderSoundRef} src="/sounds/clock-alarm-8761.mp3" preload="auto" type="audio/mpeg" />
 
       <aside 
         className={`text-gray-300 flex flex-col shadow-2xl z-20 transition-all duration-300 ${isSidebarCollapsed ? 'w-20' : 'w-64'} border-r border-gray-800`}
