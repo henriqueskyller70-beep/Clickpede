@@ -9,7 +9,8 @@ import { storageService } from '../services/storageService';
 import { useSession } from '../src/components/SessionContextProvider';
 import { showSuccess, showError, showLoading, dismissToast } from '../src/utils/toast';
 import { ProfileSettingsPage } from '../src/components/ProfileSettingsPage';
-import { debounce } from '../src/utils/debounce';
+import { debounce }
+ from '../src/utils/debounce';
 import { Modal } from '../src/components/ui/Modal';
 import { AddSubProductModal } from '../src/components/AddSubProductModal';
 import { CopyOptionModal } from '../src/components/CopyOptionModal';
@@ -358,7 +359,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               console.log('[Realtime] Evento INSERT. Novo pedido ID:', changedOrder.id);
               // Adicionar novo pedido, garantindo que não haja duplicatas
               if (!prevOrders.some(order => order.id === changedOrder.id)) {
-                setTimeout(() => showSuccess(`Novo pedido #${changedOrder.id?.substring(0, 8)} recebido!`), 0); // Usar setTimeout
+                setTimeout(() => showSuccess(`Novo pedido recebido!`), 0); // Removido ID
                 return [changedOrder, ...prevOrders]; // Adiciona o novo pedido no topo
               } else {
                 console.log('[Realtime] Pedido já existe no estado, ignorando INSERT duplicado:', changedOrder.id);
@@ -369,13 +370,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               // Atualizar pedido existente
               let message: string;
               if (changedOrder.status === 'trashed') {
-                message = `Pedido #${changedOrder.id?.substring(0, 8)} foi para a lixeira!`;
+                message = `Pedido foi para a lixeira!`; // Removido ID
               } else if (changedOrder.status === 'preparing') {
                 message = `Pedido Aceito com Sucesso!`; // Mensagem específica para 'preparing'
-              } else if (changedOrder.status === 'in_transit') { // NOVO: Mensagem para 'in_transit'
-                message = `Pedido #${changedOrder.id?.substring(0, 8)} em rota!`;
+              } else if (changedOrder.status === 'in_transit') {
+                message = `Pedido em rota!`; // Mensagem específica para 'in_transit'
+              } else if (changedOrder.status === 'delivered') { // NOVO: Mensagem para 'delivered'
+                message = `Pedido Entregue com Sucesso!`;
               } else {
-                message = `Pedido #${changedOrder.id?.substring(0, 8)} atualizado para ${changedOrder.status}!`;
+                message = `Pedido atualizado para ${changedOrder.status}!`; // Removido ID
               }
               setTimeout(() => showSuccess(message), 0); // Usar setTimeout
               return prevOrders.map(order =>
@@ -397,7 +400,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               const updatedOrders = prevOrders.filter(order => order.id !== deletedOrderId);
               
               console.log('[Realtime] updatedOrders após remoção (IDs):', updatedOrders.map(o => o.id)); // NOVO LOG
-              setTimeout(() => showSuccess(`Pedido #${deletedOrderId.substring(0, 8)} foi removido permanentemente.`), 0); 
+              setTimeout(() => showSuccess(`Pedido foi removido permanentemente.`), 0); // Removido ID
               
               // If the deleted order was the selected one in the details modal, close it
               if (selectedOrder?.id === deletedOrderId) {
@@ -1684,7 +1687,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="text-sm font-semibold text-gray-700">Nome do Item</label>
+                                            <label className="block text-sm font-semibold text-gray-700">Nome do Item</label>
                                             <input 
                                                 type="text" 
                                                 className="w-full mt-1 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#9f1239]/20 p-3 bg-gray-50 transition-all"
