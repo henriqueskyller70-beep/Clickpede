@@ -1401,13 +1401,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                     )}
                 </div>
 
-                <button 
-                    onClick={handleTestSound}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-xl transition-all transform active:scale-95 flex items-center gap-2"
-                    disabled={isSoundTestPlaying}
-                >
-                    <Volume2 className="w-4 h-4" /> {isSoundTestPlaying ? 'Tocando...' : 'Testar Som'}
-                </button>
+                {/* Botão "Testar Som" removido daqui */}
 
                 <a 
                     href="#/store" 
@@ -2145,7 +2139,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                           </div>
                       </div>
 
-                      {/* NOVO: Opções de Toque de Notificação */}
+                      {/* Opções de Toque de Notificação */}
                       <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">Toque de Notificação de Novo Pedido</label>
                           <div className="space-y-2">
@@ -2164,6 +2158,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                   </label>
                               ))}
                           </div>
+                          {/* Botão "Testar Som" adicionado aqui */}
+                          <button 
+                              onClick={handleTestSound}
+                              className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-xl transition-all transform active:scale-95 flex items-center gap-2"
+                              disabled={isSoundTestPlaying}
+                          >
+                              <Volume2 className="w-4 h-4" /> {isSoundTestPlaying ? 'Tocando...' : 'Testar Som'}
+                          </button>
                       </div>
 
                       <div className="pt-6 flex justify-end">
