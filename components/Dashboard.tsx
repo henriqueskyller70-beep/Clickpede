@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   LayoutDashboard, Package, ShoppingBag, Settings, Plus, 
@@ -119,6 +121,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   const [isOrderDetailsModalOpen, setIsOrderDetailsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [shouldShakeOrderModal, setShouldShakeOrderModal] = useState(false); // NOVO: Estado para controlar o tremor do modal
+  const [newlyReceivedOrderId, setNewlyReceivedOrderId] = useState<string | null>(null); // NOVO: ID do pedido recém-recebido
 
   const [orderStatusFilter, setOrderStatusFilter] = useState<'all' | 'pending' | 'preparing' | 'in_transit' | 'delivered' | 'rejected' | 'trashed'>('all');
 
@@ -421,6 +425,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                 // NOVO: Ativar animação de tremor para pedidos pendentes
                 if (changedOrder.status === 'pending') {
                     setIsPendingOrdersShaking(true);
+                    setNewlyReceivedOrderId(changedOrder.id); // Define o ID do pedido recém-recebido
                     setTimeout(() => setIsPendingOrdersShaking(false), 1500); // Tremer por 1.5 segundos
                 }
                 return [changedOrder, ...prevOrders];
@@ -699,8 +704,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         const updatedProducts = prevProducts.map(product => {
           if (product.id === productId) {
             return {
-              ...p,
-              options: p.options.map(option => {
+              ...product,
+              options: product.options.map(option => {
                 if (option.id === optionId) {
                   const oldIndex = option.subProducts.findIndex(subProduct => subProduct.id === active.id);
                   const newIndex = option.subProducts.findIndex(subProduct => subProduct.id === over?.id);
@@ -1171,12 +1176,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   const handleOpenOrderDetails = (order: Order) => {
     setSelectedOrder(order);
+    const shouldShakeModal = newlyReceivedOrderId === order.id; // Verifica se o pedido aberto é o recém-recebido
+    setShouldShakeOrderModal(shouldShakeModal); // Define o estado de tremor
+    if (shouldShakeModal) {
+      setNewlyReceivedOrderId(null); // Limpa o ID após abrir o modal para que não trema novamente
+    }
     setIsOrderDetailsModalOpen(true);
   };
 
   const handleCloseOrderDetails = () => {
     setSelectedOrder(null);
     setIsOrderDetailsModalOpen(false);
+    setShouldShakeOrderModal(false); // Garante que o estado de tremor seja resetado ao fechar
   };
 
   const handleUpdateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
@@ -2498,6 +2509,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
           storePrimaryColor={storeProfile.primaryColor}
           allProducts={products}
           onUpdateOrderStatus={handleUpdateOrderStatus}
+          shouldShake={shouldShakeOrderModal}
         />
       )}
 
