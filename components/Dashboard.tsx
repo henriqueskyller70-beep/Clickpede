@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Importar useRef
 import { 
   LayoutDashboard, Package, ShoppingBag, Settings, Plus, 
   Trash2, Edit, LogOut, Store, Users, FileText, ChevronDown, Menu, Clock,
@@ -127,6 +127,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const [isAdminPasswordConfirmModalOpen, setIsAdminPasswordConfirmModalOpen] = useState(false);
   const [orderToDeletePermanently, setOrderToDeletePermanently] = useState<string | null>(null);
 
+  // NOVO: Ref para o elemento de áudio
+  const newOrderSoundRef = useRef<HTMLAudioElement>(null);
+
 
   // DND Kit Sensors
   const sensors = useSensors(
@@ -173,8 +176,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
           if (subProduct) {
             total += subProduct.price * selOpt.quantity;
           }
-        }
-      });
+        });
     }
     return total;
   };
@@ -359,6 +361,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
             if (payload.eventType === 'INSERT') {
               console.log('[Realtime] Evento INSERT. Novo pedido ID:', changedOrder.id);
               if (!prevOrders.some(order => order.id === changedOrder.id)) {
+                // Reproduzir som para novo pedido
+                if (newOrderSoundRef.current) {
+                  newOrderSoundRef.current.play().catch(e => console.error("Erro ao reproduzir som:", e));
+                }
                 return [changedOrder, ...prevOrders];
               } else {
                 console.log('[Realtime] Pedido já existe no estado, ignorando INSERT duplicado:', changedOrder.id);
@@ -1233,6 +1239,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-200 font-sans">
+      {/* Elemento de áudio para notificação de novo pedido */}
+      <audio ref={newOrderSoundRef} src="/sounds/clock-alarm-8761.mp3" preload="auto" />
+
       <aside 
         className={`text-gray-300 flex flex-col shadow-2xl z-20 transition-all duration-300 ${isSidebarCollapsed ? 'w-20' : 'w-64'} border-r border-gray-800`}
         style={{ background: `linear-gradient(to bottom, ${storeProfile.secondaryColor}e0, ${storeProfile.secondaryColor})` }}
