@@ -15,7 +15,8 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   coverUrl: '',
   address: '',
   phone: '',
-  notificationSound: 'clock-alarm-8761.mp3' // NOVO: Som de notificação padrão
+  notificationSound: 'clock-alarm-8761.mp3', // NOVO: Som de notificação padrão
+  notificationVolume: 0.7, // NOVO: Volume padrão
 };
 
 // Dados iniciais padrão para um novo horário de funcionamento
@@ -307,6 +308,7 @@ export const storageService = {
         address: data.address,
         phone: data.phone,
         notificationSound: data.notification_sound || DEFAULT_STORE_PROFILE.notificationSound, // NOVO: Buscar notification_sound
+        notificationVolume: data.notification_volume !== undefined ? data.notification_volume : DEFAULT_STORE_PROFILE.notificationVolume, // NOVO: Buscar notification_volume
       };
     }
     return DEFAULT_STORE_PROFILE;
@@ -341,6 +343,7 @@ export const storageService = {
         logo_url: updatedLogoUrl,
         cover_url: updatedCoverUrl,
         notification_sound: profile.notificationSound, // NOVO: Salvar notification_sound
+        notification_volume: profile.notificationVolume, // NOVO: Salvar notification_volume
       });
 
       const { error } = await supabase.from('store_profiles').upsert(
@@ -355,6 +358,7 @@ export const storageService = {
           logo_url: updatedLogoUrl, 
           cover_url: updatedCoverUrl,
           notification_sound: profile.notificationSound, // NOVO: Salvar notification_sound
+          notification_volume: profile.notificationVolume, // NOVO: Salvar notification_volume
         }, 
         { onConflict: 'user_id' }
       );

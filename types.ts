@@ -54,6 +54,7 @@ export interface StoreProfile {
   address?: string; // Endereço da loja
   phone?: string;   // Contato
   notificationSound: string; // NOVO: Nome do arquivo de som de notificação
+  notificationVolume: number; // NOVO: Volume do som de notificação (0.0 a 1.0)
 }
 
 export interface CartItem extends Product {

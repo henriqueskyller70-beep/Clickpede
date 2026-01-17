@@ -54,7 +54,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders-parent' | 'order-manager' | 'table-manager' | 'counter-manager' | 'store-settings' | 'schedule' | 'clients' | 'staff' | 'reports' | 'profile-settings'>('overview');
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [storeProfile, setStoreProfile] = useState<StoreProfile>({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '', notificationSound: 'clock-alarm-8761.mp3' });
+  const [storeProfile, setStoreProfile] = useState<StoreProfile>({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '', notificationSound: 'clock-alarm-8761.mp3', notificationVolume: 0.7 });
   const [isStoreTemporariamenteClosed, setIsStoreTemporariamenteClosed] = useState(false);
   const [reopenCountdown, setReopenCountdown] = useState<string | null>(null);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
@@ -231,8 +231,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               totalRevenue: 0,
             };
           }
-          productSales[productId].totalQuantity += item.quantity;
           productSales[productId].totalRevenue += calculateItemTotalPrice(item, allProducts) * item.quantity;
+          productSales[productId].totalQuantity += item.quantity;
         });
       }
     });
@@ -291,7 +291,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
           isTemporariamenteClosedIndefinidamente: false,
         });
         setIsStoreTemporariamenteClosed(false);
-        setStoreProfile({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '', notificationSound: 'clock-alarm-8761.mp3' });
+        setStoreProfile({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '', notificationSound: 'clock-alarm-8761.mp3', notificationVolume: 0.7 });
         setLogoPreview(null);
         setCoverPreview(null);
         setGroups([]);
@@ -357,6 +357,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               console.log('[Realtime] Evento INSERT. Novo pedido ID:', changedOrder.id);
               if (!prevOrders.some(order => order.id === changedOrder.id)) {
                 if (newOrderSoundRef.current) {
+                  newOrderSoundRef.current.volume = storeProfile.notificationVolume; // Definir volume antes de tocar
                   newOrderSoundRef.current.play().catch(e => console.error("Erro ao reproduzir som:", e));
                 }
                 return [changedOrder, ...prevOrders];
@@ -415,7 +416,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       console.log('[Realtime] Desinscrevendo do Realtime de pedidos.');
       supabase.removeChannel(ordersChannel);
     };
-  }, [userId, supabase, selectedOrder]); 
+  }, [userId, supabase, selectedOrder, storeProfile.notificationVolume]); // Adicionado storeProfile.notificationVolume aqui
 
   useEffect(() => {
     if (orders.length > 0 || products.length > 0) {
@@ -1163,8 +1164,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   const handleTestSound = () => {
     if (newOrderSoundRef.current) {
-      // Use o som de notificação atualmente selecionado no perfil da loja
       newOrderSoundRef.current.src = `/sounds/${storeProfile.notificationSound}`; 
+      newOrderSoundRef.current.volume = storeProfile.notificationVolume; // Definir volume antes de tocar
       
       setIsSoundTestPlaying(true);
       newOrderSoundRef.current.play().catch(e => {
@@ -1182,6 +1183,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   const handleNotificationSoundChange = (soundFileName: string) => {
     setStoreProfile(prev => ({ ...prev, notificationSound: soundFileName }));
+  };
+
+  const handleNotificationVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    setStoreProfile(prev => ({ ...prev, notificationVolume: newVolume }));
+    if (newOrderSoundRef.current) {
+      newOrderSoundRef.current.volume = newVolume;
+    }
   };
 
 
@@ -1400,8 +1409,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                         </span>
                     )}
                 </div>
-
-                {/* Botão "Testar Som" removido daqui */}
 
                 <a 
                     href="#/store" 
@@ -2158,14 +2165,28 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                   </label>
                               ))}
                           </div>
-                          {/* Botão "Testar Som" adicionado aqui */}
-                          <button 
-                              onClick={handleTestSound}
-                              className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-xl transition-all transform active:scale-95 flex items-center gap-2"
-                              disabled={isSoundTestPlaying}
-                          >
-                              <Volume2 className="w-4 h-4" /> {isSoundTestPlaying ? 'Tocando...' : 'Testar Som'}
-                          </button>
+                          <div className="flex items-center gap-4 mt-4">
+                              <button 
+                                  onClick={handleTestSound}
+                                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-xl transition-all transform active:scale-95 flex items-center gap-2"
+                                  disabled={isSoundTestPlaying}
+                              >
+                                  <Volume2 className="w-4 h-4" /> {isSoundTestPlaying ? 'Tocando...' : 'Testar Som'}
+                              </button>
+                              <div className="flex items-center gap-2 flex-1">
+                                  <span className="text-sm font-medium text-gray-700">Volume:</span>
+                                  <input
+                                      type="range"
+                                      min="0"
+                                      max="1"
+                                      step="0.1"
+                                      value={storeProfile.notificationVolume}
+                                      onChange={handleNotificationVolumeChange}
+                                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                  />
+                                  <span className="text-sm font-medium text-gray-700">{(storeProfile.notificationVolume * 100).toFixed(0)}%</span>
+                              </div>
+                          </div>
                       </div>
 
                       <div className="pt-6 flex justify-end">
