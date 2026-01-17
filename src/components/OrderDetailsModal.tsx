@@ -12,7 +12,6 @@ interface OrderDetailsModalProps {
   storePrimaryColor: string;
   allProducts: Product[]; // Needed to resolve sub-product details
   onUpdateOrderStatus: (orderId: string, newStatus: Order['status']) => void;
-  shouldShake?: boolean; // NOVO: Prop para controlar a animação de tremor
 }
 
 export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
@@ -22,7 +21,6 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   storePrimaryColor,
   allProducts,
   onUpdateOrderStatus,
-  shouldShake = false, // Valor padrão
 }) => {
   // Adicionando logs para depuração
   console.log("OrderDetailsModal rendering. Order:", order);
@@ -63,14 +61,13 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
   };
 
   return (
-    <Modal 
-      open={isOpen} 
-      onClose={onClose} 
-      title={`Detalhes do Pedido #${order.id?.substring(0, 8)}`}
-      contentClassName={shouldShake ? 'animate-shake' : ''} // Aplica a classe de tremor condicionalmente
-    >
-      {/* O conteúdo do modal foi movido para dentro do children do Modal */}
-      <div className="space-y-6">
+    <Modal open={isOpen} onClose={onClose}>
+      <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Detalhes do Pedido #{order.id?.substring(0, 8)}</h2>
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-50"><X className="w-5 h-5"/></button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-6">
         {/* Order Summary */}
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 shadow-sm space-y-2">
           <div className="flex items-center gap-2">
