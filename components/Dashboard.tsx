@@ -134,7 +134,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     { id: 'rotary-phone-ring-medium-103869.mp3', name: 'Telefone Antigo' },
     { id: 'school-bell-199584.mp3', name: 'Sino de Escola' },
     { id: 'cash-register-sound.mp3', name: 'Caixa Registradora' },
-    { id: 'test-beep.mp3', name: 'Beep de Teste' }, // NOVO: Adicionado o som de teste
+    { id: 'test-beep.mp3', name: 'Beep de Teste' }, // Re-adicionado o som de teste
   ];
 
 
@@ -1165,9 +1165,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   const handleTestSound = () => {
     if (newOrderSoundRef.current) {
-      // For testing, we'll temporarily override the src to use the test-beep
-      const originalSrc = newOrderSoundRef.current.src;
-      newOrderSoundRef.current.src = '/sounds/test-beep.mp3'; // Use the test beep for the test button
+      // Use o som de notificação atualmente selecionado no perfil da loja
+      newOrderSoundRef.current.src = `/sounds/${storeProfile.notificationSound}`; 
       
       setIsSoundTestPlaying(true);
       newOrderSoundRef.current.play().catch(e => {
@@ -1176,7 +1175,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       }).finally(() => {
         setTimeout(() => {
           setIsSoundTestPlaying(false);
-          newOrderSoundRef.current!.src = originalSrc; // Restore original src after test
         }, 2000); 
       });
     } else {
