@@ -14,7 +14,8 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   logoUrl: '',
   coverUrl: '',
   address: '',
-  phone: ''
+  phone: '',
+  notificationSound: 'clock-alarm-8761.mp3' // NOVO: Som de notificação padrão
 };
 
 // Dados iniciais padrão para um novo horário de funcionamento
@@ -305,6 +306,7 @@ export const storageService = {
         coverUrl: data.cover_url,
         address: data.address,
         phone: data.phone,
+        notificationSound: data.notification_sound || DEFAULT_STORE_PROFILE.notificationSound, // NOVO: Buscar notification_sound
       };
     }
     return DEFAULT_STORE_PROFILE;
@@ -338,6 +340,7 @@ export const storageService = {
         phone: profile.phone,
         logo_url: updatedLogoUrl,
         cover_url: updatedCoverUrl,
+        notification_sound: profile.notificationSound, // NOVO: Salvar notification_sound
       });
 
       const { error } = await supabase.from('store_profiles').upsert(
@@ -350,7 +353,8 @@ export const storageService = {
           address: profile.address,
           phone: profile.phone,
           logo_url: updatedLogoUrl, 
-          cover_url: updatedCoverUrl, 
+          cover_url: updatedCoverUrl,
+          notification_sound: profile.notificationSound, // NOVO: Salvar notification_sound
         }, 
         { onConflict: 'user_id' }
       );
@@ -496,7 +500,7 @@ export const storageService = {
     }
     return data.map(o => ({ 
       id: o.id, // ID agora é obrigatório
-      customerName: o.customer_name, // Mapear customer_name do DB para customerName na interface
+      customerName: o.customer_name, // Mapear customerName do DB para customerName na interface
       items: (o.items as any[] || []), 
       total: o.total,
       status: o.status,

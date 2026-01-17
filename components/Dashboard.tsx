@@ -54,7 +54,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders-parent' | 'order-manager' | 'table-manager' | 'counter-manager' | 'store-settings' | 'schedule' | 'clients' | 'staff' | 'reports' | 'profile-settings'>('overview');
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [storeProfile, setStoreProfile] = useState<StoreProfile>({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '' });
+  const [storeProfile, setStoreProfile] = useState<StoreProfile>({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '', notificationSound: 'clock-alarm-8761.mp3' });
   const [isStoreTemporariamenteClosed, setIsStoreTemporariamenteClosed] = useState(false);
   const [reopenCountdown, setReopenCountdown] = useState<string | null>(null);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
@@ -127,6 +127,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   const newOrderSoundRef = useRef<HTMLAudioElement>(null);
   const [isSoundTestPlaying, setIsSoundTestPlaying] = useState(false);
+
+  // Lista de sons de notificação disponíveis
+  const notificationSounds = [
+    { id: 'clock-alarm-8761.mp3', name: 'Alarme de Relógio' },
+    { id: 'rotary-phone-ring-medium-103869.mp3', name: 'Telefone Antigo' },
+    { id: 'school-bell-199584.mp3', name: 'Sino de Escola' },
+  ];
 
 
   // DND Kit Sensors
@@ -284,7 +291,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
           isTemporariamenteClosedIndefinidamente: false,
         });
         setIsStoreTemporariamenteClosed(false);
-        setStoreProfile({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '' });
+        setStoreProfile({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '', notificationSound: 'clock-alarm-8761.mp3' });
         setLogoPreview(null);
         setCoverPreview(null);
         setGroups([]);
@@ -628,7 +635,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         const updatedProducts = prevProducts.map(product => {
           if (product.id === productId) {
             return {
-              ...product,
+              ...p,
               options: product.options.map(option => {
                 if (option.id === optionId) {
                   const oldIndex = option.subProducts.findIndex(subProduct => subProduct.id === active.id);
@@ -1154,7 +1161,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     }
   };
 
-  // NOVO: Função para testar o som
   const handleTestSound = () => {
     if (newOrderSoundRef.current) {
       setIsSoundTestPlaying(true);
@@ -1162,12 +1168,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         console.error("Erro ao reproduzir som de teste:", e);
         showError("Erro ao reproduzir som de teste. Verifique o console do navegador.");
       }).finally(() => {
-        // Opcional: resetar o estado após um curto período ou quando o som terminar
         setTimeout(() => setIsSoundTestPlaying(false), 2000); 
       });
     } else {
       showError("Elemento de áudio não encontrado.");
     }
+  };
+
+  const handleNotificationSoundChange = (soundFileName: string) => {
+    setStoreProfile(prev => ({ ...prev, notificationSound: soundFileName }));
   };
 
 
@@ -1233,7 +1242,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-200 font-sans">
-      <audio ref={newOrderSoundRef} src="/sounds/clock-alarm-8761.mp3" preload="auto" type="audio/mpeg" />
+      <audio ref={newOrderSoundRef} src={`/sounds/${storeProfile.notificationSound}`} preload="auto" type="audio/mpeg" />
 
       <aside 
         className={`text-gray-300 flex flex-col shadow-2xl z-20 transition-all duration-300 ${isSidebarCollapsed ? 'w-20' : 'w-64'} border-r border-gray-800`}
@@ -2130,6 +2139,28 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                               </div>
                           </div>
                       </div>
+
+                      {/* NOVO: Opções de Toque de Notificação */}
+                      <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Toque de Notificação de Novo Pedido</label>
+                          <div className="space-y-2">
+                              {notificationSounds.map(sound => (
+                                  <label key={sound.id} className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-lg border border-gray-100 shadow-sm hover:bg-gray-100 transition-colors">
+                                      <input
+                                          type="radio"
+                                          name="notificationSound"
+                                          value={sound.id}
+                                          checked={storeProfile.notificationSound === sound.id}
+                                          onChange={() => handleNotificationSoundChange(sound.id)}
+                                          className="form-radio h-4 w-4 rounded focus:ring-[#9f1239] shadow-sm"
+                                          style={{ color: storeProfile.primaryColor }}
+                                      />
+                                      <span className="text-sm font-medium text-gray-800">{sound.name}</span>
+                                  </label>
+                              ))}
+                          </div>
+                      </div>
+
                       <div className="pt-6 flex justify-end">
                         <button 
                             onClick={handleSaveStoreProfile}

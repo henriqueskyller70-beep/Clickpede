@@ -53,6 +53,7 @@ export interface StoreProfile {
   coverUrl?: string; // Nova capa
   address?: string; // Endereço da loja
   phone?: string;   // Contato
+  notificationSound: string; // NOVO: Nome do arquivo de som de notificação
 }
 
 export interface CartItem extends Product {
