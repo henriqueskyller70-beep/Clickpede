@@ -54,7 +54,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders-parent' | 'order-manager' | 'table-manager' | 'counter-manager' | 'store-settings' | 'schedule' | 'clients' | 'staff' | 'reports' | 'profile-settings'>('overview');
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [storeProfile, setStoreProfile] = useState<StoreProfile>({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '', notificationSound: 'clock-alarm-8761.mp3', notificationVolume: 0.7 });
+  const [storeProfile, setStoreProfile] = useState<StoreProfile>({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '', notificationSound: 'clock-alarm-8761.mp3', notificationVolume: 0.7, repeatNotificationSound: false });
   const [isStoreTemporariamenteClosed, setIsStoreTemporariamenteClosed] = useState(false);
   const [reopenCountdown, setReopenCountdown] = useState<string | null>(null);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
@@ -127,6 +127,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   const newOrderSoundRef = useRef<HTMLAudioElement>(null);
   const [isSoundTestPlaying, setIsSoundTestPlaying] = useState(false);
+  const [soundRepeatIntervalId, setSoundRepeatIntervalId] = useState<NodeJS.Timeout | null>(null); // NOVO: ID do intervalo de repetição
 
   // Lista de sons de notificação disponíveis
   const notificationSounds = [
@@ -291,7 +292,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
           isTemporariamenteClosedIndefinidamente: false,
         });
         setIsStoreTemporariamenteClosed(false);
-        setStoreProfile({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '', notificationSound: 'clock-alarm-8761.mp3', notificationVolume: 0.7 });
+        setStoreProfile({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '', notificationSound: 'clock-alarm-8761.mp3', notificationVolume: 0.7, repeatNotificationSound: false });
         setLogoPreview(null);
         setCoverPreview(null);
         setGroups([]);
@@ -302,6 +303,58 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     };
     loadData();
   }, [userId, supabase]);
+
+  // NOVO: Efeito para gerenciar a repetição do som
+  useEffect(() => {
+    if (!userId || !storeProfile.repeatNotificationSound || !newOrderSoundRef.current) {
+      if (soundRepeatIntervalId) {
+        clearInterval(soundRepeatIntervalId);
+        setSoundRepeatIntervalId(null);
+        newOrderSoundRef.current?.pause();
+        newOrderSoundRef.current?.load(); // Reset audio
+      }
+      return;
+    }
+
+    const hasPendingOrders = orders.some(order => order.status === 'pending');
+
+    if (hasPendingOrders && !soundRepeatIntervalId) {
+      // Start repeating sound
+      newOrderSoundRef.current.src = `/sounds/${storeProfile.notificationSound}`;
+      newOrderSoundRef.current.volume = storeProfile.notificationVolume;
+      newOrderSoundRef.current.loop = true; // Ensure it loops naturally
+      newOrderSoundRef.current.play().catch(e => console.error("Erro ao iniciar som repetido:", e));
+
+      const interval = setInterval(() => {
+        // Check if still pending orders, if not, stop
+        const currentHasPendingOrders = orders.some(order => order.status === 'pending');
+        if (!currentHasPendingOrders) {
+          clearInterval(interval);
+          setSoundRepeatIntervalId(null);
+          newOrderSoundRef.current?.pause();
+          newOrderSoundRef.current?.load(); // Reset audio
+        }
+      }, 5000); // Check every 5 seconds, or adjust as needed
+      setSoundRepeatIntervalId(interval);
+    } else if (!hasPendingOrders && soundRepeatIntervalId) {
+      // Stop repeating sound
+      clearInterval(soundRepeatIntervalId);
+      setSoundRepeatIntervalId(null);
+      newOrderSoundRef.current?.pause();
+      newOrderSoundRef.current?.load(); // Reset audio
+    }
+
+    // Cleanup function for when component unmounts or dependencies change
+    return () => {
+      if (soundRepeatIntervalId) {
+        clearInterval(soundRepeatIntervalId);
+        setSoundRepeatIntervalId(null);
+        newOrderSoundRef.current?.pause();
+        newOrderSoundRef.current?.load();
+      }
+    };
+  }, [userId, orders, storeProfile.repeatNotificationSound, storeProfile.notificationSound, storeProfile.notificationVolume]);
+
 
   useEffect(() => {
     if (!userId) {
@@ -356,9 +409,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
             if (payload.eventType === 'INSERT') {
               console.log('[Realtime] Evento INSERT. Novo pedido ID:', changedOrder.id);
               if (!prevOrders.some(order => order.id === changedOrder.id)) {
-                if (newOrderSoundRef.current) {
-                  newOrderSoundRef.current.volume = storeProfile.notificationVolume; // Definir volume antes de tocar
-                  newOrderSoundRef.current.play().catch(e => console.error("Erro ao reproduzir som:", e));
+                // Play sound only if repeat is OFF, or if it's the first pending order
+                if (!storeProfile.repeatNotificationSound || !orders.some(o => o.status === 'pending')) {
+                  if (newOrderSoundRef.current) {
+                    newOrderSoundRef.current.volume = storeProfile.notificationVolume; // Definir volume antes de tocar
+                    newOrderSoundRef.current.loop = false; // Play once for non-repeating
+                    newOrderSoundRef.current.play().catch(e => console.error("Erro ao reproduzir som:", e));
+                  }
                 }
                 return [changedOrder, ...prevOrders];
               } else {
@@ -416,7 +473,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       console.log('[Realtime] Desinscrevendo do Realtime de pedidos.');
       supabase.removeChannel(ordersChannel);
     };
-  }, [userId, supabase, selectedOrder, storeProfile.notificationVolume]); // Adicionado storeProfile.notificationVolume aqui
+  }, [userId, supabase, selectedOrder, storeProfile.notificationVolume, storeProfile.repeatNotificationSound, orders]); 
 
   useEffect(() => {
     if (orders.length > 0 || products.length > 0) {
@@ -1166,6 +1223,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     if (newOrderSoundRef.current) {
       newOrderSoundRef.current.src = `/sounds/${storeProfile.notificationSound}`; 
       newOrderSoundRef.current.volume = storeProfile.notificationVolume; // Definir volume antes de tocar
+      newOrderSoundRef.current.loop = false; // Apenas para o teste, não repete
       
       setIsSoundTestPlaying(true);
       newOrderSoundRef.current.play().catch(e => {
@@ -1191,6 +1249,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     if (newOrderSoundRef.current) {
       newOrderSoundRef.current.volume = newVolume;
     }
+  };
+
+  const handleRepeatNotificationSoundChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStoreProfile(prev => ({ ...prev, repeatNotificationSound: e.target.checked }));
   };
 
 
@@ -2187,6 +2249,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                   <span className="text-sm font-medium text-gray-700">{(storeProfile.notificationVolume * 100).toFixed(0)}%</span>
                               </div>
                           </div>
+                          {/* NOVO: Caixinha de seleção para Repetição do Toque */}
+                          <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-lg border border-gray-100 shadow-sm hover:bg-gray-100 transition-colors mt-4">
+                              <input
+                                  type="checkbox"
+                                  id="repeatNotificationSound"
+                                  checked={storeProfile.repeatNotificationSound}
+                                  onChange={handleRepeatNotificationSoundChange}
+                                  className="form-checkbox h-4 w-4 rounded focus:ring-[#9f1239] shadow-sm"
+                                  style={{ color: storeProfile.primaryColor }}
+                              />
+                              <span className="text-sm font-medium text-gray-800">Repetir Toque até Pedido Aceito</span>
+                          </label>
                       </div>
 
                       <div className="pt-6 flex justify-end">

@@ -55,6 +55,7 @@ export interface StoreProfile {
   phone?: string;   // Contato
   notificationSound: string; // NOVO: Nome do arquivo de som de notificação
   notificationVolume: number; // NOVO: Volume do som de notificação (0.0 a 1.0)
+  repeatNotificationSound: boolean; // NOVO: Para repetir o toque de notificação
 }
 
 export interface CartItem extends Product {

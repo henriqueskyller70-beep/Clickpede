@@ -17,6 +17,7 @@ const DEFAULT_STORE_PROFILE: StoreProfile = {
   phone: '',
   notificationSound: 'clock-alarm-8761.mp3', // NOVO: Som de notificação padrão
   notificationVolume: 0.7, // NOVO: Volume padrão
+  repeatNotificationSound: false, // NOVO: Repetição do toque padrão
 };
 
 // Dados iniciais padrão para um novo horário de funcionamento
@@ -309,6 +310,7 @@ export const storageService = {
         phone: data.phone,
         notificationSound: data.notification_sound || DEFAULT_STORE_PROFILE.notificationSound, // NOVO: Buscar notification_sound
         notificationVolume: data.notification_volume !== undefined ? data.notification_volume : DEFAULT_STORE_PROFILE.notificationVolume, // NOVO: Buscar notification_volume
+        repeatNotificationSound: data.repeat_notification_sound !== undefined ? data.repeat_notification_sound : DEFAULT_STORE_PROFILE.repeatNotificationSound, // NOVO: Buscar repeat_notification_sound
       };
     }
     return DEFAULT_STORE_PROFILE;
@@ -344,6 +346,7 @@ export const storageService = {
         cover_url: updatedCoverUrl,
         notification_sound: profile.notificationSound, // NOVO: Salvar notification_sound
         notification_volume: profile.notificationVolume, // NOVO: Salvar notification_volume
+        repeat_notification_sound: profile.repeatNotificationSound, // NOVO: Salvar repeat_notification_sound
       });
 
       const { error } = await supabase.from('store_profiles').upsert(
@@ -359,6 +362,7 @@ export const storageService = {
           cover_url: updatedCoverUrl,
           notification_sound: profile.notificationSound, // NOVO: Salvar notification_sound
           notification_volume: profile.notificationVolume, // NOVO: Salvar notification_volume
+          repeat_notification_sound: profile.repeatNotificationSound, // NOVO: Salvar repeat_notification_sound
         }, 
         { onConflict: 'user_id' }
       );
