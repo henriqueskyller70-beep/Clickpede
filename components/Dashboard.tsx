@@ -128,6 +128,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const newOrderSoundRef = useRef<HTMLAudioElement>(null);
   const [isSoundTestPlaying, setIsSoundTestPlaying] = useState(false);
   const [soundRepeatIntervalId, setSoundRepeatIntervalId] = useState<NodeJS.Timeout | null>(null); // NOVO: ID do intervalo de repetição
+  const [isPendingOrdersShaking, setIsPendingOrdersShaking] = useState(false); // NOVO: Estado para a animação de tremor
 
   // Lista de sons de notificação disponíveis
   const notificationSounds = [
@@ -417,6 +418,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                     newOrderSoundRef.current.play().catch(e => console.error("Erro ao reproduzir som:", e));
                   }
                 }
+                // NOVO: Ativar animação de tremor para pedidos pendentes
+                if (changedOrder.status === 'pending') {
+                    setIsPendingOrdersShaking(true);
+                    setTimeout(() => setIsPendingOrdersShaking(false), 1500); // Tremer por 1.5 segundos
+                }
                 return [changedOrder, ...prevOrders];
               } else {
                 console.log('[Realtime] Pedido já existe no estado, ignorando INSERT duplicado:', changedOrder.id);
@@ -693,8 +699,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         const updatedProducts = prevProducts.map(product => {
           if (product.id === productId) {
             return {
-              ...product,
-              options: product.options.map(option => {
+              ...p,
+              options: p.options.map(option => {
                 if (option.id === optionId) {
                   const oldIndex = option.subProducts.findIndex(subProduct => subProduct.id === active.id);
                   const newIndex = option.subProducts.findIndex(subProduct => subProduct.id === over?.id);
@@ -1558,7 +1564,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                             </div>
                             <p className="text-3xl font-bold text-gray-800">R$ {orders.filter(o => o.status !== 'trashed').reduce((acc, curr) => acc + curr.total, 0).toFixed(2)}</p>
                         </div>
-                        <div className="bg-white p-6 rounded-xl shadow-xl border border-gray-100 transform hover:scale-[1.02] hover:shadow-2xl transition-all duration-200 relative overflow-hidden">
+                        <div className={`bg-white p-6 rounded-xl shadow-xl border border-gray-100 transform hover:scale-[1.02] hover:shadow-2xl transition-all duration-200 relative overflow-hidden ${isPendingOrdersShaking ? 'animate-shake' : ''}`}> {/* NOVO: Aplica a classe de animação */}
                             <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
                             <div className="flex items-center justify-between mb-4">
                                 <h4 className="text-gray-500 font-medium text-sm">Pedidos Pendentes</h4>
