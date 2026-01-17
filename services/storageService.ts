@@ -546,7 +546,7 @@ export const storageService = {
       if (error) {
         throw new Error(error.message);
       }
-      setTimeout(() => showSuccess("Pedido finalizado com sucesso!"), 0); // Usar setTimeout
+      // REMOVIDO: setTimeout(() => showSuccess("Pedido finalizado com sucesso!"), 0); // Usar setTimeout
       return data as Order;
     } catch (err: any) {
       console.error("[StorageService] Erro ao criar pedido:", err);
