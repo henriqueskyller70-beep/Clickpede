@@ -372,6 +372,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                 message = `Pedido #${changedOrder.id?.substring(0, 8)} foi para a lixeira!`;
               } else if (changedOrder.status === 'preparing') {
                 message = `Pedido Aceito com Sucesso!`; // Mensagem específica para 'preparing'
+              } else if (changedOrder.status === 'in_transit') { // NOVO: Mensagem para 'in_transit'
+                message = `Pedido #${changedOrder.id?.substring(0, 8)} em rota!`;
               } else {
                 message = `Pedido #${changedOrder.id?.substring(0, 8)} atualizado para ${changedOrder.status}!`;
               }
