@@ -546,7 +546,7 @@ export const storageService = {
       if (error) {
         throw new Error(error.message);
       }
-      // REMOVIDO: setTimeout(() => showSuccess("Pedido finalizado com sucesso!"), 0); // Usar setTimeout
+      // A mensagem de sucesso será disparada pelo listener do Realtime no Dashboard
       return data as Order;
     } catch (err: any) {
       console.error("[StorageService] Erro ao criar pedido:", err);
@@ -559,7 +559,7 @@ export const storageService = {
 
   // NOVO: Função para atualizar o status de um pedido
   updateOrderStatus: async (supabase: SupabaseClient, userId: string, orderId: string, newStatus: Order['status']): Promise<Order | null> => {
-    const toastId = showLoading(`Atualizando status do pedido #${orderId.substring(0, 8)}...`);
+    const toastId = showLoading(`Atualizando status do pedido...`);
     try {
       const { data, error } = await supabase
         .from('orders')
@@ -590,7 +590,7 @@ export const storageService = {
 
   // MODIFICADO: deleteOrder agora move para a lixeira (status 'trashed')
   deleteOrder: async (supabase: SupabaseClient, userId: string, orderId: string): Promise<boolean> => {
-    const toastId = showLoading(`Movendo pedido #${orderId.substring(0, 8)} para a lixeira...`);
+    const toastId = showLoading(`Movendo pedido para a lixeira...`);
     try {
       const { error } = await supabase
         .from('orders')
@@ -614,7 +614,7 @@ export const storageService = {
 
   // NOVO: Função para excluir um pedido permanentemente do banco de dados
   permanentlyDeleteOrder: async (supabase: SupabaseClient, userId: string, orderId: string): Promise<boolean> => {
-    const toastId = showLoading(`Excluindo pedido #${orderId.substring(0, 8)} permanentemente...`);
+    const toastId = showLoading(`Excluindo pedido permanentemente...`);
     try {
       const { error } = await supabase
         .from('orders')
@@ -649,7 +649,6 @@ export const storageService = {
         throw new Error(error.message);
       }
       // O toast de sucesso será disparado pelo listener do Realtime no Dashboard
-      // setTimeout(() => showSuccess("Todos os pedidos foram movidos para a lixeira!"), 0); // Usar setTimeout
       return true;
     } catch (err: any) {
       console.error("[StorageService] Erro ao mover pedidos para a lixeira:", err);
