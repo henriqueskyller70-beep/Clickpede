@@ -367,7 +367,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
             } else if (payload.eventType === 'UPDATE') {
               console.log('[Realtime] Evento UPDATE. Pedido ID:', changedOrder.id, 'Novo Status:', changedOrder.status);
               // Atualizar pedido existente
-              setTimeout(() => showSuccess(`Pedido #${changedOrder.id?.substring(0, 8)} atualizado para ${changedOrder.status}!`), 0); // Usar setTimeout
+              const message = changedOrder.status === 'trashed' 
+                ? `Pedido #${changedOrder.id?.substring(0, 8)} foi para a lixeira!` 
+                : `Pedido #${changedOrder.id?.substring(0, 8)} atualizado para ${changedOrder.status}!`;
+              setTimeout(() => showSuccess(message), 0); // Usar setTimeout
               return prevOrders.map(order =>
                 order.id === changedOrder.id ? changedOrder : order
               );
