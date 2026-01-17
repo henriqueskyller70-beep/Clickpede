@@ -244,7 +244,7 @@ export const StoreFront: React.FC<StoreFrontProps> = () => { // Removido onOrder
       setCart([]); // Limpa o carrinho após o pedido ser finalizado
       setCustomerName(''); // Limpa o nome do cliente
       setIsCartOpen(false); // Fecha o modal do carrinho
-      showSuccess("Pedido enviado para o gerenciamento!");
+      showSuccess("Pedido finalizado com sucesso!");
       // REMOVIDO: onOrderCreated() não é mais necessário com o Realtime do Supabase.
     }
   };
