@@ -127,7 +127,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   const newOrderSoundRef = useRef<HTMLAudioElement>(null);
   const [isSoundTestPlaying, setIsSoundTestPlaying] = useState(false);
-  const [soundRepeatIntervalId, setSoundRepeatIntervalId] = useState<NodeJS.Timeout | null>(null); // NOVO: ID do intervalo de repetição
+  const [soundRepeatIntervalId, setSoundRepeatIntervalId] = useState<NodeJS.Timeout | null>(null);
+
+  // NOVO: Estado para controlar quais pedidos devem ter a animação 'tada'
+  const [newlyAddedOrderIds, setNewlyAddedOrderIds] = useState<Set<string>>(new Set());
 
   // Lista de sons de notificação disponíveis
   const notificationSounds = [
@@ -417,6 +420,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                     newOrderSoundRef.current.play().catch(e => console.error("Erro ao reproduzir som:", e));
                   }
                 }
+                // Adiciona o ID do novo pedido para acionar a animação
+                setNewlyAddedOrderIds(prev => new Set(prev).add(changedOrder.id));
+                // Remove o ID após a duração da animação para que ela não se repita
+                setTimeout(() => {
+                    setNewlyAddedOrderIds(prev => {
+                        const newSet = new Set(prev);
+                        newSet.delete(changedOrder.id);
+                        return newSet;
+                    });
+                }, 2000); // Duração da animação 'tada' é de aproximadamente 1s, 2s para garantir
                 return [changedOrder, ...prevOrders];
               } else {
                 console.log('[Realtime] Pedido já existe no estado, ignorando INSERT duplicado:', changedOrder.id);
@@ -1975,7 +1988,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                 return (
                                     <div 
                                         key={order.id} 
-                                        className="bg-white p-6 rounded-xl border border-gray-100 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 transform hover:scale-[1.01] hover:shadow-2xl transition-all duration-200 relative overflow-hidden"
+                                        className={`bg-white p-6 rounded-xl border border-gray-100 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 transform hover:scale-[1.01] hover:shadow-2xl transition-all duration-200 relative overflow-hidden
+                                            ${newlyAddedOrderIds.has(order.id) ? 'animate__animated animate__tada' : ''}`}
                                     >
                                         <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
                                         <div className="flex items-center gap-4 cursor-pointer" onClick={() => handleOpenOrderDetails(order)}>
