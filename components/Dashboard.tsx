@@ -718,22 +718,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         const updatedProducts = prevProducts.map(product => {
           if (product.id === productId) {
             return {
-              ...product,
-              options: product.options.map(option => {
-                if (option.id === optionId) {
-                  const oldIndex = option.subProducts.findIndex(subProduct => subProduct.id === active.id);
-                  const newIndex = option.subProducts.findIndex(subProduct => subProduct.id === over?.id);
+              ...p,
+              options: p.options.map(opt => {
+                if (opt.id === optionId) {
+                  const oldIndex = opt.subProducts.findIndex(subProduct => subProduct.id === active.id);
+                  const newIndex = opt.subProducts.findIndex(subProduct => subProduct.id === over?.id);
 
-                  if (oldIndex === -1 || newIndex === -1) return option;
+                  if (oldIndex === -1 || newIndex === -1) return opt;
 
-                  const newOrderedSubProducts = arrayMove(option.subProducts, oldIndex, newIndex);
-                  return { ...option, subProducts: newOrderedSubProducts };
+                  const newOrderedSubProducts = arrayMove(opt.subProducts, oldIndex, newIndex);
+                  return { ...opt, subProducts: newOrderedSubProducts };
                 }
-                return option;
+                return opt;
               }),
             };
           }
-          return product;
+          return p;
         });
         debouncedSaveProducts(updatedProducts, userId);
         return updatedProducts;
@@ -2001,7 +2001,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                     <div 
                                         key={order.id} 
                                         className={`bg-white p-6 rounded-xl border border-gray-100 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 transform hover:scale-[1.01] hover:shadow-2xl transition-all duration-200 relative overflow-hidden
-                                            ${newlyAddedOrderIds.has(order.id) ? 'animate__animated animate__tada' : ''}`}
+                                            ${newlyAddedOrderIds.has(order.id) ? 'animate__animated animate__tada animate__infinite' : ''}`}
                                     >
                                         <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
                                         <div className="flex items-center gap-4 cursor-pointer" onClick={() => handleOpenOrderDetails(order)}>
