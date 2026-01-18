@@ -1457,6 +1457,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                         style={activeTab === child.id ? { color: storeProfile.primaryColor } : {}}
                                     />
                                     <span className="text-sm font-medium">{child.label}</span>
+                                    {child.id === 'order-manager' && pendingOrdersCount > 0 && !isSidebarCollapsed && (
+                                        <span className="ml-auto px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
+                                            {pendingOrdersCount}
+                                        </span>
+                                    )}
                                     <span className="absolute inset-0 bg-white/5 opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
                                 </button>
                             ))}
@@ -1938,11 +1943,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                     <h2 className="2xl font-bold text-gray-800 flex items-center gap-2">
                          <ShoppingBag className="drop-shadow-sm" style={{ color: storeProfile.primaryColor }} />
                          Gerenciador de Pedidos
-                         {pendingOrdersCount > 0 && (
-                            <span className="ml-2 px-3 py-1 bg-red-500 text-white text-sm font-bold rounded-full shadow-md">
-                                {pendingOrdersCount}
-                            </span>
-                         )}
                     </h2>
 
                     <div className="flex flex-wrap gap-3 mb-6">
