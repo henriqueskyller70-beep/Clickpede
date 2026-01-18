@@ -1341,6 +1341,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   // Calculate pending orders count
   const pendingOrdersCount = orders.filter(order => order.status === 'pending').length;
+  const preparingOrdersCount = orders.filter(order => order.status === 'preparing').length;
+  const inTransitOrdersCount = orders.filter(order => order.status === 'in_transit').length;
+  const deliveredOrdersCount = orders.filter(order => order.status === 'delivered').length;
+  const rejectedOrdersCount = orders.filter(order => order.status === 'rejected').length;
+  const trashedOrdersCount = orders.filter(order => order.status === 'trashed').length;
+
 
   console.log('ORDERS RENDER (final state before JSX):', orders.map(o => ({ id: o.id, status: o.status })));
 
@@ -1959,6 +1965,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                 ${orderStatusFilter === 'pending' ? 'bg-yellow-600 text-white' : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'}`}
                         >
                             Pendentes
+                            {pendingOrdersCount > 0 && (
+                                <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
+                                    {pendingOrdersCount}
+                                </span>
+                            )}
                         </button>
                         <button
                             onClick={() => setOrderStatusFilter('preparing')}
@@ -1966,6 +1977,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                 ${orderStatusFilter === 'preparing' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
                         >
                             Aceitos / Preparando
+                            {preparingOrdersCount > 0 && (
+                                <span className="ml-2 px-2 py-0.5 bg-blue-500 text-white text-xs font-bold rounded-full">
+                                    {preparingOrdersCount}
+                                </span>
+                            )}
                         </button>
                         <button
                             onClick={() => setOrderStatusFilter('in_transit')}
@@ -1973,6 +1989,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                 ${orderStatusFilter === 'in_transit' ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}
                         >
                             Em Rota
+                            {inTransitOrdersCount > 0 && (
+                                <span className="ml-2 px-2 py-0.5 bg-purple-500 text-white text-xs font-bold rounded-full">
+                                    {inTransitOrdersCount}
+                                </span>
+                            )}
                         </button>
                         <button
                             onClick={() => setOrderStatusFilter('delivered')}
@@ -1980,6 +2001,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                 ${orderStatusFilter === 'delivered' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
                         >
                             Finalizados
+                            {deliveredOrdersCount > 0 && (
+                                <span className="ml-2 px-2 py-0.5 bg-green-500 text-white text-xs font-bold rounded-full">
+                                    {deliveredOrdersCount}
+                                </span>
+                            )}
                         </button>
                         <button
                             onClick={() => setOrderStatusFilter('rejected')}
@@ -1987,6 +2013,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                 ${orderStatusFilter === 'rejected' ? 'bg-red-600 text-white' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
                         >
                             Rejeitados
+                            {rejectedOrdersCount > 0 && (
+                                <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
+                                    {rejectedOrdersCount}
+                                </span>
+                            )}
                         </button>
                         <button
                             onClick={() => setOrderStatusFilter('trashed')}
@@ -1994,6 +2025,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                 ${orderStatusFilter === 'trashed' ? 'bg-gray-600 text-white' : 'bg-gray-300 text-gray-800 hover:bg-gray-400'}`}
                         >
                             <Trash2 className="w-4 h-4 inline-block mr-2" /> Lixeira
+                            {trashedOrdersCount > 0 && (
+                                <span className="ml-2 px-2 py-0.5 bg-gray-500 text-white text-xs font-bold rounded-full">
+                                    {trashedOrdersCount}
+                                </span>
+                            )}
                         </button>
                     </div>
 
