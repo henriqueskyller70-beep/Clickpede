@@ -4,6 +4,7 @@ import App from './App';
 import { SessionContextProvider } from './src/components/SessionContextProvider'; // Importar o provedor de contexto
 import { supabase } from './src/integrations/supabase/client'; // Importar o cliente Supabase
 import ToastProvider from './src/components/ToastProvider'; // Importar o ToastProvider
+import 'animate.css'; // Importar animate.css
 
 // --- START: Lógica de limpeza de hash precoce (com logs detalhados) ---
 // A lógica de limpeza de hash foi removida conforme solicitado para permitir que o Supabase processe os tokens OAuth.
