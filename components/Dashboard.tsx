@@ -2001,7 +2001,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                     <div 
                                         key={order.id} 
                                         className={`bg-white p-6 rounded-xl border border-gray-100 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 transform hover:scale-[1.01] hover:shadow-2xl transition-all duration-200 relative overflow-hidden
-                                            ${newlyAddedOrderIds.has(order.id) ? 'animate__animated animate__shakeX animate__infinite' : ''}`}
+                                            ${newlyAddedOrderIds.has(order.id) ? 'animate__animated animate__shakeX animate__infinite animate__slow' : ''}`}
                                     >
                                         <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
                                         <div className="flex items-center gap-4 cursor-pointer" onClick={() => handleOpenOrderDetails(order)}>
