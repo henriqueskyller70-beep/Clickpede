@@ -1339,6 +1339,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     return result;
   }, [orders, orderStatusFilter]);
 
+  // Calculate pending orders count
+  const pendingOrdersCount = orders.filter(order => order.status === 'pending').length;
+
   console.log('ORDERS RENDER (final state before JSX):', orders.map(o => ({ id: o.id, status: o.status })));
 
   return (
@@ -1935,6 +1938,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                     <h2 className="2xl font-bold text-gray-800 flex items-center gap-2">
                          <ShoppingBag className="drop-shadow-sm" style={{ color: storeProfile.primaryColor }} />
                          Gerenciador de Pedidos
+                         {pendingOrdersCount > 0 && (
+                            <span className="ml-2 px-3 py-1 bg-red-500 text-white text-sm font-bold rounded-full shadow-md">
+                                {pendingOrdersCount}
+                            </span>
+                         )}
                     </h2>
 
                     <div className="flex flex-wrap gap-3 mb-6">
