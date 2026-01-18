@@ -116,6 +116,9 @@ const App: React.FC = () => {
   // Tela de Boas-vindas / Landing Page
   return (
     <div className="min-h-screen bg-gray-50 font-sans overflow-x-hidden">
+      <h1 className="animate__animated animate__tada text-4xl font-bold text-center text-red-600 mt-20">
+        TESTE ANIMATE
+      </h1>
       {/* Header */}
       <header className="w-full bg-white py-4 px-6 md:px-12 flex justify-between items-center fixed top-0 z-50 shadow-md border-b border-gray-200">
         <div className="flex items-center gap-2">
