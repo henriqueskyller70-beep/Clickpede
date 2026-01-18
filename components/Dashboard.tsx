@@ -275,6 +275,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         setMonthlySalesData(generateMonthlySalesData());
         setTopSellingProducts(getTopSellingProducts(fetchedOrders, fetchedProducts));
 
+        // Initialize newlyAddedOrderIds with existing pending orders
+        setNewlyAddedOrderIds(new Set(fetchedOrders.filter(order => order.status === 'pending').map(order => order.id)));
+
         console.log('[Dashboard] Perfil da loja carregado. Logo URL:', profile.logoUrl, 'Cover URL:', profile.coverUrl);
       } else {
         console.log('[Dashboard] Usuário deslogado, limpando estados.');
@@ -302,6 +305,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         setUserProfile(null);
         setWeeklySalesData([]);
         setMonthlySalesData([]);
+        setNewlyAddedOrderIds(new Set()); // Clear animation IDs
       }
     };
     loadData();
@@ -422,14 +426,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                 }
                 // Adiciona o ID do novo pedido para acionar a animação
                 setNewlyAddedOrderIds(prev => new Set(prev).add(changedOrder.id));
-                // Remove o ID após a duração da animação para que ela não se repita
-                setTimeout(() => {
-                    setNewlyAddedOrderIds(prev => {
-                        const newSet = new Set(prev);
-                        newSet.delete(changedOrder.id);
-                        return newSet;
-                    });
-                }, 2000); // Duração da animação 'tada' é de aproximadamente 1s, 2s para garantir
                 return [changedOrder, ...prevOrders];
               } else {
                 console.log('[Realtime] Pedido já existe no estado, ignorando INSERT duplicado:', changedOrder.id);
@@ -437,6 +433,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               }
             } else if (payload.eventType === 'UPDATE') {
               console.log('[Realtime] Evento UPDATE. Pedido ID:', changedOrder.id, 'Novo Status:', changedOrder.status);
+              // Update newlyAddedOrderIds based on status
+              setNewlyAddedOrderIds(prev => {
+                const newSet = new Set(prev);
+                if (changedOrder.status === 'pending') {
+                  newSet.add(changedOrder.id);
+                } else {
+                  newSet.delete(changedOrder.id);
+                }
+                return newSet;
+              });
               return prevOrders.map(order =>
                 order.id === changedOrder.id ? changedOrder : order
               );
@@ -447,6 +453,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                 setSelectedOrder(null);
                 setIsOrderDetailsModalOpen(false);
               }
+              // Remove from newlyAddedOrderIds on delete
+              setNewlyAddedOrderIds(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(changedOrder.id);
+                return newSet;
+              });
               return updatedOrders;
             }
             return prevOrders;
