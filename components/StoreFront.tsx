@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Plus, Minus, X, Search, MapPin, Clock, CreditCard, ShoppingBag, Home, FileText, ChevronRight, Bike, Info, History, Tag, User, Star, Edit } from 'lucide-react';
 import { Product, Category, StoreProfile, CartItem, Address, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
-import { storageService } from '../src/services/storageService';
-import { supabase } from '../src/integrations/supabase/client'; // Importar o cliente Supabase diretamente
-import { showError, showSuccess } from '../src/utils/toast'; // Importar showSuccess
-import { AddressManagerModal } from '../src/components/AddressManagerModal'; // Importar o novo modal
+import { storageService } from '../services/storageService'; // Caminho corrigido
+import { supabase } from '../src/integrations/supabase/client';
+import { showError, showSuccess } from '../src/utils/toast';
+import { AddressManagerModal } from '../src/components/AddressManagerModal';
 
 interface StoreFrontProps {
   storeId: string; // Agora aceita storeId como uma prop
