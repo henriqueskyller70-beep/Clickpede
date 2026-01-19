@@ -83,11 +83,11 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             <p className="text-sm text-gray-600">Status: <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>{order.status}</span></p>
           </div>
           {(order.status === 'rejected' || order.status === 'trashed') && order.rejectionReason && (
-            <div className="flex items-start gap-2 pt-2 border-t border-gray-100 mt-2">
-              <FileText className="w-4 h-4 text-gray-600 flex-shrink-0 mt-1" />
+            <div className="flex items-start gap-2 pt-2 border-t border-gray-100 mt-2 bg-red-50 p-3 rounded-lg"> {/* Adicionado destaque aqui */}
+              <FileText className="w-4 h-4 text-red-600 flex-shrink-0 mt-1" />
               <div>
-                <p className="font-semibold text-gray-800">Motivo da {order.status === 'rejected' ? 'Rejeição' : 'Exclusão'}:</p>
-                <p className="text-sm text-gray-600">{order.rejectionReason}</p>
+                <p className="font-bold text-red-800">Motivo da {order.status === 'rejected' ? 'Rejeição' : 'Exclusão'}:</p>
+                <p className="text-sm text-red-700">{order.rejectionReason}</p>
               </div>
             </div>
           )}
@@ -155,14 +155,7 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
               <Truck className="w-4 h-4" /> Marcar como Entregue
             </button>
           )}
-          {order.status === 'trashed' && (
-            <button
-              onClick={() => onUpdateOrderStatus(order.id, 'pending')} // Opção de restaurar da lixeira
-              className="bg-gray-600 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 font-bold shadow-lg transition-all transform active:scale-95 flex items-center gap-2"
-            >
-              <FileText className="w-4 h-4" /> Restaurar Pedido
-            </button>
-          )}
+          {/* REMOVIDO: Botão de Restaurar Pedido */}
           <button
             type="button"
             onClick={onClose}
