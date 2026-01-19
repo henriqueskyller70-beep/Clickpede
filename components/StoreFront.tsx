@@ -2,20 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Plus, Minus, X, Search, MapPin, Clock, CreditCard, ShoppingBag, Home, FileText, ChevronRight, Bike, Info, History, Tag, User, Star, Edit } from 'lucide-react';
 import { Product, Category, StoreProfile, CartItem, Address, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
 import { storageService } from '../services/storageService';
-import { useSession } from '../src/components/SessionContextProvider';
+import { supabase } from '../src/integrations/supabase/client'; // Importar o cliente Supabase diretamente
 import { showError, showSuccess } from '../src/utils/toast'; // Importar showSuccess
 import { AddressManagerModal } from '../src/components/AddressManagerModal'; // Importar o novo modal
 
 interface StoreFrontProps {
-  // REMOVIDO: onOrderCreated não é mais necessário com o Realtime do Supabase.
+  storeId: string; // Agora aceita storeId como uma prop
 }
 
-export const StoreFront: React.FC<StoreFrontProps> = () => { // Removido onOrderCreated das props
-  const { supabase, session } = useSession();
-  const userId = session?.user?.id;
+export const StoreFront: React.FC<StoreFrontProps> = ({ storeId }) => {
+  // REMOVIDO: const { supabase, session } = useSession();
+  // REMOVIDO: const userId = session?.user?.id; // Não é mais usado diretamente da sessão
 
   const [products, setProducts] = useState<Product[]>([]);
-  const [store, setStore] = useState<StoreProfile>({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '' });
+  const [store, setStore] = useState<StoreProfile>({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '', notificationSound: 'clock-alarm-8761.mp3', notificationVolume: 0.7, repeatNotificationSound: false });
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,21 +56,21 @@ export const StoreFront: React.FC<StoreFrontProps> = () => { // Removido onOrder
 
   useEffect(() => {
     const loadStoreData = async () => {
-      if (userId) {
-        console.log('[StoreFront] Carregando dados da loja para userId:', userId);
-        const fetchedProducts = await storageService.getProducts(supabase, userId);
-        const fetchedStoreProfile = await storageService.getStoreProfile(supabase, userId);
-        const fetchedStoreSchedule = await storageService.getStoreSchedule(supabase, userId);
-        const fetchedGroups = await storageService.getGroups(supabase, userId);
+      if (storeId) { // Usar storeId prop
+        console.log('[StoreFront] Carregando dados da loja para storeId:', storeId);
+        const fetchedProducts = await storageService.getProducts(supabase, storeId); // Passar storeId
+        const fetchedStoreProfile = await storageService.getStoreProfile(supabase, storeId); // Passar storeId
+        const fetchedStoreSchedule = await storageService.getStoreSchedule(supabase, storeId); // Passar storeId
+        const fetchedGroups = await storageService.getGroups(supabase, storeId); // Passar storeId
 
         setProducts(fetchedProducts);
         setStore(fetchedStoreProfile);
         setStoreSchedule(fetchedStoreSchedule);
         setGroups(fetchedGroups);
       } else {
-        console.log('[StoreFront] Nenhum userId, limpando dados da loja.');
+        console.log('[StoreFront] storeId não fornecido, limpando dados da loja.');
         setProducts([]);
-        setStore({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '' });
+        setStore({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '', notificationSound: 'clock-alarm-8761.mp3', notificationVolume: 0.7, repeatNotificationSound: false });
         setStoreSchedule({
           isAlwaysOpen: false,
           dailySchedules: [
@@ -99,7 +99,7 @@ export const StoreFront: React.FC<StoreFrontProps> = () => { // Removido onOrder
     } else if (savedAddresses.length > 0) {
       setSelectedAddressId(savedAddresses[0].id); // Select the first if no default
     }
-  }, [userId, supabase]);
+  }, [storeId]); // Dependência no storeId
 
   useEffect(() => {
     console.log('[StoreFront] Estado da loja atualizado:', store);
@@ -129,8 +129,8 @@ export const StoreFront: React.FC<StoreFrontProps> = () => { // Removido onOrder
         setReopenCountdown(null);
         return;
       } else {
-        if (userId) {
-          storageService.saveStoreSchedule(supabase, userId, { ...storeSchedule, reopenAt: null, isTemporariamenteClosedIndefinidamente: false });
+        if (storeId) { // Usar storeId
+          storageService.saveStoreSchedule(supabase, storeId, { ...storeSchedule, reopenAt: null, isTemporariamenteClosedIndefinidamente: false });
         }
         setReopenCountdown(null);
       }
@@ -208,8 +208,8 @@ export const StoreFront: React.FC<StoreFrontProps> = () => { // Removido onOrder
   };
 
   const handleCheckout = async () => {
-    if (!userId) {
-      showError("Você precisa estar logado para finalizar um pedido.");
+    if (!storeId) { // Usar storeId prop
+      showError("ID da loja não disponível para finalizar um pedido.");
       return;
     }
     if (cart.length === 0) {
@@ -238,7 +238,7 @@ export const StoreFront: React.FC<StoreFrontProps> = () => { // Removido onOrder
       date: new Date().toISOString(),
     };
 
-    const createdOrder = await storageService.createOrder(supabase, userId, newOrder);
+    const createdOrder = await storageService.createOrder(supabase, storeId, newOrder); // Passar storeId
 
     if (createdOrder) {
       setCart([]); // Limpa o carrinho após o pedido ser finalizado

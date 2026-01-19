@@ -92,7 +92,18 @@ const App: React.FC = () => {
 
   // Lógica de Roteamento Simples
   if (route.startsWith('#/store')) {
-    return <StoreFront />; {/* onOrderCreated não é mais necessário */}
+    const parts = route.split('/');
+    const storeId = parts[2]; // Espera-se #/store/ID_DA_LOJA
+    if (storeId) {
+      return <StoreFront storeId={storeId} />;
+    } else {
+      // Caso o ID da loja não seja fornecido na URL
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4 text-center">
+          <p className="text-lg text-gray-700">ID da loja não encontrado na URL. Por favor, use um link válido.</p>
+        </div>
+      );
+    }
   }
 
   if (route.startsWith('#/dashboard')) {

@@ -1463,7 +1463,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                         style={activeTab === child.id ? { color: storeProfile.primaryColor } : {}}
                                     />
                                     <span className="text-sm font-medium">{child.label}</span>
-                                    {child.id === 'order-manager' && pendingOrdersCount > 0 && !isSidebarCollapsed && (
+                                    {child.id === 'order-manager' && pendingOrdersCount > 0 && (
                                         <span className="ml-auto px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
                                             {pendingOrdersCount}
                                         </span>
@@ -1512,7 +1512,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                 </div>
 
                 <a 
-                    href="#/store" 
+                    href={userId ? `#/store/${userId}` : '#/'} // Gerar link público com userId
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-5 py-2 rounded-lg text-sm font-bold shadow-xl transition-all transform active:scale-95 flex items-center gap-2"
