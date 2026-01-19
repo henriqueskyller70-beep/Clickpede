@@ -1,7 +1,13 @@
--- Policy for 'orders' table to allow unauthenticated users (anon) to create orders
--- This policy ensures that the 'user_id' column is set, linking the order to a store owner.
-CREATE POLICY "Allow anon insert for orders with user_id"
+-- Remover a política existente de INSERT para 'anon' se ela estiver causando o problema
+-- DROP POLICY IF EXISTS "Sua política antiga de INSERT para anon" ON public.orders;
+
+-- Criar ou substituir a política para permitir que usuários anônimos insiram pedidos
+-- desde que o campo 'user_id' no novo pedido NÃO seja NULO.
+-- O 'user_id' será o ID do dono da loja, passado pelo frontend da vitrine.
+CREATE POLICY "Allow anon insert for orders with matching store_id"
 ON public.orders
-FOR INSERT
-TO anon
+FOR INSERT TO anon
 WITH CHECK (user_id IS NOT NULL);
+
+-- Certifique-se de que a RLS está ATIVADA para a tabela 'orders'
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
