@@ -2075,6 +2075,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                             <div>
                                                 <h4 className="font-bold text-gray-900">{order.customerName}</h4>
                                                 <p className="text-sm text-gray-500">#{order.id?.substring(0, 8)} • {new Date(order.date).toLocaleTimeString()}</p>
+                                                {order.status === 'trashed' && order.rejectionReason && (
+                                                    <p className="text-xs text-gray-600 mt-1">
+                                                        <span className="font-semibold">Motivo:</span> {order.rejectionReason}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="text-right flex items-center gap-3">
