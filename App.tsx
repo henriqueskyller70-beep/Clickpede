@@ -9,8 +9,10 @@ import { ForgotPasswordPage } from './src/components/ForgotPasswordPage'; // Imp
 import { ShoppingCart, Package, Smartphone, LineChart, Settings, Menu, X, Home as HomeIcon, Info, FileText, Star } from 'lucide-react'; // Adicionado Menu, X, HomeIcon, Info, FileText, Star
 import { useSession } from './src/components/SessionContextProvider';
 import { Modal } from './src/components/ui/Modal'; // Importar o componente Modal
+import { NotificationProvider, useNotifications } from './src/contexts/NotificationContext'; // Importar NotificationProvider e useNotifications
+import { NewOrderNotification } from './src/components/NewOrderNotification'; // Importar NewOrderNotification
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   console.log('App.tsx: Component rendering');
   const { session, supabase } = useSession();
   const [route, setRoute] = useState(window.location.hash || '#/');
@@ -21,7 +23,7 @@ const App: React.FC = () => {
   const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // NOVO: Estado para o menu mobile
 
-  // REMOVIDO: refreshOrdersTrigger e triggerOrdersRefresh não são mais necessários com o Realtime do Supabase.
+  const { pendingNewOrders, dismissNotification } = useNotifications(); // Consumir do contexto
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -89,6 +91,12 @@ const App: React.FC = () => {
       // Se estiver em '#/' (landing page), '#/store', '#/register', '#/forgot-password', '#/reset-password', permite.
     }
   }, [session, route]);
+
+  const handleViewNotificationOrder = (orderId: string) => {
+    // Navega para o dashboard e adiciona um parâmetro para abrir o modal de detalhes
+    handleNavigate(`#/dashboard?viewOrder=${orderId}`);
+    dismissNotification(orderId); // Dispensa a notificação após clicar em "Ver Pedido"
+  };
 
   // Lógica de Roteamento Simples
   if (route.startsWith('#/store')) {
@@ -335,8 +343,23 @@ const App: React.FC = () => {
           </div>
         </Modal>
       )}
+
+      {/* Renderiza a notificação de novo pedido se houver algum pendente */}
+      {pendingNewOrders.length > 0 && (
+        <NewOrderNotification
+          order={pendingNewOrders[0]} // Mostra apenas o primeiro pedido pendente
+          onDismiss={dismissNotification}
+          onViewOrder={handleViewNotificationOrder}
+        />
+      )}
     </div>
   );
 };
+
+const App: React.FC = () => (
+  <NotificationProvider>
+    <AppContent />
+  </NotificationProvider>
+);
 
 export default App;

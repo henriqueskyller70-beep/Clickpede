@@ -136,3 +136,16 @@ export interface Counter {
   user_id: string; // To link counters to a specific store owner
   order_index: number; // For sorting
 }
+
+// NOVO: Interfaces para o contexto de notificação
+export interface NewOrderNotificationType {
+  orderId: string;
+  customerName: string;
+  date: string;
+}
+
+export interface NotificationContextType {
+  pendingNewOrders: NewOrderNotificationType[];
+  dismissNotification: (orderId: string) => void;
+  storeProfile: StoreProfile | null; // Para acessar as configurações de som
+}

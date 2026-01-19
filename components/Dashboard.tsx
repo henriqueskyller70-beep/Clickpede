@@ -23,6 +23,7 @@ import { OrderDetailsModal } from '../src/components/OrderDetailsModal';
 import { AdminPasswordConfirmModal } from '../src/components/AdminPasswordConfirmModal';
 import { DeleteOrderReasonModal } from '../src/components/DeleteOrderReasonModal'; // NOVO: Importar o modal de motivo de exclusão
 import { translateOrderStatus } from '../src/utils/orderUtils'; // Importar a função de tradução
+import { useNotifications } from '../src/contexts/NotificationContext'; // Importar useNotifications
 
 // DND Kit Imports
 import {
@@ -52,6 +53,7 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) => {
   const { supabase, session } = useSession();
   const userId = session?.user?.id;
+  const { dismissNotification, storeProfile: notificationStoreProfile } = useNotifications(); // Consumir do contexto
 
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders-parent' | 'order-manager' | 'table-manager' | 'counter-manager' | 'store-settings' | 'schedule' | 'clients' | 'staff' | 'reports' | 'profile-settings'>('overview');
   const [products, setProducts] = useState<Product[]>([]);
@@ -127,9 +129,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const [isAdminPasswordConfirmModalOpen, setIsAdminPasswordConfirmModalOpen] = useState(false);
   const [orderToDeletePermanently, setOrderToDeletePermanently] = useState<string | null>(null);
 
-  const newOrderSoundRef = useRef<HTMLAudioElement>(null);
-  const [isSoundTestPlaying, setIsSoundTestPlaying] = useState(false);
-  const [soundRepeatIntervalId, setSoundRepeatIntervalId] = useState<NodeJS.Timeout | null>(null);
+  // REMOVIDO: newOrderSoundRef, isSoundTestPlaying, soundRepeatIntervalId
+  // A lógica de som agora está no NotificationContext
 
   // NOVO: Estado para controlar quais pedidos devem ter a animação 'tada'
   const [newlyAddedOrderIds, setNewlyAddedOrderIds] = useState<Set<string>>(new Set());
@@ -317,68 +318,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     loadData();
   }, [userId, supabase]);
 
-  // NOVO: Efeito para gerenciar a repetição do som
-  useEffect(() => {
-    if (!userId || !storeProfile.repeatNotificationSound || !newOrderSoundRef.current) {
-      if (soundRepeatIntervalId) {
-        clearInterval(soundRepeatIntervalId);
-        setSoundRepeatIntervalId(null);
-        newOrderSoundRef.current?.pause();
-        newOrderSoundRef.current?.load(); // Reset audio
-      }
-      return;
-    }
+  // REMOVIDO: Efeito para gerenciar a repetição do som (agora no NotificationContext)
 
-    const hasPendingOrders = orders.some(order => order.status === 'pending');
-
-    if (hasPendingOrders && !soundRepeatIntervalId) {
-      // Start repeating sound
-      newOrderSoundRef.current.src = `/sounds/${storeProfile.notificationSound}`;
-      newOrderSoundRef.current.volume = storeProfile.notificationVolume;
-      newOrderSoundRef.current.loop = true; // Ensure it loops naturally
-      newOrderSoundRef.current.play().catch(e => console.error("Erro ao iniciar som repetido:", e));
-
-      const interval = setInterval(() => {
-        // Check if still pending orders, if not, stop
-        const currentHasPendingOrders = orders.some(o => o.status === 'pending');
-        if (!currentHasPendingOrders) {
-          clearInterval(interval);
-          setSoundRepeatIntervalId(null);
-          newOrderSoundRef.current?.pause();
-          newOrderSoundRef.current?.load(); // Reset audio
-        }
-      }, 5000); // Check every 5 seconds, or adjust as needed
-      setSoundRepeatIntervalId(interval);
-    } else if (!hasPendingOrders && soundRepeatIntervalId) {
-      // Stop repeating sound
-      clearInterval(soundRepeatIntervalId);
-      setSoundRepeatIntervalId(null);
-      newOrderSoundRef.current?.pause();
-      newOrderSoundRef.current?.load(); // Reset audio
-    }
-
-    // Cleanup function for when component unmounts or dependencies change
-    return () => {
-      if (soundRepeatIntervalId) {
-        clearInterval(soundRepeatIntervalId);
-        setSoundRepeatIntervalId(null);
-        newOrderSoundRef.current?.pause();
-        newOrderSoundRef.current?.load();
-      }
-    };
-  }, [userId, orders, storeProfile.repeatNotificationSound, storeProfile.notificationSound, storeProfile.notificationVolume]);
-
-
+  // Realtime subscription for orders (now handled by NotificationContext, but Dashboard still needs to update its own 'orders' state)
   useEffect(() => {
     if (!userId) {
-      console.log('[Realtime] userId não disponível, pulando configuração do Realtime.');
+      console.log('[Dashboard Realtime] userId não disponível, pulando configuração do Realtime.');
       return;
     }
 
-    console.log('[Realtime] Configurando Realtime para pedidos com userId:', userId, 'Supabase client:', supabase);
+    console.log('[Dashboard Realtime] Configurando Realtime para pedidos com userId:', userId);
 
     const ordersChannel = supabase
-      .channel('orders_changes')
+      .channel('dashboard_orders_changes')
       .on(
         'postgres_changes',
         {
@@ -388,12 +340,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          console.log('[Realtime] Mudança no pedido recebida:', payload);
+          console.log('[Dashboard Realtime] Mudança no pedido recebida:', payload);
           
           const orderData = payload.eventType === 'DELETE' ? payload.old : payload.new;
 
           if (!orderData) {
-            console.warn('[Realtime] Dados do pedido ausentes no payload:', payload);
+            console.warn('[Dashboard Realtime] Dados do pedido ausentes no payload:', payload);
             return;
           }
 
@@ -406,7 +358,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               items: payload.old.items || [],
               total: payload.old.total || 0,
               status: payload.old.status || 'rejected', 
-              rejectionReason: payload.old.rejection_reason || undefined, // NOVO: Mapear rejectionReason
+              rejectionReason: payload.old.rejection_reason || undefined,
             } as Order;
           } else {
             changedOrder = {
@@ -416,32 +368,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               total: orderData.total || 0,
               status: orderData.status || 'pending',
               date: orderData.order_date || new Date().toISOString(),
-              rejectionReason: orderData.rejection_reason || undefined, // NOVO: Mapear rejectionReason
+              rejectionReason: orderData.rejection_reason || undefined,
             } as Order;
           }
 
           setOrders(prevOrders => {
             if (payload.eventType === 'INSERT') {
-              console.log('[Realtime] Evento INSERT. Novo pedido ID:', changedOrder.id);
+              console.log('[Dashboard Realtime] Evento INSERT. Novo pedido ID:', changedOrder.id);
               if (!prevOrders.some(order => order.id === changedOrder.id)) {
-                // Play sound only if repeat is OFF, or if it's the first pending order
-                if (!storeProfile.repeatNotificationSound || !orders.some(o => o.status === 'pending')) {
-                  if (newOrderSoundRef.current) {
-                    newOrderSoundRef.current.volume = storeProfile.notificationVolume; // Definir volume antes de tocar
-                    newOrderSoundRef.current.loop = false; // Play once for non-repeating
-                    newOrderSoundRef.current.play().catch(e => console.error("Erro ao reproduzir som:", e));
-                  }
-                }
-                // Adiciona o ID do novo pedido para acionar a animação
                 setNewlyAddedOrderIds(prev => new Set(prev).add(changedOrder.id));
                 return [changedOrder, ...prevOrders];
               } else {
-                console.log('[Realtime] Pedido já existe no estado, ignorando INSERT duplicado:', changedOrder.id);
+                console.log('[Dashboard Realtime] Pedido já existe no estado, ignorando INSERT duplicado:', changedOrder.id);
                 return prevOrders;
               }
             } else if (payload.eventType === 'UPDATE') {
-              console.log('[Realtime] Evento UPDATE. Pedido ID:', changedOrder.id, 'Novo Status:', changedOrder.status);
-              // Update newlyAddedOrderIds based on status
+              console.log('[Dashboard Realtime] Evento UPDATE. Pedido ID:', changedOrder.id, 'Novo Status:', changedOrder.status);
               setNewlyAddedOrderIds(prev => {
                 const newSet = new Set(prev);
                 if (changedOrder.status === 'pending') {
@@ -455,13 +397,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                 order.id === changedOrder.id ? changedOrder : order
               );
             } else if (payload.eventType === 'DELETE') {
-              console.log('[Realtime] Evento DELETE recebido. Pedido ID:', changedOrder.id);
+              console.log('[Dashboard Realtime] Evento DELETE recebido. Pedido ID:', changedOrder.id);
               const updatedOrders = prevOrders.filter(order => order.id !== changedOrder.id);
               if (selectedOrder?.id === changedOrder.id) {
                 setSelectedOrder(null);
                 setIsOrderDetailsModalOpen(false);
               }
-              // Remove from newlyAddedOrderIds on delete
               setNewlyAddedOrderIds(prev => {
                 const newSet = new Set(prev);
                 newSet.delete(changedOrder.id);
@@ -471,42 +412,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
             }
             return prevOrders;
           });
-
-          let message: string = '';
-          let toastIdValue: string = `order-status-${changedOrder.id}`;
-
-          if (payload.eventType === 'INSERT') {
-            message = `Novo pedido recebido!`;
-          } else if (payload.eventType === 'UPDATE') {
-            if (changedOrder.status === 'trashed') {
-              message = `Pedido movido para a lixeira.`;
-            } else if (changedOrder.status === 'preparing') {
-              message = `Pedido aceito com sucesso!`;
-            } else if (changedOrder.status === 'in_transit') {
-              message = `Pedido em rota!`;
-            } else if (changedOrder.status === 'delivered') {
-              message = `Pedido entregue com sucesso!`;
-            } else if (changedOrder.status === 'rejected') {
-              message = `Pedido rejeitado.`;
-            } else {
-              message = `Pedido atualizado.`;
-            }
-          } else if (payload.eventType === 'DELETE') {
-            message = `Pedido removido permanentemente.`;
-          }
-
-          if (message) {
-            showSuccess(message, { toastId: toastIdValue });
-          }
         }
       )
       .subscribe();
 
     return () => {
-      console.log('[Realtime] Desinscrevendo do Realtime de pedidos.');
+      console.log('[Dashboard Realtime] Desinscrevendo do Realtime de pedidos.');
       supabase.removeChannel(ordersChannel);
     };
-  }, [userId, supabase, selectedOrder, storeProfile.notificationVolume, storeProfile.repeatNotificationSound, orders]); 
+  }, [userId, supabase, selectedOrder]);
+
 
   useEffect(() => {
     if (orders.length > 0 || products.length > 0) {
@@ -572,6 +487,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       }
     }
   }, [optionToScrollToId]);
+
+  // NOVO: Efeito para lidar com o parâmetro de URL `viewOrder`
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.hash.split('?')[1]);
+    const viewOrderId = params.get('viewOrder');
+
+    if (viewOrderId && orders.length > 0) {
+      const orderToView = orders.find(order => order.id === viewOrderId);
+      if (orderToView) {
+        handleOpenOrderDetails(orderToView);
+        // Limpa o parâmetro da URL para evitar que o modal abra novamente em recargas
+        const newHash = window.location.hash.split('?')[0];
+        window.history.replaceState(null, '', newHash);
+      }
+    }
+  }, [orders, window.location.hash]); // Depende de 'orders' para garantir que os dados estejam carregados
+
 
   const handleAddGroup = async () => {
     if (newGroupName.trim() && userId) {
@@ -1209,6 +1141,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const handleUpdateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
     if (!userId) return;
     await storageService.updateOrderStatus(supabase, userId, orderId, newStatus);
+    dismissNotification(orderId); // Dispensa a notificação ao atualizar o status
   };
 
   // MODIFICADO: Abre o modal de motivo de exclusão
@@ -1223,6 +1156,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     await storageService.deleteOrder(supabase, userId, orderId, reason);
     setIsDeleteReasonModalOpen(false);
     setOrderToTrash(null);
+    dismissNotification(orderId); // Dispensa a notificação ao mover para a lixeira
   };
 
   const handleConfirmPermanentDeleteOrder = (orderId: string) => {
@@ -1240,6 +1174,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
       const success = await storageService.permanentlyDeleteOrder(supabase, userId, orderToDeletePermanently);
       if (!success) {
         showError("Falha ao excluir pedido permanentemente.");
+      } else {
+        dismissNotification(orderToDeletePermanently); // Dispensa a notificação ao excluir permanentemente
       }
     } catch (error: any) {
       console.error("Erro ao excluir pedido permanentemente com senha:", error);
@@ -1260,22 +1196,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   };
 
   const handleTestSound = () => {
-    if (newOrderSoundRef.current) {
-      newOrderSoundRef.current.src = `/sounds/${storeProfile.notificationSound}`; 
-      newOrderSoundRef.current.volume = storeProfile.notificationVolume; // Definir volume antes de tocar
-      newOrderSoundRef.current.loop = false; // Apenas para o teste, não repete
-      
-      setIsSoundTestPlaying(true);
-      newOrderSoundRef.current.play().catch(e => {
+    if (notificationStoreProfile) { // Usar storeProfile do contexto de notificação
+      const audio = new Audio(`/sounds/${notificationStoreProfile.notificationSound}`);
+      audio.volume = notificationStoreProfile.notificationVolume;
+      audio.play().catch(e => {
         console.error("Erro ao reproduzir som de teste:", e);
         showError("Erro ao reproduzir som de teste. Verifique o console do navegador.");
-      }).finally(() => {
-        setTimeout(() => {
-          setIsSoundTestPlaying(false);
-        }, 2000); 
       });
     } else {
-      showError("Elemento de áudio não encontrado.");
+      showError("Configurações de som não carregadas.");
     }
   };
 
@@ -1286,9 +1215,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const handleNotificationVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
     setStoreProfile(prev => ({ ...prev, notificationVolume: newVolume }));
-    if (newOrderSoundRef.current) {
-      newOrderSoundRef.current.volume = newVolume;
-    }
   };
 
   const handleRepeatNotificationSoundChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1367,7 +1293,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-200 font-sans">
-      <audio ref={newOrderSoundRef} src={`/sounds/${storeProfile.notificationSound}`} preload="auto" type="audio/mpeg" />
+      {/* REMOVIDO: <audio ref={newOrderSoundRef} src={`/sounds/${storeProfile.notificationSound}`} preload="auto" type="audio/mpeg" /> */}
 
       <aside 
         className={`text-gray-300 flex flex-col shadow-2xl z-20 transition-all duration-300 ${isSidebarCollapsed ? 'w-20' : 'w-64'} border-r border-gray-800`}
@@ -2323,9 +2249,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                               <button 
                                   onClick={handleTestSound}
                                   className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-xl transition-all transform active:scale-95 flex items-center gap-2"
-                                  disabled={isSoundTestPlaying}
+                                  // REMOVIDO: disabled={isSoundTestPlaying}
                               >
-                                  <Volume2 className="w-4 h-4" /> {isSoundTestPlaying ? 'Tocando...' : 'Testar Som'}
+                                  <Volume2 className="w-4 h-4" /> Testar Som
                               </button>
                               <div className="flex items-center gap-2 flex-1">
                                   <span className="text-sm font-medium text-gray-700">Volume:</span>
