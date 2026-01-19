@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   LayoutDashboard, Package, ShoppingBag, Settings, Plus, 
   Trash2, Edit, LogOut, Store, Users, FileText, ChevronDown, Menu, Clock,
-  GripVertical, Search, X, Copy, Star, Infinity, User as UserIcon, TrendingUp, Table as TableIcon, Monitor, Bike, CheckCircle, ArrowRight, Volume2
+  GripVertical, Search, X, Copy, Star, Infinity, User as UserIcon, TrendingUp, Table as TableIcon, Monitor, Bike, CheckCircle, ArrowRight, Volume2, Eye
 } from 'lucide-react';
 import { Product, Category, StoreProfile, Order, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
 import { storageService } from '../services/storageService';
@@ -2141,16 +2141,28 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                                     <Trash2 className="w-5 h-5" />
                                                 </button>
                                             ) : (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleConfirmPermanentDeleteOrder(order.id);
-                                                    }}
-                                                    className="p-2 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 transition-colors transform active:scale-95"
-                                                    title="Excluir Permanentemente"
-                                                >
-                                                    <X className="w-5 h-5" />
-                                                </button>
+                                                <>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleOpenOrderDetails(order); // NOVO: Botão de Detalhes
+                                                        }}
+                                                        className="p-2 bg-gray-300 text-gray-700 rounded-full shadow-md hover:bg-gray-400 transition-colors transform active:scale-95"
+                                                        title="Ver Detalhes do Pedido"
+                                                    >
+                                                        <Eye className="w-5 h-5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleConfirmPermanentDeleteOrder(order.id);
+                                                        }}
+                                                        className="p-2 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 transition-colors transform active:scale-95"
+                                                        title="Excluir Permanentemente"
+                                                    >
+                                                        <X className="w-5 h-5" />
+                                                    </button>
+                                                </>
                                             )}
                                         </div>
                                     </div>
