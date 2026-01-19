@@ -66,12 +66,16 @@ const App: React.FC = () => {
     console.log('App.tsx - Current route state:', route);
     console.log('App.tsx - Current window.location.hash (after potential initial clean):', window.location.hash);
 
+    // Regex para verificar se a rota é um ID de loja (UUID)
+    const uuidRegex = /^#\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/;
+    const isStoreRoute = uuidRegex.test(route);
+
     if (session) {
       // Usuário autenticado
       // Se tentar acessar rotas de autenticação (que são modais sobre a landing page),
-      // redireciona para o dashboard, pois já está logado.
-      if (route === '#/register' || route === '#/forgot-password' || route === '#/reset-password') {
-        console.log('App.tsx - Usuário autenticado em rota de autenticação, redirecionando para dashboard.');
+      // ou uma rota de loja pública, redireciona para o dashboard, pois já está logado.
+      if (route === '#/register' || route === '#/forgot-password' || route === '#/reset-password' || isStoreRoute) {
+        console.log('App.tsx - Usuário autenticado em rota de autenticação ou loja pública, redirecionando para dashboard.');
         window.location.hash = '#/dashboard';
       }
       // Se o usuário estiver logado e na rota raiz ('#/'), redireciona para o dashboard.
@@ -79,31 +83,24 @@ const App: React.FC = () => {
         console.log('App.tsx - Usuário autenticado na rota raiz, redirecionando para dashboard.');
         window.location.hash = '#/dashboard';
       }
-      // Se estiver em '#/dashboard' ou '#/store', permite.
+      // Se estiver em '#/dashboard', permite.
     } else {
       // Usuário não autenticado
       if (route.startsWith('#/dashboard')) {
         console.log('App.tsx - Usuário não autenticado em rota de dashboard, redirecionando para raiz.');
         window.location.hash = '#/';
       }
-      // Se estiver em '#/' (landing page), '#/store', '#/register', '#/forgot-password', '#/reset-password', permite.
+      // Se estiver em '#/' (landing page), uma rota de loja pública, '#/register', '#/forgot-password', '#/reset-password', permite.
     }
   }, [session, route]);
 
   // Lógica de Roteamento Simples
-  if (route.startsWith('#/store')) {
-    const parts = route.split('/');
-    const storeId = parts[2]; // Espera-se #/store/ID_DA_LOJA
-    if (storeId) {
-      return <StoreFront storeId={storeId} />;
-    } else {
-      // Caso o ID da loja não seja fornecido na URL
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4 text-center">
-          <p className="text-lg text-gray-700">ID da loja não encontrado na URL. Por favor, use um link válido.</p>
-        </div>
-      );
-    }
+  const uuidRegex = /^#\/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$/;
+  const match = route.match(uuidRegex);
+
+  if (match) {
+    const storeId = match[1];
+    return <StoreFront storeId={storeId} />;
   }
 
   if (route.startsWith('#/dashboard')) {
