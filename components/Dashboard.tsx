@@ -22,6 +22,7 @@ import { CounterManagerPage } from '../src/components/CounterManagerPage';
 import { OrderDetailsModal } from '../src/components/OrderDetailsModal';
 import { AdminPasswordConfirmModal } from '../src/components/AdminPasswordConfirmModal';
 import { DeleteOrderReasonModal } from '../src/components/DeleteOrderReasonModal'; // NOVO: Importar o modal de motivo de exclusão
+import { translateOrderStatus } from '../src/utils/orderUtils'; // Importar a função de tradução
 
 // DND Kit Imports
 import {
@@ -339,7 +340,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
       const interval = setInterval(() => {
         // Check if still pending orders, if not, stop
-        const currentHasPendingOrders = orders.some(order => order.status === 'pending');
+        const currentHasPendingOrders = orders.some(o => o.status === 'pending');
         if (!currentHasPendingOrders) {
           clearInterval(interval);
           setSoundRepeatIntervalId(null);
@@ -2086,12 +2087,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                                  order.status === 'rejected' ? 'bg-red-100 text-red-700' :
                                                  order.status === 'trashed' ? 'bg-gray-200 text-gray-600' :
                                                  'bg-green-100 text-green-700'}`}>
-                                                {order.status === 'pending' ? 'Pendente' : 
-                                                 order.status === 'preparing' ? 'Preparando' :
-                                                 order.status === 'in_transit' ? 'Em Rota' :
-                                                 order.status === 'rejected' ? 'Rejeitado' :
-                                                 order.status === 'trashed' ? 'Lixeira' :
-                                                 'Entregue'}
+                                                {translateOrderStatus(order.status)} {/* Usando a função de tradução aqui */}
                                             </span>
                                             {order.status === 'pending' && (
                                                 <>
@@ -2124,7 +2120,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                                         handleUpdateOrderStatus(order.id, nextStatus);
                                                     }}
                                                     className="p-2 bg-blue-500 text-white rounded-full shadow-md hover:bg-blue-600 transition-colors transform active:scale-95"
-                                                    title={`Avançar para ${nextStatus}`}
+                                                    title={`Avançar para ${translateOrderStatus(nextStatus)}`}
                                                 >
                                                     <ArrowRight className="w-5 h-5" />
                                                 </button>

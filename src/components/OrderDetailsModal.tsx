@@ -4,6 +4,7 @@ import React from 'react';
 import { X, ShoppingBag, User, Calendar, Tag, Package, CheckCircle, Truck, Clock, Bike, Info, FileText } from 'lucide-react'; // Adicionado FileText para o motivo
 import { Modal } from './ui/Modal';
 import { Order, StoreProfile, Product, Option, SubProduct } from '../../types';
+import { translateOrderStatus } from '../utils/orderUtils'; // Importar a função de tradução
 
 interface OrderDetailsModalProps {
   isOpen: boolean;
@@ -80,7 +81,7 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
           </div>
           <div className="flex items-center gap-2">
             <Tag className="w-4 h-4 text-gray-600" />
-            <p className="text-sm text-gray-600">Status: <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>{order.status}</span></p>
+            <p className="text-sm text-gray-600">Status: <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>{translateOrderStatus(order.status)}</span></p>
           </div>
           {(order.status === 'rejected' || order.status === 'trashed') && order.rejectionReason && (
             <div className="flex items-start gap-2 pt-2 border-t border-gray-100 mt-2 bg-red-50 p-3 rounded-lg"> {/* Adicionado destaque aqui */}
@@ -155,7 +156,7 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
               <Truck className="w-4 h-4" /> Marcar como Entregue
             </button>
           )}
-          {/* REMOVIDO: Botão de Restaurar Pedido */}
+          {/* Botão de Restaurar Pedido removido */}
           <button
             type="button"
             onClick={onClose}
