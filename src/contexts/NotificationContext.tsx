@@ -68,6 +68,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             }
             return prev;
           });
+
+          // Trigger browser notification
+          if ("Notification" in window && Notification.permission === "granted") {
+            new Notification("🔔 Novo pedido recebido!", {
+              body: `Pedido #${newOrderData.id?.substring(0, 8)} - R$ ${newOrderData.total.toFixed(2)}`,
+              icon: "/logo.png" // Usando o ícone padrão na pasta public
+            });
+          }
         }
       )
       .subscribe();

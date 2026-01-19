@@ -69,6 +69,12 @@ const AppContent: React.FC = () => {
     console.log('App.tsx - Current window.location.hash (after potential initial clean):', window.location.hash);
 
     if (session) {
+      // Request notification permission when user logs in
+      if ("Notification" in window) {
+        Notification.requestPermission().then(permission => {
+          console.log("Notification permission:", permission);
+        });
+      }
       // Usuário autenticado
       // Se tentar acessar rotas de autenticação (que são modais sobre a landing page),
       // redireciona para o dashboard, pois já está logado.
@@ -232,7 +238,7 @@ const AppContent: React.FC = () => {
                 <Smartphone className="w-8 h-8 text-yellow-600" />
               </div>
               <h4 className="font-bold text-lg text-gray-900 mb-2">Pedidos via WhatsApp</h4>
-              <p className className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600">
                 Receba pedidos diretamente no seu WhatsApp, simplificando a comunicação com seus clientes.
               </p>
             </div>
