@@ -1,0 +1,38 @@
+/* Base styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+::-webkit-scrollbar-thumb {
+  background: #c7c7c7; 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8; 
+}
+
+/* Global styles for new order notification overlay */
+.order-overlay {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2147483647; /* mais alto possível */
+  background: white;
+  border: 3px solid black;
+  padding: 16px 24px;
+  font-weight: bold;
+  border-radius: 10px;
+  box-shadow: 0 15px 40px rgba(0,0,0,.4);
+}

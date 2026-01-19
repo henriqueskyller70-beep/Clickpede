@@ -42,7 +42,7 @@ export const NewOrderNotification: React.FC<NewOrderNotificationProps> = ({
 
   return (
     <div
-      className={`fixed bottom-4 right-4 z-[9999] bg-white p-4 rounded-xl shadow-2xl border border-gray-100 flex items-center gap-4 animate__animated ${
+      className={`order-overlay flex items-center gap-4 animate__animated ${
         isVisible ? 'animate__fadeInUp animate__tada' : 'animate__fadeOutDown'
       }`}
       style={{ minWidth: '280px' }}
