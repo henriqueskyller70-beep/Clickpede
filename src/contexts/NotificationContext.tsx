@@ -4,36 +4,40 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { supabase } from '../integrations/supabase/client';
 import { Order, StoreProfile, NewOrderNotificationType, NotificationContextType } from '../../types';
 import { storageService } from '../../services/storageService';
+import { useSession } from '../components/SessionContextProvider'; // Importar useSession
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { session, supabase } = useSession(); // Usar o hook useSession
+  const userId = session?.user?.id; // Obter userId da sessão
+
   const [pendingNewOrders, setPendingNewOrders] = useState<NewOrderNotificationType[]>([]);
   const [storeProfile, setStoreProfile] = useState<StoreProfile | null>(null);
   const newOrderSoundRef = useRef<HTMLAudioElement>(null);
   const soundRepeatIntervalId = useRef<NodeJS.Timeout | null>(null);
 
-  const session = supabase.auth.getSession(); // Get session to determine userId
-
-  const userId = session?.data?.session?.user?.id;
-
   // Load store profile for sound settings
   useEffect(() => {
     const loadStoreProfile = async () => {
       if (userId) {
+        console.log('[NotificationContext] Carregando storeProfile para userId:', userId);
         const profile = await storageService.getStoreProfile(supabase, userId);
         setStoreProfile(profile);
       } else {
+        console.log('[NotificationContext] userId não disponível, resetando storeProfile.');
         setStoreProfile(null);
       }
     };
     loadStoreProfile();
-  }, [userId]);
+  }, [userId, supabase]); // Depende de userId e supabase
 
   // Realtime subscription for new orders
   useEffect(() => {
     if (!userId) {
       console.log('[NotificationContext] userId não disponível, pulando configuração do Realtime.');
+      // Limpar notificações pendentes se o usuário deslogar
+      setPendingNewOrders([]);
       return;
     }
 
@@ -81,6 +85,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         },
         (payload) => {
           const updatedOrder = payload.new as Order;
+          // Remove notification if order is no longer pending
           if (updatedOrder.status !== 'pending') {
             setPendingNewOrders(prev => prev.filter(n => n.orderId !== updatedOrder.id));
           }
@@ -106,7 +111,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       supabase.removeChannel(ordersChannel);
       supabase.removeChannel(updateChannel);
     };
-  }, [userId]);
+  }, [userId, supabase]); // Depende de userId e supabase
 
   // Sound management for new orders
   useEffect(() => {

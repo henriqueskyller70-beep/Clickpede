@@ -129,9 +129,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
   const [isAdminPasswordConfirmModalOpen, setIsAdminPasswordConfirmModalOpen] = useState(false);
   const [orderToDeletePermanently, setOrderToDeletePermanently] = useState<string | null>(null);
 
-  // REMOVIDO: newOrderSoundRef, isSoundTestPlaying, soundRepeatIntervalId
-  // A lógica de som agora está no NotificationContext
-
   // NOVO: Estado para controlar quais pedidos devem ter a animação 'tada'
   const [newlyAddedOrderIds, setNewlyAddedOrderIds] = useState<Set<string>>(new Set());
 
