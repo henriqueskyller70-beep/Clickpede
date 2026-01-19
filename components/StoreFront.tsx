@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Plus, Minus, X, Search, MapPin, Clock, CreditCard, ShoppingBag, Home, FileText, ChevronRight, Bike, Info, History, Tag, User, Star, Edit } from 'lucide-react';
 import { Product, Category, StoreProfile, CartItem, Address, StoreSchedule, DailySchedule, Group, Option, SubProduct } from '../types';
-import { storageService } from '../services/storageService';
+import { storageService } from '../src/services/storageService';
 import { supabase } from '../src/integrations/supabase/client'; // Importar o cliente Supabase diretamente
 import { showError, showSuccess } from '../src/utils/toast'; // Importar showSuccess
 import { AddressManagerModal } from '../src/components/AddressManagerModal'; // Importar o novo modal
@@ -238,6 +238,7 @@ export const StoreFront: React.FC<StoreFrontProps> = ({ storeId }) => {
       date: new Date().toISOString(),
     };
 
+    console.log('[StoreFront] Tentando criar pedido com storeId:', storeId, 'e newOrder:', newOrder); // Adicione esta linha
     const createdOrder = await storageService.createOrder(supabase, storeId, newOrder); // Passar storeId
 
     if (createdOrder) {
