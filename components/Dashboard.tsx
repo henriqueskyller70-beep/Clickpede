@@ -24,6 +24,7 @@ import { AdminPasswordConfirmModal } from '../src/components/AdminPasswordConfir
 import { DeleteOrderReasonModal } from '../src/components/DeleteOrderReasonModal'; // NOVO: Importar o modal de motivo de exclusão
 import { translateOrderStatus } from '../src/utils/orderUtils'; // Importar a função de tradução
 import { useNotifications } from '../src/contexts/NotificationContext'; // Importar useNotifications
+import toast from 'react-hot-toast'; // Importar toast
 
 // DND Kit Imports
 import {
@@ -374,6 +375,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               console.log('[Dashboard Realtime] Evento INSERT. Novo pedido ID:', changedOrder.id);
               if (!prevOrders.some(order => order.id === changedOrder.id)) {
                 setNewlyAddedOrderIds(prev => new Set(prev).add(changedOrder.id));
+                // Disparar o toast para novo pedido
+                toast.success(
+                  `🛎️ Novo pedido recebido!\nPedido #${changedOrder.id?.substring(0, 8)} - R$ ${changedOrder.total.toFixed(2)}`,
+                  {
+                    icon: '🛒',
+                  }
+                );
                 return [changedOrder, ...prevOrders];
               } else {
                 console.log('[Dashboard Realtime] Pedido já existe no estado, ignorando INSERT duplicado:', changedOrder.id);
