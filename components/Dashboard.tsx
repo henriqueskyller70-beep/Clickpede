@@ -376,12 +376,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               if (!prevOrders.some(order => order.id === changedOrder.id)) {
                 setNewlyAddedOrderIds(prev => new Set(prev).add(changedOrder.id));
                 // Disparar o toast para novo pedido
-                toast.success(
-                  `🛎️ Novo pedido recebido!\nPedido #${changedOrder.id?.substring(0, 8)} - R$ ${changedOrder.total.toFixed(2)}`,
-                  {
-                    icon: '🛒',
-                  }
-                );
+                toast.custom((t) => (
+                  <div
+                    className={`${
+                      t.visible ? 'animate__animated animate__slideInUp' : 'animate__animated animate__fadeOut'
+                    } bg-black text-white px-4 py-3 rounded-lg shadow-lg`}
+                  >
+                    🛎️ <strong>Novo pedido!</strong>
+                  </div>
+                ));
                 return [changedOrder, ...prevOrders];
               } else {
                 console.log('[Dashboard Realtime] Pedido já existe no estado, ignorando INSERT duplicado:', changedOrder.id);
@@ -663,8 +666,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
         const updatedProducts = prevProducts.map(product => {
           if (product.id === productId) {
             return {
-              ...product,
-              options: product.options.map(option => {
+              ...p,
+              options: p.options.map(option => {
                 if (option.id === optionId) {
                   const oldIndex = option.subProducts.findIndex(subProduct => subProduct.id === active.id);
                   const newIndex = option.subProducts.findIndex(subProduct => subProduct.id === over?.id);
