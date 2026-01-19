@@ -512,7 +512,8 @@ export const storageService = {
       items: (o.items as any[] || []), 
       total: o.total,
       status: o.status,
-      date: o.order_date 
+      date: o.order_date,
+      rejectionReason: o.rejection_reason, // NOVO: Mapear rejection_reason
     })) || [];
   },
 
@@ -533,6 +534,7 @@ export const storageService = {
         user_id: userId,
         items: order.items || [],
         order_date: order.date,
+        rejection_reason: order.rejectionReason, // NOVO: Incluir rejection_reason
       }));
       const { error: insertError } = await supabase.from('orders').insert(ordersToInsert);
       if (insertError) {
@@ -552,6 +554,7 @@ export const storageService = {
         status: order.status,
         user_id: userId,
         order_date: order.date, // Mapear 'date' para 'order_date' no DB
+        rejection_reason: order.rejectionReason, // NOVO: Incluir rejection_reason
       }).select().single(); // Retorna o pedido inserido
 
       if (error) {
@@ -566,11 +569,18 @@ export const storageService = {
   },
 
   // NOVO: Função para atualizar o status de um pedido
-  updateOrderStatus: async (supabase: SupabaseClient, userId: string, orderId: string, newStatus: Order['status']): Promise<Order | null> => {
+  updateOrderStatus: async (supabase: SupabaseClient, userId: string, orderId: string, newStatus: Order['status'], rejectionReason?: string): Promise<Order | null> => {
     try {
+      const updatePayload: { status: Order['status']; rejection_reason?: string | null } = { status: newStatus };
+      if (newStatus === 'trashed' || newStatus === 'rejected') {
+        updatePayload.rejection_reason = rejectionReason || null;
+      } else {
+        updatePayload.rejection_reason = null; // Clear reason if status is not rejected/trashed
+      }
+
       const { data, error } = await supabase
         .from('orders')
-        .update({ status: newStatus })
+        .update(updatePayload)
         .eq('id', orderId)
         .eq('user_id', userId)
         .select()
@@ -583,7 +593,8 @@ export const storageService = {
         ...data, 
         customerName: data.customer_name, // Mapear customer_name do DB para customerName na interface
         items: (data.items as any[] || []), 
-        date: data.order_date 
+        date: data.order_date,
+        rejectionReason: data.rejection_reason, // NOVO: Mapear rejection_reason
       } as Order;
     } catch (err: any) {
       console.error("[StorageService] Erro ao atualizar status do pedido:", err);
@@ -592,12 +603,12 @@ export const storageService = {
     }
   },
 
-  // MODIFICADO: deleteOrder agora move para a lixeira (status 'trashed')
-  deleteOrder: async (supabase: SupabaseClient, userId: string, orderId: string): Promise<boolean> => {
+  // MODIFICADO: deleteOrder agora move para a lixeira (status 'trashed') e aceita um motivo
+  deleteOrder: async (supabase: SupabaseClient, userId: string, orderId: string, reason: string): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from('orders')
-        .update({ status: 'trashed' }) // Altera o status para 'trashed'
+        .update({ status: 'trashed', rejection_reason: reason }) // Altera o status para 'trashed' e adiciona o motivo
         .eq('id', orderId)
         .eq('user_id', userId);
 
@@ -637,7 +648,7 @@ export const storageService = {
     try {
       const { error } = await supabase
         .from('orders')
-        .update({ status: 'trashed' }) // Altera o status de todos para 'trashed'
+        .update({ status: 'trashed', rejection_reason: 'Limpeza de histórico' }) // Altera o status de todos para 'trashed'
         .eq('user_id', userId);
 
       if (error) {

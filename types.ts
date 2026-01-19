@@ -82,6 +82,7 @@ export interface Order {
   total: number;
   status: 'pending' | 'preparing' | 'in_transit' | 'delivered' | 'rejected' | 'trashed'; // NOVO: Adicionado 'trashed'
   date: string;
+  rejectionReason?: string; // NOVO: Motivo da rejeição/exclusão do pedido
 }
 
 // Novas interfaces para o horário de funcionamento

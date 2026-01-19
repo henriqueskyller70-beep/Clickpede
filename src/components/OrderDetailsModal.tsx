@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { X, ShoppingBag, User, Calendar, Tag, Package, CheckCircle, Truck, Clock, Bike } from 'lucide-react';
+import { X, ShoppingBag, User, Calendar, Tag, Package, CheckCircle, Truck, Clock, Bike, Info, FileText } from 'lucide-react'; // Adicionado FileText para o motivo
 import { Modal } from './ui/Modal';
 import { Order, StoreProfile, Product, Option, SubProduct } from '../../types';
 
@@ -82,6 +82,15 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
             <Tag className="w-4 h-4 text-gray-600" />
             <p className="text-sm text-gray-600">Status: <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>{order.status}</span></p>
           </div>
+          {(order.status === 'rejected' || order.status === 'trashed') && order.rejectionReason && (
+            <div className="flex items-start gap-2 pt-2 border-t border-gray-100 mt-2">
+              <FileText className="w-4 h-4 text-gray-600 flex-shrink-0 mt-1" />
+              <div>
+                <p className="font-semibold text-gray-800">Motivo da {order.status === 'rejected' ? 'Rejeição' : 'Exclusão'}:</p>
+                <p className="text-sm text-gray-600">{order.rejectionReason}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Order Items */}
@@ -151,7 +160,7 @@ export const OrderDetailsModal: React.FC<OrderDetailsModalProps> = ({
               onClick={() => onUpdateOrderStatus(order.id, 'pending')} // Opção de restaurar da lixeira
               className="bg-gray-600 text-white px-5 py-2.5 rounded-lg hover:bg-gray-700 font-bold shadow-lg transition-all transform active:scale-95 flex items-center gap-2"
             >
-              <Trash2 className="w-4 h-4" /> Restaurar Pedido
+              <FileText className="w-4 h-4" /> Restaurar Pedido
             </button>
           )}
           <button

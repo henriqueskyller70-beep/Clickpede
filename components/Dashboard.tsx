@@ -21,6 +21,7 @@ import { TableManagerPage } from '../src/components/TableManagerPage';
 import { CounterManagerPage } from '../src/components/CounterManagerPage';
 import { OrderDetailsModal } from '../src/components/OrderDetailsModal';
 import { AdminPasswordConfirmModal } from '../src/components/AdminPasswordConfirmModal';
+import { DeleteOrderReasonModal } from '../src/components/DeleteOrderReasonModal'; // NOVO: Importar o modal de motivo de exclusão
 
 // DND Kit Imports
 import {
@@ -131,6 +132,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
 
   // NOVO: Estado para controlar quais pedidos devem ter a animação 'tada'
   const [newlyAddedOrderIds, setNewlyAddedOrderIds] = useState<Set<string>>(new Set());
+
+  // NOVO: Estados para o modal de motivo de exclusão
+  const [isDeleteReasonModalOpen, setIsDeleteReasonModalOpen] = useState(false);
+  const [orderToTrash, setOrderToTrash] = useState<{ id: string; customerName: string } | null>(null);
 
   // Lista de sons de notificação disponíveis
   const notificationSounds = [
@@ -400,6 +405,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               items: payload.old.items || [],
               total: payload.old.total || 0,
               status: payload.old.status || 'rejected', 
+              rejectionReason: payload.old.rejection_reason || undefined, // NOVO: Mapear rejectionReason
             } as Order;
           } else {
             changedOrder = {
@@ -409,6 +415,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
               total: orderData.total || 0,
               status: orderData.status || 'pending',
               date: orderData.order_date || new Date().toISOString(),
+              rejectionReason: orderData.rejection_reason || undefined, // NOVO: Mapear rejectionReason
             } as Order;
           }
 
@@ -1203,11 +1210,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
     await storageService.updateOrderStatus(supabase, userId, orderId, newStatus);
   };
 
-  const handleDeleteOrder = async (orderId: string) => {
+  // MODIFICADO: Abre o modal de motivo de exclusão
+  const handleDeleteOrder = (orderId: string, customerName: string) => {
+    setOrderToTrash({ id: orderId, customerName });
+    setIsDeleteReasonModalOpen(true);
+  };
+
+  // NOVO: Função para confirmar a exclusão com o motivo
+  const handleConfirmDeleteWithReason = async (orderId: string, reason: string) => {
     if (!userId) return;
-    if (window.confirm(`Tem certeza que deseja mover o pedido #${orderId.substring(0, 8)} para a lixeira?`)) {
-      await storageService.deleteOrder(supabase, userId, orderId);
-    }
+    await storageService.deleteOrder(supabase, userId, orderId, reason);
+    setIsDeleteReasonModalOpen(false);
+    setOrderToTrash(null);
   };
 
   const handleConfirmPermanentDeleteOrder = (orderId: string) => {
@@ -2119,7 +2133,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handleDeleteOrder(order.id);
+                                                        handleDeleteOrder(order.id, order.customerName); // MODIFICADO: Passar customerName
                                                     }}
                                                     className="p-2 bg-gray-300 text-gray-700 rounded-full shadow-md hover:bg-gray-400 transition-colors transform active:scale-95"
                                                     title="Mover para a Lixeira"
@@ -2348,76 +2362,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                 </div>
             )}
 
-            {activeTab === 'schedule' && (
-                <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-2xl border border-gray-100 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b border-gray-100">Horário de Funcionamento</h2>
-                    <p className="text-gray-600 mb-6">Defina os horários de abertura e fechamento da sua loja para cada dia da semana.</p>
-                    
-                    <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-3 shadow-inner">
-                        <input 
-                            type="checkbox" 
-                            id="alwaysOpen" 
-                            className="form-checkbox h-5 w-5 rounded focus:ring-[#9f1239] shadow-sm"
-                            style={{ color: storeProfile.primaryColor }}
-                            checked={storeSchedule.isAlwaysOpen}
-                            onChange={(e) => setStoreSchedule(prev => ({ ...prev, isAlwaysOpen: e.target.checked }))}
-                        />
-                        <label htmlFor="alwaysOpen" className="text-base font-semibold text-gray-800">
-                            Sempre Aberto
-                        </label>
-                    </div>
-
-                    <div className="space-y-4">
-                        {storeSchedule.dailySchedules.map((daySchedule, index) => (
-                            <div key={daySchedule.day} className="flex items-center justify-between gap-4 p-3 bg-gray-50 rounded-lg border border-gray-100 shadow-md transform hover:translate-y-[-2px] hover:shadow-lg transition-all duration-200">
-                                <span className="font-medium text-gray-700 w-32">{daySchedule.day}</span>
-                                <div className="flex items-center gap-2">
-                                    <input 
-                                        type="time" 
-                                        className="border border-gray-300 rounded-lg p-2 text-sm bg-white shadow-sm focus:ring-2 focus:ring-[#9f1239]/20 focus:border-[#9f1239] transition-all"
-                                        style={{ borderColor: storeProfile.primaryColor, '--tw-ring-color': `${storeProfile.primaryColor}20` } as React.CSSProperties}
-                                        value={daySchedule.openTime}
-                                        onChange={(e) => handleScheduleChange(index, 'openTime', e.target.value)}
-                                        disabled={storeSchedule.isAlwaysOpen || !daySchedule.isOpen}
-                                    />
-                                    <span className="text-gray-500">-</span>
-                                    <input 
-                                        type="time" 
-                                        className="border border-gray-300 rounded-lg p-2 text-sm bg-white shadow-sm focus:ring-2 focus:ring-[#9f1239]/20 focus:border-[#9f1239] transition-all"
-                                        style={{ borderColor: storeProfile.primaryColor, '--tw-ring-color': `${storeProfile.primaryColor}20` } as React.CSSProperties}
-                                        value={daySchedule.closeTime}
-                                        onChange={(e) => handleScheduleChange(index, 'closeTime', e.target.value)}
-                                        disabled={storeSchedule.isAlwaysOpen || !daySchedule.isOpen}
-                                    />
-                                </div>
-                                <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                                    <input 
-                                        type="checkbox" 
-                                        className="form-checkbox h-4 w-4 rounded shadow-sm" 
-                                        style={{ color: storeProfile.primaryColor }}
-                                        checked={!daySchedule.isOpen}
-                                        onChange={(e) => handleScheduleChange(index, 'isOpen', !e.target.checked)}
-                                        disabled={storeSchedule.isAlwaysOpen}
-                                    />
-                                    Fechado
-                                </label>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="pt-6 flex justify-end">
-                        <button 
-                            onClick={handleSaveSchedule}
-                            className="text-white px-8 py-3 rounded-lg hover:bg-[#881337] font-bold shadow-xl transform active:scale-95 relative overflow-hidden"
-                            style={{ backgroundColor: storeProfile.secondaryColor }}
-                        >
-                            Salvar Horários
-                            <span className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none"></span>
-                        </button>
-                    </div>
-                </div>
-            )}
-
             {activeTab === 'profile-settings' && (
                 <ProfileSettingsPage onProfileUpdate={handleProfileUpdate} />
             )}
@@ -2575,6 +2519,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
           onConfirm={handlePermanentlyDeleteOrderWithPassword}
           title="Confirmar Exclusão Permanente"
           description={`Você está prestes a excluir permanentemente o pedido #${orderToDeletePermanently?.substring(0, 8)}. Esta ação é irreversível.`}
+        />
+      )}
+
+      {isDeleteReasonModalOpen && orderToTrash && (
+        <DeleteOrderReasonModal
+          isOpen={isDeleteReasonModalOpen}
+          onClose={() => {
+            setIsDeleteReasonModalOpen(false);
+            setOrderToTrash(null);
+          }}
+          onConfirm={handleConfirmDeleteWithReason}
+          orderId={orderToTrash.id}
+          orderCustomerName={orderToTrash.customerName}
         />
       )}
     </div>
