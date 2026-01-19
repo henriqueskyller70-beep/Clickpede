@@ -144,6 +144,19 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ onProf
       <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50 opacity-50 -z-10"></div>
       <h2 className="text-2xl font-bold text-gray-800 mb-6 pb-4 border-b border-gray-100">Configurações de Perfil</h2>
       
+      {userId && (
+        <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100 text-blue-800 text-sm flex items-center justify-between">
+          <span className="font-semibold">Seu ID de Usuário:</span>
+          <code className="bg-blue-100 px-3 py-1 rounded-md text-xs font-mono select-all">{userId}</code>
+          <button 
+            onClick={() => { navigator.clipboard.writeText(userId); showSuccess('ID copiado!'); }}
+            className="ml-3 px-3 py-1 bg-blue-200 text-blue-800 rounded-md text-xs font-semibold hover:bg-blue-300 transition-colors"
+          >
+            Copiar
+          </button>
+        </div>
+      )}
+
       <form onSubmit={handleSaveProfile} className="space-y-6">
         {/* Avatar Upload */}
         <div>
