@@ -44,7 +44,7 @@ export const NewOrderNotification: React.FC<NewOrderNotificationProps> = ({
     <div
       className={`fixed bottom-4 right-4 z-[9999] bg-white p-4 rounded-xl shadow-2xl border border-gray-100 flex items-center gap-4 animate__animated ${
         isVisible ? 'animate__fadeInUp' : 'animate__fadeOutDown'
-      }`}
+      } animate__tada`} {/* Adicionado animate__tada aqui */}
       style={{ minWidth: '280px' }}
     >
       <Bell className="w-8 h-8 text-yellow-500 animate__animated animate__swing animate__infinite animate__slow" />
