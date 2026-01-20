@@ -491,7 +491,7 @@ export const storageService = {
 
   // --- Pedidos ---
   getOrders: async (supabase: SupabaseClient, userId: string, fetchType: 'all' | 'only-trashed' | 'non-trashed' = 'non-trashed'): Promise<Order[]> => {
-    let query = supabase.from('orders').select('*').eq('user_id', userId);
+    let query = supabase.from('orders').select('*').eq('storeid', userId); // Alterado para 'storeid'
 
     if (fetchType === 'only-trashed') {
       query = query.eq('status', 'trashed');
@@ -521,7 +521,7 @@ export const storageService = {
   // A criação de pedidos virá da vitrine, e atualizações de status seriam mais granulares.
   // Por enquanto, um upsert simples para a lista inteira.
   saveOrders: async (supabase: SupabaseClient, userId: string, orders: Order[]) => {
-    const { error: deleteError } = await supabase.from('orders').delete().eq('user_id', userId);
+    const { error: deleteError } = await supabase.from('orders').delete().eq('storeid', userId); // Alterado para 'storeid'
     if (deleteError) {
       console.error('Erro ao deletar pedidos existentes:', deleteError);
       showError(`Erro ao deletar pedidos existentes: ${deleteError.message}`);
@@ -531,7 +531,7 @@ export const storageService = {
     if (orders.length > 0) {
       const ordersToInsert = orders.map(order => ({
         ...order,
-        user_id: userId,
+        storeid: userId, // Alterado para 'storeid'
         items: order.items || [],
         order_date: order.date,
         rejection_reason: order.rejectionReason, // NOVO: Incluir rejection_reason
@@ -552,7 +552,7 @@ export const storageService = {
         items: order.items,
         total: order.total,
         status: order.status,
-        user_id: userId,
+        storeid: userId, // Alterado para 'storeid'
         order_date: order.date, // Mapear 'date' para 'order_date' no DB
         rejection_reason: order.rejectionReason, // NOVO: Incluir rejection_reason
       }).select().single(); // Retorna o pedido inserido
@@ -582,7 +582,7 @@ export const storageService = {
         .from('orders')
         .update(updatePayload)
         .eq('id', orderId)
-        .eq('user_id', userId)
+        .eq('storeid', userId) // Alterado para 'storeid'
         .select()
         .single();
 
@@ -610,7 +610,7 @@ export const storageService = {
         .from('orders')
         .update({ status: 'trashed', rejection_reason: reason }) // Altera o status para 'trashed' e adiciona o motivo
         .eq('id', orderId)
-        .eq('user_id', userId);
+        .eq('storeid', userId); // Alterado para 'storeid'
 
       if (error) {
         throw new Error(error.message);
@@ -630,7 +630,7 @@ export const storageService = {
         .from('orders')
         .delete()
         .eq('id', orderId)
-        .eq('user_id', userId);
+        .eq('storeid', userId); // Alterado para 'storeid'
 
       if (error) {
         throw new Error(error.message);
@@ -649,7 +649,7 @@ export const storageService = {
       const { error } = await supabase
         .from('orders')
         .update({ status: 'trashed', rejection_reason: 'Limpeza de histórico' }) // Altera o status de todos para 'trashed'
-        .eq('user_id', userId);
+        .eq('storeid', userId); // Alterado para 'storeid'
 
       if (error) {
         throw new Error(error.message);

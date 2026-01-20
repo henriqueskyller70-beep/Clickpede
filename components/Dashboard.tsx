@@ -335,7 +335,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
           event: '*',
           schema: 'public',
           table: 'orders',
-          filter: `user_id=eq.${userId}`,
+          filter: `storeid=eq.${userId}`, // Alterado para 'storeid'
         },
         (payload) => {
           console.log('[Dashboard Realtime] Mudança no pedido recebida:', payload);
