@@ -222,8 +222,8 @@ export const StoreFront: React.FC<StoreFrontProps> = ({ storeId }) => {
       date: new Date().toISOString(),
     };
 
-    console.log('[StoreFront] Tentando criar pedido com storeId:', storeId, 'e newOrder:', newOrder); // Adicione esta linha
-    const createdOrder = await storageService.createOrder(supabase, storeId, newOrder); // Passar storeId
+    console.log('[StoreFront] Tentando criar pedido com userId:', storeId, 'e newOrder:', newOrder); // Adicione esta linha
+    const createdOrder = await storageService.createOrder(supabase, storeId, newOrder); // Passar storeId como userId
 
     if (createdOrder) {
       setCart([]); // Limpa o carrinho após o pedido ser finalizado

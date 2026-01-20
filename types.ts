@@ -83,6 +83,7 @@ export interface Order {
   status: 'pending' | 'preparing' | 'in_transit' | 'delivered' | 'rejected' | 'trashed'; // NOVO: Adicionado 'trashed'
   date: string;
   rejectionReason?: string; // NOVO: Motivo da rejeição/exclusão do pedido
+  user_id?: string; // Adicionado user_id para vincular o pedido ao dono da loja
 }
 
 // Novas interfaces para o horário de funcionamento

@@ -491,7 +491,7 @@ export const storageService = {
 
   // --- Pedidos ---
   getOrders: async (supabase: SupabaseClient, userId: string, fetchType: 'all' | 'only-trashed' | 'non-trashed' = 'non-trashed'): Promise<Order[]> => {
-    let query = supabase.from('orders').select('*').eq('store_id', userId); // Alterado para 'store_id'
+    let query = supabase.from('orders').select('*').eq('user_id', userId); // Alterado para 'user_id'
 
     if (fetchType === 'only-trashed') {
       query = query.eq('status', 'trashed');
@@ -521,7 +521,7 @@ export const storageService = {
   // A criação de pedidos virá da vitrine, e atualizações de status seriam mais granulares.
   // Por enquanto, um upsert simples para a lista inteira.
   saveOrders: async (supabase: SupabaseClient, userId: string, orders: Order[]) => {
-    const { error: deleteError } = await supabase.from('orders').delete().eq('store_id', userId); // Alterado para 'store_id'
+    const { error: deleteError } = await supabase.from('orders').delete().eq('user_id', userId); // Alterado para 'user_id'
     if (deleteError) {
       console.error('Erro ao deletar pedidos existentes:', deleteError);
       showError(`Erro ao deletar pedidos existentes: ${deleteError.message}`);
@@ -531,7 +531,7 @@ export const storageService = {
     if (orders.length > 0) {
       const ordersToInsert = orders.map(order => ({
         ...order,
-        store_id: userId, // Alterado para 'store_id'
+        user_id: userId, // Alterado para 'user_id'
         items: order.items || [],
         order_date: order.date,
         rejection_reason: order.rejectionReason, // NOVO: Incluir rejection_reason
@@ -547,12 +547,22 @@ export const storageService = {
   // NOVO: Função para criar um único pedido
   createOrder: async (supabase: SupabaseClient, userId: string, order: Omit<Order, 'id'>): Promise<Order | null> => {
     try {
+      console.log('[StorageService] createOrder - userId (user_id) sendo enviado:', userId);
+      console.log('[StorageService] createOrder - Payload completo:', {
+        customer_name: order.customerName,
+        items: order.items,
+        total: order.total,
+        status: order.status,
+        user_id: userId, // Alterado para 'user_id'
+        order_date: order.date,
+        rejection_reason: order.rejectionReason,
+      });
       const { data, error } = await supabase.from('orders').insert({
         customer_name: order.customerName, // Mapear customerName para customer_name no DB
         items: order.items,
         total: order.total,
         status: order.status,
-        store_id: userId, // Alterado para 'store_id'
+        user_id: userId, // Alterado para 'user_id'
         order_date: order.date, // Mapear 'date' para 'order_date' no DB
         rejection_reason: order.rejectionReason, // NOVO: Incluir rejection_reason
       }).select().single(); // Retorna o pedido inserido
@@ -582,7 +592,7 @@ export const storageService = {
         .from('orders')
         .update(updatePayload)
         .eq('id', orderId)
-        .eq('store_id', userId) // Alterado para 'store_id'
+        .eq('user_id', userId) // Alterado para 'user_id'
         .select()
         .single();
 
@@ -610,7 +620,7 @@ export const storageService = {
         .from('orders')
         .update({ status: 'trashed', rejection_reason: reason }) // Altera o status para 'trashed' e adiciona o motivo
         .eq('id', orderId)
-        .eq('store_id', userId); // Alterado para 'store_id'
+        .eq('user_id', userId); // Alterado para 'user_id'
 
       if (error) {
         throw new Error(error.message);
@@ -630,7 +640,7 @@ export const storageService = {
         .from('orders')
         .delete()
         .eq('id', orderId)
-        .eq('store_id', userId); // Alterado para 'store_id'
+        .eq('user_id', userId); // Alterado para 'user_id'
 
       if (error) {
         throw new Error(error.message);
@@ -649,7 +659,7 @@ export const storageService = {
       const { error } = await supabase
         .from('orders')
         .update({ status: 'trashed', rejection_reason: 'Limpeza de histórico' }) // Altera o status de todos para 'trashed'
-        .eq('store_id', userId); // Alterado para 'store_id'
+        .eq('user_id', userId); // Alterado para 'user_id'
 
       if (error) {
         throw new Error(error.message);

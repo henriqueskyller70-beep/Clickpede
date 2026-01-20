@@ -335,7 +335,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
           event: '*',
           schema: 'public',
           table: 'orders',
-          filter: `store_id=eq.${userId}`, // Alterado para 'store_id'
+          filter: `user_id=eq.${userId}`, // Alterado para 'user_id'
         },
         (payload) => {
           console.log('[Dashboard Realtime] Mudança no pedido recebida:', payload);
@@ -1785,7 +1785,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigate }) =>
                                         <div>
                                             <label className="text-sm font-semibold text-gray-700">Imagem do Produto</label>
                                             <div className="mt-1 flex items-center space-x-4">
-                                                <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center border border-gray-200 shadow-lg">
+                                                <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
                                                     {localImagePreview || currentProduct.image_url ? (
                                                         <img 
                                                             src={localImagePreview || currentProduct.image_url} 

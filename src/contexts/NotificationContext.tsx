@@ -51,7 +51,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           event: 'INSERT',
           schema: 'public',
           table: 'orders',
-          filter: `store_id=eq.${userId}`, // Alterado para 'store_id'
+          filter: `user_id=eq.${userId}`, // Alterado para 'user_id'
         },
         (payload) => {
           console.log('[NotificationContext] Novo pedido recebido via Realtime:', payload);
@@ -89,7 +89,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           event: 'UPDATE',
           schema: 'public',
           table: 'orders',
-          filter: `store_id=eq.${userId}`, // Alterado para 'store_id'
+          filter: `user_id=eq.${userId}`, // Alterado para 'user_id'
         },
         (payload) => {
           const updatedOrder = payload.new as Order;
@@ -105,7 +105,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           event: 'DELETE',
           schema: 'public',
           table: 'orders',
-          filter: `store_id=eq.${userId}`, // Alterado para 'store_id'
+          filter: `user_id=eq.${userId}`, // Alterado para 'user_id'
         },
         (payload) => {
           const deletedOrderId = payload.old.id as string;
