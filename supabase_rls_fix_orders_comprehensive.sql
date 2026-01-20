@@ -1,29 +1,29 @@
--- Habilita RLS na tabela 'orders' se ainda não estiver habilitado
+-- Drop existing policies to ensure a clean slate
+DROP POLICY IF EXISTS "Deny anon select for orders" ON public.orders;
+DROP POLICY IF EXISTS "Allow anon insert for orders with user_id" ON public.orders;
+DROP POLICY IF EXISTS "Allow authenticated users to manage their own orders" ON public.orders;
+DROP POLICY IF EXISTS "Enable read access for all users" ON public.orders; -- Just in case
+
+-- Enable RLS on the 'orders' table if not already enabled
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 
--- 1. Remova políticas de leitura muito amplas se existirem (ex: "Enable read access for all users")
--- Verifique o nome da sua política no painel do Supabase e ajuste se necessário.
-DROP POLICY IF EXISTS "Enable read access for all users" ON public.orders;
-DROP POLICY IF EXISTS "Deny anon select for orders" ON public.orders; -- Remova a política de negação anterior se ela foi criada
-DROP POLICY IF EXISTS "Allow anon insert for orders with store_id" ON public.orders; -- Remova a política de insert anterior
-DROP POLICY IF EXISTS "Allow authenticated users to manage their own orders" ON public.orders; -- Remova a política de autenticados anterior
+-- CRUCIAL: Grant base INSERT permission to the anon role.
+-- RLS policies will then refine this, but the base permission must exist.
+GRANT INSERT ON public.orders TO anon;
 
--- 2. Negar explicitamente que usuários anônimos leiam pedidos.
--- Clientes anônimos só precisam INSERIR pedidos, não ler o histórico de pedidos de ninguém.
+-- Deny explicit SELECT for anon users (they should only insert)
 CREATE POLICY "Deny anon select for orders"
 ON public.orders FOR SELECT TO anon USING (
   FALSE
 );
 
--- 3. Permite que usuários anônimos (anon) insiram novos pedidos.
--- A condição WITH CHECK garante que o 'user_id' seja sempre preenchido.
+-- Allow anon users to INSERT new orders, ensuring 'user_id' is provided
 CREATE POLICY "Allow anon insert for orders with user_id"
 ON public.orders FOR INSERT TO anon WITH CHECK (
   user_id IS NOT NULL
 );
 
--- 4. Permite que usuários autenticados (donos de loja) gerenciem (SELECT, INSERT, UPDATE, DELETE)
--- seus próprios pedidos, vinculados ao seu 'user_id'.
+-- Allow authenticated users (store owners) to manage their own orders
 CREATE POLICY "Allow authenticated users to manage their own orders"
 ON public.orders FOR ALL TO authenticated USING (
   auth.uid() = user_id
