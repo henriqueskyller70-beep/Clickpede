@@ -33,7 +33,7 @@ export const StoreFront: React.FC<StoreFrontProps> = ({ storeId }) => {
       { day: 'Segunda-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
       { day: 'Terça-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
       { day: 'Quarta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
-      { day: 'Quinta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
+      { 'day': 'Quinta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
       { day: 'Sexta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
       { day: 'Sábado', isOpen: false, openTime: '00:00', closeTime: '00:00' },
     ],
@@ -56,37 +56,21 @@ export const StoreFront: React.FC<StoreFrontProps> = ({ storeId }) => {
 
   useEffect(() => {
     const loadStoreData = async () => {
-      if (storeId) { // Usar storeId prop
-        console.log('[StoreFront] Carregando dados da loja para storeId:', storeId);
-        const fetchedProducts = await storageService.getProducts(supabase, storeId); // Passar storeId
-        const fetchedStoreProfile = await storageService.getStoreProfile(supabase, storeId); // Passar storeId
-        const fetchedStoreSchedule = await storageService.getStoreSchedule(supabase, storeId); // Passar storeId
-        const fetchedGroups = await storageService.getGroups(supabase, storeId); // Passar storeId
-
-        setProducts(fetchedProducts);
-        setStore(fetchedStoreProfile);
-        setStoreSchedule(fetchedStoreSchedule);
-        setGroups(fetchedGroups);
-      } else {
-        console.log('[StoreFront] storeId não fornecido, limpando dados da loja.');
-        setProducts([]);
-        setStore({ name: '', description: '', primaryColor: '#9f1239', secondaryColor: '#2d1a1a', logoUrl: '', coverUrl: '', address: '', phone: '', notificationSound: 'clock-alarm-8761.mp3', notificationVolume: 0.7, repeatNotificationSound: false });
-        setStoreSchedule({
-          isAlwaysOpen: false,
-          dailySchedules: [
-            { day: 'Domingo', isOpen: false, openTime: '00:00', closeTime: '00:00' },
-            { day: 'Segunda-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
-            { day: 'Terça-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
-            { day: 'Quarta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
-            { day: 'Quinta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
-            { day: 'Sexta-feira', isOpen: true, openTime: '09:00', closeTime: '18:00' },
-            { day: 'Sábado', isOpen: false, openTime: '00:00', closeTime: '00:00' },
-          ],
-          reopenAt: null,
-          isTemporariamenteClosedIndefinidamente: false,
-        });
-        setGroups([]);
+      if (!storeId) { // Garanta que o storeId existe
+        console.error('❌ storeId não encontrado na rota');
+        alert('Erro: loja inválida');
+        return;
       }
+      console.log('[StoreFront] Carregando dados da loja para storeId:', storeId);
+      const fetchedProducts = await storageService.getProducts(supabase, storeId); // Passar storeId
+      const fetchedStoreProfile = await storageService.getStoreProfile(supabase, storeId); // Passar storeId
+      const fetchedStoreSchedule = await storageService.getStoreSchedule(supabase, storeId); // Passar storeId
+      const fetchedGroups = await storageService.getGroups(supabase, storeId); // Passar storeId
+
+      setProducts(fetchedProducts);
+      setStore(fetchedStoreProfile);
+      setStoreSchedule(fetchedStoreSchedule);
+      setGroups(fetchedGroups);
     };
     loadStoreData();
 
